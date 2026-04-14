@@ -10,11 +10,19 @@ interface Props {
 }
 
 export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrategyChange }: Props) {
+  const [openTooltip, setOpenTooltip] = useState<string | null>(null);
+
   const update = (key: keyof MortgageStructure, value: number) => {
     onMortgageChange({ ...mortgage, [key]: value });
   };
 
   const strategies: Strategy[] = ['conservative', 'balanced', 'aggressive'];
+
+  const rateTooltips: Record<string, string> = {
+    primeRate: 'ריבית שמבוססת על ריבית בנק ישראל בתוספת מרווח קבוע. היא יכולה להשתנות עם הזמן, ולכן ההחזר החודשי יכול לעלות או לרדת.',
+    fixedRate: 'ריבית שנשארת קבועה לאורך כל התקופה. נותנת יציבות וודאות גבוהה יותר, אבל בדרך כלל פחות גמישה.',
+    variableRate: 'ריבית שמתעדכנת אחת לכמה שנים לפי תנאי המסלול. בתחילת הדרך היא יכולה להיות נוחה יותר, אבל בעתיד ההחזר עלול להשתנות.',
+  };
 
   const tracks = [
     { label: 'פריים', key: 'primePercent' as const, rateKey: 'primeRate' as const, color: 'bg-primary', desc: 'זול אבל מסוכן' },
