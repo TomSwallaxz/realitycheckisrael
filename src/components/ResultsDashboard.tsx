@@ -341,19 +341,32 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
 
         <div className="border-t border-border/20 my-3 sm:my-4" />
 
-        {/* Equity - highlighted */}
+        {/* Equity & cost breakdown */}
         {(() => {
-          const equityItem = (result.costBreakdown ?? []).find(i => i.label === 'הון עצמי');
-          const otherItems = (result.costBreakdown ?? []).filter(i => i.label !== 'הון עצמי' && i.amount > 0);
+          const equityItem = (result.costBreakdown ?? []).find(i => i.label === 'סה״כ הון עצמי');
+          const equitySubItems = (result.costBreakdown ?? []).filter(i => i.label.startsWith('  ↳'));
+          const otherItems = (result.costBreakdown ?? []).filter(i => i.label !== 'סה״כ הון עצמי' && !i.label.startsWith('  ↳') && i.amount > 0);
           const shortfall = result.totalRealCost - inputs.cashBuffer;
           const equityRatio = equityItem ? (equityItem.amount / result.totalRealCost) * 100 : 0;
 
           return (
             <>
               {equityItem && (
-                <div className="flex items-center justify-between py-2 px-3 rounded-xl bg-primary/5 border border-primary/10 mb-3">
-                  <span className="text-foreground font-bold text-sm">הון עצמי (הכי חשוב)</span>
-                  <span className="text-foreground font-extrabold text-base font-mono">{formatNIS(equityItem.amount)}</span>
+                <div className="py-2.5 px-3 rounded-xl bg-primary/5 border border-primary/10 mb-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-foreground font-bold text-sm">סה״כ הון עצמי (הכי חשוב)</span>
+                    <span className="text-foreground font-extrabold text-base font-mono">{formatNIS(equityItem.amount)}</span>
+                  </div>
+                  {equitySubItems.length > 0 && (
+                    <div className="mt-1.5 space-y-[3px]">
+                      {equitySubItems.map(sub => (
+                        <div key={sub.label} className="flex items-center justify-between text-[11px] sm:text-[12px]">
+                          <span className="text-muted-foreground">{sub.label.trim()}</span>
+                          <span className="text-muted-foreground font-mono">{formatNIS(sub.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -388,9 +401,11 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
 
               {/* Insight */}
               <p className="text-[10px] sm:text-[11px] text-muted-foreground/70 mt-3 leading-relaxed">
-                {equityRatio > 70
-                  ? 'רוב הסכום הוא הון עצמי — שאר העלויות קטנות יחסית אך עדיין חובה לקחת בחשבון.'
-                  : 'שים לב: העלויות הנלוות (מס, עו״ד, תיווך) מהוות חלק משמעותי מהסכום הנדרש.'
+                {equitySubItems.length > 0
+                  ? 'עזרה מההורים מגדילה את ההון העצמי ומקטינה את סכום המשכנתא הנדרש.'
+                  : equityRatio > 70
+                    ? 'רוב הסכום הוא הון עצמי — שאר העלויות קטנות יחסית אך עדיין חובה לקחת בחשבון.'
+                    : 'שים לב: העלויות הנלוות (מס, עו״ד, תיווך) מהוות חלק משמעותי מהסכום הנדרש.'
                 }
               </p>
             </>
