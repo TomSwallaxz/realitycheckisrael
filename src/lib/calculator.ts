@@ -3,8 +3,13 @@ export interface PropertyInputs {
   monthlyRent: number;
   propertyType: 'investment' | 'primary';
   downPayment: number;
+  financingPercent: number;
   monthlyIncome: number;
   cashBuffer: number;
+  region: string;
+  isFirstApartment: boolean;
+  parentHelp: boolean;
+  parentHelpAmount: number;
 }
 
 export interface MortgageStructure {
@@ -19,6 +24,7 @@ export interface MortgageStructure {
 
 export interface ScenarioResult {
   name: string;
+  description: string;
   monthlyPayment: number;
   monthlyRent: number;
   monthlyExpenses: number;
@@ -28,29 +34,70 @@ export interface ScenarioResult {
   monthsBeforeBroke: number | null;
 }
 
+export interface PsychologyInsight {
+  trigger: string;
+  message: string;
+  severity: 'info' | 'warning' | 'danger';
+}
+
 export interface AnalysisResult {
   monthlyPayment: number;
   netCashFlow: number;
   annualYield: number;
-  riskScore: 'Low' | 'Medium' | 'High';
+  riskScore: 'נמוך' | 'בינוני' | 'גבוה';
   verdict: string;
   verdictLevel: 'safe' | 'warning' | 'danger';
-  stressLevel: 'Low' | 'Medium' | 'High';
+  stressLevel: 'נמוך' | 'בינוני' | 'גבוה';
   minRequiredBuffer: number;
+  purchaseTax: number;
+  totalRealCost: number;
   scenarios: ScenarioResult[];
-  mortgageBreakdown: { label: string; amount: number; rate: number; monthly: number }[];
+  mortgageBreakdown: { label: string; amount: number; rate: number; monthly: number; desc: string }[];
+  psychologyInsights: PsychologyInsight[];
+  warningBanners: string[];
 }
 
+export const REGIONS = [
+  'מרכז (תל אביב, גוש דן)',
+  'ירושלים',
+  'חיפה והצפון',
+  'באר שבע והדרום',
+  'השרון',
+  'שפלה',
+  'אחר',
+];
+
+export type Strategy = 'conservative' | 'balanced' | 'aggressive';
+
 const STRATEGY_PRESETS = {
-  conservative: { prime: 20, fixed: 60, variable: 20 },
+  conservative: { prime: 30, fixed: 60, variable: 10 },
   balanced: { prime: 40, fixed: 40, variable: 20 },
   aggressive: { prime: 50, fixed: 20, variable: 30 },
 };
 
-export type Strategy = keyof typeof STRATEGY_PRESETS;
+export const STRATEGY_INFO: Record<Strategy, { label: string; desc: string }> = {
+  conservative: { label: 'שמרני', desc: 'שקט נפשי — רוב קבועה' },
+  balanced: { label: 'מאוזן', desc: 'חלוקה סטנדרטית' },
+  aggressive: { label: 'אגרסיבי', desc: 'יותר פריים ומשתנה' },
+};
 
 export function getStrategyPreset(strategy: Strategy) {
   return STRATEGY_PRESETS[strategy];
+}
+
+/** Israeli purchase tax (mas rechisha) - simplified 2024 rates */
+function calcPurchaseTax(price: number, isFirstApartment: boolean): number {
+  if (isFirstApartment) {
+    // First apartment - exempt up to ~1,919,155, then 3.5% up to ~2,271,560, then 5%, etc.
+    if (price <= 1919155) return 0;
+    if (price <= 2271560) return (price - 1919155) * 0.035;
+    if (price <= 5872725) return (2271560 - 1919155) * 0.035 + (price - 2271560) * 0.05;
+    return (2271560 - 1919155) * 0.035 + (5872725 - 2271560) * 0.05 + (price - 5872725) * 0.08;
+  } else {
+    // Not first apartment (investment) - 8% up to ~5,872,725, then 10%
+    if (price <= 5872725) return price * 0.08;
+    return 5872725 * 0.08 + (price - 5872725) * 0.10;
+  }
 }
 
 function calcMonthlyPayment(principal: number, annualRate: number, years: number): number {
@@ -61,14 +108,14 @@ function calcMonthlyPayment(principal: number, annualRate: number, years: number
 }
 
 function calcMonthlyExpenses(price: number): number {
-  const maintenance = price * 0.01 / 12; // 1% annual
-  const vacancy = 0; // handled per scenario
-  const repairs = price * 0.005 / 12; // 0.5% annual
-  return maintenance + vacancy + repairs;
+  const maintenance = price * 0.01 / 12;
+  const repairs = price * 0.005 / 12;
+  return maintenance + repairs;
 }
 
 function runScenario(
   name: string,
+  description: string,
   inputs: PropertyInputs,
   mortgage: MortgageStructure,
   rateIncrease: number,
@@ -87,11 +134,9 @@ function runScenario(
 
   const monthlyPayment = primeMonthly + fixedMonthly + variableMonthly;
   const monthlyExpenses = calcMonthlyExpenses(inputs.price);
-  const effectiveRent = inputs.monthlyRent * (12 - vacancyMonths) / 12;
+  const effectiveRent = inputs.propertyType === 'primary' ? 0 : inputs.monthlyRent * (12 - vacancyMonths) / 12;
   const monthlyCashFlow = effectiveRent - monthlyPayment - monthlyExpenses;
 
-  const annualCashBurn = monthlyCashFlow < 0 ? Math.abs(monthlyCashFlow) * 12 + unexpectedRepair : -monthlyCashFlow * 12 + unexpectedRepair;
-  
   let monthsBeforeBroke: number | null = null;
   let survives = true;
 
@@ -108,6 +153,7 @@ function runScenario(
 
   return {
     name,
+    description,
     monthlyPayment,
     monthlyRent: effectiveRent,
     monthlyExpenses,
@@ -116,6 +162,82 @@ function runScenario(
     survives,
     monthsBeforeBroke,
   };
+}
+
+function generatePsychologyInsights(inputs: PropertyInputs, result: Omit<AnalysisResult, 'psychologyInsights' | 'warningBanners'>): PsychologyInsight[] {
+  const insights: PsychologyInsight[] = [];
+
+  const burden = result.monthlyPayment / inputs.monthlyIncome;
+  if (burden > 0.4) {
+    insights.push({
+      trigger: 'עומס כלכלי',
+      message: 'אתה מתכנן להקדיש יותר מ-40% מההכנסה למשכנתא. זה לא ״קצת לחוץ״ — זה לחיות על הקצה.',
+      severity: 'danger',
+    });
+  } else if (burden > 0.3) {
+    insights.push({
+      trigger: 'עומס גבולי',
+      message: 'אתה ב-30%+ מההכנסה על משכנתא. זה אפשרי, אבל כל הוצאה לא צפויה תכאיב.',
+      severity: 'warning',
+    });
+  }
+
+  if (inputs.parentHelp) {
+    insights.push({
+      trigger: 'עזרה מההורים',
+      message: 'אם אתה צריך עזרה מההורים כדי לקנות — שאל את עצמך אם אתה באמת מוכן לעסקה הזו.',
+      severity: 'info',
+    });
+  }
+
+  if (inputs.cashBuffer < result.monthlyPayment * 6) {
+    insights.push({
+      trigger: 'כרית ביטחון דקה',
+      message: 'אין לך מספיק כסף בצד. אם משהו ישתבש — ואין ״אם״, יהיה ״מתי״ — אתה בבעיה.',
+      severity: 'danger',
+    });
+  }
+
+  if (inputs.propertyType === 'investment' && result.annualYield < 3) {
+    insights.push({
+      trigger: 'תשואה נמוכה',
+      message: 'תשואה של פחות מ-3% זה פחות ממה שתקבל בפיקדון בנקאי. בטוח שזו ״השקעה״?',
+      severity: 'warning',
+    });
+  }
+
+  const ltv = (inputs.price - inputs.downPayment) / inputs.price;
+  if (ltv > 0.7) {
+    insights.push({
+      trigger: 'מינוף גבוה',
+      message: 'אתה ממנף יותר מ-70% מערך הנכס. ירידת מחירים של 10% תשאיר אותך עם חוב גדול מהנכס.',
+      severity: 'danger',
+    });
+  }
+
+  return insights;
+}
+
+function generateWarningBanners(inputs: PropertyInputs, result: Omit<AnalysisResult, 'psychologyInsights' | 'warningBanners'>): string[] {
+  const banners: string[] = [];
+
+  if (inputs.cashBuffer < 50000) {
+    banners.push('🚨 אם אין לך לפחות 50,000₪ בצד — אתה נכנס לסיכון גבוה מאוד');
+  }
+
+  if (!result.scenarios[2].survives) {
+    banners.push('⚠️ אתה לא שורד את התרחיש הגרוע. מה תעשה כשזה יקרה?');
+  }
+
+  if (result.monthlyPayment / inputs.monthlyIncome > 0.45) {
+    banners.push('🔴 יותר מ-45% מההכנסה שלך הולכת למשכנתא. הבנק אולי יאשר — אבל החיים לא');
+  }
+
+  if (inputs.purchaseTax > 0) {
+    // This gets added in analyze
+  }
+
+  return banners;
 }
 
 export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): AnalysisResult {
@@ -131,19 +253,23 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
 
   const monthlyPayment = primeMonthly + fixedMonthly + variableMonthly;
   const monthlyExpenses = calcMonthlyExpenses(inputs.price);
-  const netCashFlow = inputs.monthlyRent - monthlyPayment - monthlyExpenses;
-  const annualYield = ((inputs.monthlyRent * 12 - monthlyExpenses * 12) / inputs.price) * 100;
+  const effectiveRent = inputs.propertyType === 'primary' ? 0 : inputs.monthlyRent;
+  const netCashFlow = effectiveRent - monthlyPayment - monthlyExpenses;
+  const annualYield = inputs.propertyType === 'primary' ? 0 :
+    ((inputs.monthlyRent * 12 - monthlyExpenses * 12) / inputs.price) * 100;
+
+  const purchaseTax = calcPurchaseTax(inputs.price, inputs.isFirstApartment);
+  const totalRealCost = inputs.downPayment + purchaseTax + 15000; // lawyer, misc fees
 
   const mortgageBreakdown = [
-    { label: 'Prime (Variable)', amount: primeAmount, rate: mortgage.primeRate, monthly: primeMonthly },
-    { label: 'Fixed Non-Indexed', amount: fixedAmount, rate: mortgage.fixedRate, monthly: fixedMonthly },
-    { label: 'Variable', amount: variableAmount, rate: mortgage.variableRate, monthly: variableMonthly },
+    { label: 'פריים', amount: primeAmount, rate: mortgage.primeRate, monthly: primeMonthly, desc: 'זול אבל מסוכן — עולה עם הריבית' },
+    { label: 'קבועה לא צמודה', amount: fixedAmount, rate: mortgage.fixedRate, monthly: fixedMonthly, desc: 'יקר אבל יציב — שקט נפשי' },
+    { label: 'משתנה', amount: variableAmount, rate: mortgage.variableRate, monthly: variableMonthly, desc: 'זול בהתחלה, לא צפוי' },
   ];
 
-  // Scenarios
-  const baseCase = runScenario('Base Case', inputs, mortgage, 0, 1, 0);
-  const badCase = runScenario('Bad Scenario', inputs, mortgage, 1.5, 2, 0);
-  const worstCase = runScenario('Worst Case', inputs, mortgage, 3, 3.5, 20000);
+  const baseCase = runScenario('מצב רגיל', 'חודש אחד ללא שוכר, ריבית יציבה', inputs, mortgage, 0, 1, 0);
+  const badCase = runScenario('מצב רע', '2 חודשים בלי שוכר, ריבית +1.5%', inputs, mortgage, 1.5, 2, 0);
+  const worstCase = runScenario('מצב גרוע מאוד', '3.5 חודשים בלי שוכר, ריבית +3%, תיקון 25,000₪', inputs, mortgage, 3, 3.5, 25000);
 
   const scenarios = [baseCase, badCase, worstCase];
 
@@ -166,27 +292,29 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
   if (monthlyBurden > 0.4) riskPoints += 2;
   else if (monthlyBurden > 0.3) riskPoints += 1;
 
-  const riskScore: 'Low' | 'Medium' | 'High' = riskPoints <= 3 ? 'Low' : riskPoints <= 6 ? 'Medium' : 'High';
+  // Primary residence is inherently more risky (no income offset)
+  if (inputs.propertyType === 'primary') riskPoints += 1;
 
-  // Verdict
+  const riskScore = riskPoints <= 3 ? 'נמוך' as const : riskPoints <= 6 ? 'בינוני' as const : 'גבוה' as const;
+
   let verdict: string;
   let verdictLevel: 'safe' | 'warning' | 'danger';
 
-  if (riskScore === 'Low' && worstCase.survives) {
-    verdict = 'Safe investment — you can survive even the worst case.';
+  if (riskScore === 'נמוך' && worstCase.survives) {
+    verdict = 'יציב יחסית — אבל אל תירדם על המשמר';
     verdictLevel = 'safe';
-  } else if (riskScore === 'Medium' || (riskScore === 'Low' && !worstCase.survives)) {
-    verdict = 'Borderline — high risk. Proceed only with significant reserves.';
+  } else if (riskScore === 'בינוני' || (riskScore === 'נמוך' && !worstCase.survives)) {
+    verdict = 'גבולי — דורש כרית ביטחון גבוהה. תחשוב פעמיים.';
     verdictLevel = 'warning';
   } else {
-    verdict = 'Not recommended — this deal doesn\'t survive stress scenarios.';
+    verdict = 'עסקה מסוכנת — אתה על הקצה. לא מומלץ.';
     verdictLevel = 'danger';
   }
 
   const stressLevel = riskScore;
-  const minRequiredBuffer = Math.max(monthlyPayment * 12 + 20000, worstCase.annualCashBurn * 1.5);
+  const minRequiredBuffer = Math.max(monthlyPayment * 12 + 25000, worstCase.annualCashBurn * 1.5);
 
-  return {
+  const partialResult = {
     monthlyPayment,
     netCashFlow,
     annualYield,
@@ -195,7 +323,22 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     verdictLevel,
     stressLevel,
     minRequiredBuffer,
+    purchaseTax,
+    totalRealCost,
     scenarios,
     mortgageBreakdown,
   };
+
+  const psychologyInsights = generatePsychologyInsights(inputs, partialResult);
+  const warningBanners = generateWarningBanners(inputs, partialResult);
+
+  if (purchaseTax > 50000) {
+    warningBanners.push(`💸 מס רכישה לבד: ${formatNIS(purchaseTax)} — כסף שנעלם ביום הראשון`);
+  }
+
+  return { ...partialResult, psychologyInsights, warningBanners };
+}
+
+export function formatNIS(n: number): string {
+  return '₪' + Math.round(n).toLocaleString('he-IL');
 }
