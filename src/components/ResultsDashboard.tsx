@@ -343,7 +343,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         <h3 className="font-heading font-bold text-sm text-foreground mb-1">
           💸 כמה נשאר לך כל חודש
         </h3>
-        <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">הכנסה פחות משכנתא והוצאות</p>
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">הכנסה פחות משכנתא, הוצאות קבועות ותחזוקה</p>
 
         <div className="space-y-1.5 text-[13px] sm:text-sm">
           {inputs.propertyType === 'investment' && (
@@ -360,9 +360,15 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
             <span className="text-muted-foreground">החזר משכנתא</span>
             <span className="font-mono font-medium text-danger">-{formatNIS(result.monthlyPayment)}</span>
           </div>
+          {inputs.fixedMonthlyExpenses > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">הוצאות קבועות</span>
+              <span className="font-mono font-medium text-danger">-{formatNIS(inputs.fixedMonthlyExpenses)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
-            <span className="text-muted-foreground">הוצאות קבועות (תחזוקה + תיקונים)</span>
-            <span className="font-mono font-medium text-danger">-{formatNIS(monthlyExpenses)}</span>
+            <span className="text-muted-foreground">תחזוקה + תיקונים</span>
+            <span className="font-mono font-medium text-danger">-{formatNIS(propertyExpenses)}</span>
           </div>
           <div className="border-t border-border/30 my-1.5" />
           <div className="flex justify-between items-center">
@@ -391,7 +397,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           🛡️ כרית ביטחון (6 חודשים)
         </h3>
         <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">
-          מבוסס על הוצאות חודשיות של {formatNIS(result.monthlyPayment + monthlyExpenses)}
+          מבוסס על הוצאות חודשיות של {formatNIS(result.monthlyPayment + totalMonthlyExpenses)}
         </p>
 
         <div className="space-y-1.5 text-[13px] sm:text-sm">
@@ -418,7 +424,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           </div>
         ) : (
           <div className="mt-3 rounded-xl bg-safe/10 border border-safe/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-safe leading-relaxed font-heading font-bold">
-            ✓ יש לך כרית ביטחון מספקת — {Math.floor(inputs.cashBuffer / (result.monthlyPayment + monthlyExpenses))} חודשים של הוצאות מכוסים
+            ✓ יש לך כרית ביטחון מספקת — {Math.floor(inputs.cashBuffer / (result.monthlyPayment + totalMonthlyExpenses))} חודשים של הוצאות מכוסים
           </div>
         )}
       </div>
