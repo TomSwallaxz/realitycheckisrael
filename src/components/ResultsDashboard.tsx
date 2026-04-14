@@ -543,6 +543,9 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         </div>
       )}
 
+      {/* Download PDF */}
+      <DownloadPDFButton result={result} inputs={inputs} motivations={motivations} />
+
       {/* Inline disclaimer */}
       <div className="text-center text-[11px] text-muted-foreground/60 pt-2 border-t border-border/20">
         ⚠️ הערכה בלבד — לא התחייבות הבנק
