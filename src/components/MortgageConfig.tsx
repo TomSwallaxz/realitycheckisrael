@@ -261,7 +261,6 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
           </div>
         </div>
       )}
-      </div>
 
       <div className="rounded-xl bg-secondary/30 border border-border/30 px-3 py-2 sm:py-2.5 mb-3 sm:mb-4">
         <p className="text-[10px] sm:text-[11px] text-muted-foreground leading-relaxed">
