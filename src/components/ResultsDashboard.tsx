@@ -73,25 +73,40 @@ function MetricCard({ label, value, sub, level }: {
   );
 }
 
-function ScenarioCard({ scenario, propertyType }: {
+type ScenarioTier = 'optimistic' | 'realistic' | 'bad' | 'worst';
+
+const TIER_STYLES: Record<ScenarioTier, { border: string; bg: string; text: string; dot: string; badge: string }> = {
+  optimistic: { border: 'border-safe/25', bg: 'bg-safe/5', text: 'text-safe', dot: 'bg-safe', badge: 'bg-safe/10 text-safe' },
+  realistic: { border: 'border-warning/25', bg: 'bg-warning/5', text: 'text-warning', dot: 'bg-warning', badge: 'bg-warning/10 text-warning' },
+  bad: { border: 'border-danger/25', bg: 'bg-danger/5', text: 'text-danger', dot: 'bg-danger', badge: 'bg-danger/10 text-danger' },
+  worst: { border: 'border-danger/40', bg: 'bg-danger/10', text: 'text-danger', dot: 'bg-danger', badge: 'bg-danger/15 text-danger' },
+};
+
+const TIER_ICONS: Record<ScenarioTier, string> = {
+  optimistic: '🟢',
+  realistic: '🟠',
+  bad: '🔴',
+  worst: '⛔',
+};
+
+function ScenarioCard({ scenario, propertyType, tier }: {
   scenario: AnalysisResult['scenarios'][0];
   propertyType: 'investment' | 'primary';
+  tier: ScenarioTier;
 }) {
-  const level = scenario.survives
-    ? scenario.monthlyCashFlow >= 0 ? 'safe' : 'warning'
-    : 'danger';
-
-  const borderMap = { safe: 'border-safe/20', warning: 'border-warning/20', danger: 'border-danger/20' };
-  const bgMap = { safe: 'bg-safe/5', warning: 'bg-warning/5', danger: 'bg-danger/5' };
-  const textMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
-  const dotMap = { safe: 'bg-safe', warning: 'bg-warning', danger: 'bg-danger' };
-
+  const style = TIER_STYLES[tier];
   const isInvestment = propertyType === 'investment';
 
+  // For result status, use actual data
+  const resultLevel = scenario.survives
+    ? scenario.monthlyCashFlow >= 0 ? 'safe' : 'warning'
+    : 'danger';
+  const resultTextMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
+
   return (
-    <div className={`rounded-2xl border p-3.5 sm:p-4 backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
+    <div className={`rounded-2xl border p-3.5 sm:p-4 backdrop-blur-sm ${style.border} ${style.bg}`}>
       <div className="flex items-center gap-2 mb-1">
-        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${dotMap[level]}`} />
+        <span className="text-sm flex-shrink-0">{TIER_ICONS[tier]}</span>
         <span className="font-heading font-bold text-sm text-foreground">{scenario.name}</span>
       </div>
       <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">{scenario.description}</p>
@@ -116,10 +131,10 @@ function ScenarioCard({ scenario, propertyType }: {
         <div className="border-t border-border/30 my-1" />
         <div className="flex justify-between font-semibold">
           <span className="text-muted-foreground">
-            {isInvestment ? 'תזרים חודשי' : 'עלות חודשית'}
+            {isInvestment ? 'תזרים חודשי' : 'כמה נשאר לך'}
           </span>
-          <span className={`font-mono ${textMap[level]}`}>
-            {isInvestment ? formatNIS(scenario.monthlyCashFlow) : formatNIS(Math.abs(scenario.monthlyCashFlow))}
+          <span className={`font-mono ${resultTextMap[resultLevel]}`}>
+            {formatNIS(scenario.monthlyCashFlow)}
           </span>
         </div>
       </div>
@@ -133,7 +148,7 @@ function ScenarioCard({ scenario, propertyType }: {
       }`}>
         {scenario.survives
           ? scenario.monthlyCashFlow >= 0
-            ? isInvestment ? '✓ תזרים חיובי — הנכס מכסה את עצמו' : '✓ עלות סבירה'
+            ? isInvestment ? '✓ תזרים חיובי — הנכס מכסה את עצמו' : '✓ מצב יציב'
             : `⚠ שורד ~${scenario.monthsBeforeBroke} חודשים על כרית הביטחון`
           : scenario.monthsBeforeBroke === 0
             ? '✗ נגמר הכסף מיד'
@@ -544,11 +559,11 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         </div>
       ))}
 
-      {/* Scenarios — property-type aware */}
+      {/* Scenarios — full spectrum */}
       <div>
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-heading font-bold text-sm text-foreground">
-            תרחישי לחץ — מה קורה כשדברים משתבשים?
+            ספקטרום תרחישים — מהטוב לגרוע
           </h3>
           <span className={`text-[10px] sm:text-[11px] font-heading font-medium px-2.5 py-1 rounded-full ${
             inputs.propertyType === 'investment'
@@ -559,28 +574,30 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           </span>
         </div>
         <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">
-          {inputs.propertyType === 'investment'
-            ? 'בדיקה: מה קורה לתזרים כשהשכירות יורדת או נעלמת?'
-            : 'בדיקה: כמה זה באמת עולה לך כל חודש כשדברים משתבשים?'
-          }
+          הטווח המלא: מהתרחיש הטוב ביותר ועד הגרוע ביותר
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-          {result.scenarios.map(s => (
-            <ScenarioCard key={s.name} scenario={s} propertyType={inputs.propertyType} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+          {result.scenarios.map((s, i) => (
+            <ScenarioCard
+              key={s.name}
+              scenario={s}
+              propertyType={inputs.propertyType}
+              tier={(['optimistic', 'realistic', 'bad', 'worst'] as ScenarioTier[])[i]}
+            />
           ))}
         </div>
 
         {/* Smart insight */}
         <div className="mt-3 rounded-xl bg-secondary/30 border border-border/30 px-3 py-2.5 text-[12px] sm:text-[13px] text-foreground leading-relaxed">
           💡 {inputs.propertyType === 'investment'
-            ? result.scenarios[0].monthlyCashFlow < 0
-              ? 'גם עם שוכר, התזרים שלילי — אתה מסבסד את הנכס מכיסך כל חודש.'
-              : result.scenarios[1].monthlyCashFlow < 0
-                ? 'במצב רגיל הנכס מכסה את עצמו, אבל ירידה בשכירות או חודש ריק יגרמו להפסד.'
+            ? result.scenarios[1].monthlyCashFlow < 0
+              ? 'גם במצב הסביר התזרים שלילי — אתה מסבסד את הנכס מכיסך כל חודש.'
+              : result.scenarios[2].monthlyCashFlow < 0
+                ? 'במצב הסביר הנכס מכסה את עצמו, אבל במצב רע כבר תרגיש את זה.'
                 : 'הנכס מכסה את עצמו גם בתרחיש רע — מצב יציב יחסית.'
-            : result.scenarios[0].monthlyCashFlow < -3000
-              ? 'זה המחיר האמיתי שאתה משלם כל חודש — ודא שאתה יכול לעמוד בזה לטווח ארוך.'
-              : 'זה המחיר האמיתי שאתה משלם כל חודש על הדירה.'
+            : result.scenarios[1].monthlyCashFlow < -3000
+              ? 'גם במצב הסביר ההוצאה החודשית משמעותית — ודא שאתה יכול לעמוד בזה לטווח ארוך.'
+              : 'המצב הסביר נראה ישים. הסתכל על התרחישים הגרועים כדי לוודא שיש לך כרית.'
           }
         </div>
       </div>
