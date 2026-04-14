@@ -345,7 +345,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         <div className="border-t border-border/20 my-3 sm:my-4" />
 
         <div className="space-y-[7px]">
-          {result.costBreakdown.filter(item => item.amount > 0).map(item => (
+          {(result.costBreakdown ?? []).filter(item => item.amount > 0).map(item => (
             <div key={item.label} className="flex items-center justify-between text-[13px] sm:text-sm">
               <span className="text-muted-foreground">{item.label}</span>
               <span className="text-foreground font-medium font-mono">{formatNIS(item.amount)}</span>
