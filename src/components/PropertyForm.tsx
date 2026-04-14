@@ -217,6 +217,30 @@ export function PropertyForm({ inputs, onChange }: Props) {
             prefix="₪"
             large
           />
+
+          <div className="flex items-center gap-3 mt-2">
+            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">עזרה מההורים?</label>
+            <button
+              type="button"
+              onClick={() => onChange({ ...inputs, parentHelp: !inputs.parentHelp })}
+              className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
+                inputs.parentHelp
+                  ? "bg-warning/15 text-warning border border-warning/30"
+                  : "bg-secondary/50 text-secondary-foreground border border-border/40"
+              }`}
+            >
+              {inputs.parentHelp ? "כן" : "לא"}
+            </button>
+          </div>
+          {inputs.parentHelp && (
+            <NumericField
+              label="סכום העזרה"
+              value={inputs.parentHelpAmount}
+              onChange={(v) => update("parentHelpAmount", v)}
+              prefix="₪"
+            />
+          )}
+
           <NumericField
             label="אחוז מימון"
             value={inputs.financingPercent}
@@ -285,31 +309,6 @@ export function PropertyForm({ inputs, onChange }: Props) {
             prefix="₪"
             hint="כמה כסף נשאר לך אחרי כל העלויות"
           />
-
-          <div className="border-t border-border/30 pt-3 mt-3">
-            <div className="flex items-center gap-3 mb-2">
-              <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">עזרה מההורים?</label>
-              <button
-                type="button"
-                onClick={() => onChange({ ...inputs, parentHelp: !inputs.parentHelp })}
-                className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
-                  inputs.parentHelp
-                    ? "bg-warning/15 text-warning border border-warning/30"
-                    : "bg-secondary/50 text-secondary-foreground border border-border/40"
-                }`}
-              >
-                {inputs.parentHelp ? "כן" : "לא"}
-              </button>
-            </div>
-            {inputs.parentHelp && (
-              <NumericField
-                label="סכום העזרה"
-                value={inputs.parentHelpAmount}
-                onChange={(v) => update("parentHelpAmount", v)}
-                prefix="₪"
-              />
-            )}
-          </div>
         </div>
       </div>
     </div>
