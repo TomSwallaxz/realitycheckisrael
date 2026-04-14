@@ -129,7 +129,9 @@ const Index = () => {
         <div className="content-card p-4 sm:p-6 lg:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
             <div className="lg:col-span-5 space-y-4 sm:space-y-5">
-              <PropertyForm inputs={inputs} onChange={handleInputChange} />
+              <div ref={formRef}>
+                <PropertyForm inputs={inputs} onChange={handleInputChange} />
+              </div>
               <MortgageConfig
                 mortgage={mortgage}
                 strategy={strategy}
