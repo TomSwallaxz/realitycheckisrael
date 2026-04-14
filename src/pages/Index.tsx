@@ -168,6 +168,24 @@ const Index = () => {
           </div>
         </div>
       </main>
+
+      {/* Footer Disclaimer */}
+      <footer className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 sm:pb-12">
+        <div className="rounded-xl border border-border/30 bg-secondary/10 p-4 sm:p-5">
+          <h3 className="text-xs sm:text-sm font-heading font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+            <span>⚠️</span>
+            <span>חשוב לדעת</span>
+          </h3>
+          <p className="text-[11px] sm:text-xs text-muted-foreground/80 leading-relaxed">
+            המידע המוצג כאן הוא להערכה בלבד, ומבוסס על נתונים והנחות כלליות.
+            החישובים אינם מהווים ייעוץ פיננסי, המלצה או התחייבות לקבלת משכנתא.
+          </p>
+          <p className="text-[11px] sm:text-xs text-muted-foreground/80 leading-relaxed mt-1.5">
+            תנאי האשראי בפועל נקבעים על ידי הבנק ועשויים להשתנות בהתאם לנתונים האישיים שלך.
+            לפני קבלת החלטה, מומלץ להתייעץ עם גורם מקצועי.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };

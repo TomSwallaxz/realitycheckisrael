@@ -644,6 +644,12 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           })}
         </div>
       )}
+      {/* Inline disclaimer */}
+      <div className="mt-6 pt-4 border-t border-border/30">
+        <p className="text-[11px] sm:text-xs text-muted-foreground text-center leading-relaxed">
+          ⚠️ הערכה בלבד — לא התחייבות הבנק. תנאי האשראי בפועל נקבעים על ידי הבנק.
+        </p>
+      </div>
     </div>
   );
 }
