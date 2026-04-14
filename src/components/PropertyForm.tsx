@@ -121,8 +121,10 @@ export function PropertyForm({ inputs, onChange }: Props) {
     });
   };
 
-  const equityPercent = inputs.price > 0 ? Math.round((inputs.downPayment / inputs.price) * 100) : 0;
-  const loanAmount = inputs.price - inputs.downPayment;
+  const parentCont = (inputs.parentHelp && inputs.parentHelpAmount > 0) ? inputs.parentHelpAmount : 0;
+  const totalEquity = inputs.downPayment + parentCont;
+  const equityPercent = inputs.price > 0 ? Math.round((totalEquity / inputs.price) * 100) : 0;
+  const loanAmount = Math.max(0, inputs.price - totalEquity);
 
   return (
     <div className="space-y-4 w-full max-w-full overflow-x-hidden">
@@ -132,7 +134,20 @@ export function PropertyForm({ inputs, onChange }: Props) {
         </div>
 
         <div className="grid grid-cols-2 gap-2 mb-4">
-          <SummaryItem label="הון עצמי" value={`₪${formatWithCommas(inputs.downPayment)}`} />
+          <div className="text-center py-2">
+            <div className="text-muted-foreground font-heading text-[10px] sm:text-[11px] mb-0.5">
+              {parentCont > 0 ? 'הון עצמי זמין' : 'הון עצמי'}
+            </div>
+            <div className="font-heading font-bold text-foreground text-sm sm:text-lg tracking-tight whitespace-nowrap" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              ₪{formatWithCommas(totalEquity)}
+            </div>
+            {parentCont > 0 && (
+              <div className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 space-y-0">
+                <div>אישי: ₪{formatWithCommas(inputs.downPayment)}</div>
+                <div>הורים: ₪{formatWithCommas(parentCont)}</div>
+              </div>
+            )}
+          </div>
           <SummaryItem
             label="אחוז מימון"
             value={`${inputs.financingPercent}%`}
