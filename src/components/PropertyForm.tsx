@@ -57,23 +57,29 @@ function NumericField({
   );
 }
 
-function SummaryCard({ label, value, sub, prominent }: { label: string; value: string; sub?: string; prominent?: boolean }) {
+function SummaryItem({ label, value, sub, prominent }: { label: string; value: string; sub?: string; prominent?: boolean }) {
   return (
     <div className={`text-center ${prominent ? 'py-3' : 'py-2'}`}>
       <div className="text-[10px] sm:text-[11px] text-muted-foreground font-heading mb-0.5">{label}</div>
-      <div className={`font-heading font-bold text-foreground whitespace-nowrap tabular-nums tracking-tight leading-tight ${prominent ? 'text-base sm:text-xl' : 'text-sm sm:text-lg'}`} style={{ letterSpacing: '-0.02em' }}>{value}</div>
+      <div
+        className={`font-heading font-bold text-foreground whitespace-nowrap tracking-tight leading-tight ${
+          prominent ? 'text-base sm:text-xl' : 'text-sm sm:text-lg'
+        }`}
+        style={{ fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}
+      >
+        {value}
+      </div>
       {sub && <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 whitespace-nowrap">{sub}</div>}
     </div>
   );
 }
 
-function FinancingBar({ equityPercent, financingPercent }: { equityPercent: number; financingPercent: number }) {
+function FinancingBar({ equityPercent }: { equityPercent: number }) {
   const eq = Math.max(0, Math.min(100, equityPercent));
   const fin = 100 - eq;
 
   return (
-    <div>
-      {/* Labels — RTL: equity on right, mortgage on left */}
+    <div className="w-full">
       <div className="flex justify-between items-baseline mb-2">
         <div className="text-left">
           <span className="text-[11px] sm:text-xs text-muted-foreground font-heading">משכנתא</span>
@@ -84,8 +90,6 @@ function FinancingBar({ equityPercent, financingPercent }: { equityPercent: numb
           <span className="text-[11px] sm:text-xs text-muted-foreground font-heading">הון עצמי</span>
         </div>
       </div>
-
-      {/* Bar — RTL: equity right, mortgage left */}
       <div className="flex h-4 sm:h-5 gap-1 rounded-full overflow-hidden">
         <div className="bg-primary rounded-s-full transition-all duration-500 ease-out" style={{ width: `${fin}%` }} />
         <div className="bg-safe rounded-e-full transition-all duration-500 ease-out" style={{ width: `${eq}%` }} />
@@ -110,143 +114,145 @@ export function PropertyForm({ inputs, onChange }: Props) {
   const loanAmount = inputs.price - inputs.downPayment;
 
   return (
-    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden box-border">
-      {/* Summary cards — no double frame, just clean sections */}
+    <div className="space-y-4 w-full max-w-full overflow-x-hidden">
+      {/* Summary section — single clean card */}
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
-        {/* Price — full width prominent card */}
-        <div className="border-b border-border/30 mb-3 pb-2">
-          <SummaryCard label="מחיר הנכס" value={`₪${formatWithCommas(inputs.price)}`} prominent />
+        {/* Price — full width, prominent */}
+        <div className="border-b border-border/30 mb-3 pb-1">
+          <SummaryItem label="מחיר הנכס" value={`₪${formatWithCommas(inputs.price)}`} prominent />
         </div>
 
-        {/* Equity + Financing — 2 columns on mobile, not 3 */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <SummaryCard label="הון עצמי" value={`₪${formatWithCommas(inputs.downPayment)}`} />
-          <SummaryCard
+        {/* Equity + Financing — always 2 columns */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <SummaryItem label="הון עצמי" value={`₪${formatWithCommas(inputs.downPayment)}`} />
+          <SummaryItem
             label="אחוז מימון"
             value={`${inputs.financingPercent}%`}
             sub={`₪${formatWithCommas(loanAmount)}`}
           />
         </div>
 
-        {/* Financing bar */}
-        <FinancingBar equityPercent={equityPercent} financingPercent={inputs.financingPercent} />
+        <FinancingBar equityPercent={equityPercent} />
       </div>
 
-      <div className="space-y-3">
-        <NumericField label="מחיר הנכס" value={inputs.price} onChange={(v) => update("price", v)} prefix="₪" large />
+      {/* Form fields — separate clean card */}
+      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
+        <div className="space-y-3">
+          <NumericField label="מחיר הנכס" value={inputs.price} onChange={(v) => update("price", v)} prefix="₪" large />
 
-        <div>
-          <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">אזור</label>
-          <select
-            value={inputs.region}
-            onChange={(e) => update("region", e.target.value)}
-            className="w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-3 sm:py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-          >
-            {REGIONS.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">סוג נכס</label>
-          <div className="flex gap-2">
-            {(["investment", "primary"] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => update("propertyType", type)}
-                className={`flex-1 py-3 sm:py-2.5 rounded-xl text-sm font-heading font-medium transition-all active:scale-[0.97] ${
-                  inputs.propertyType === type
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                    : "bg-secondary/50 text-secondary-foreground hover:bg-accent border border-border/40"
-                }`}
-              >
-                {type === "investment" ? "השקעה" : "מגורים"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {inputs.propertyType === "investment" && (
-          <NumericField
-            label="שכר דירה צפוי (חודשי)"
-            value={inputs.monthlyRent}
-            onChange={(v) => update("monthlyRent", v)}
-            prefix="₪"
-          />
-        )}
-
-        <div className="flex items-center gap-3">
-          <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">דירה ראשונה?</label>
-          <button
-            onClick={() => update("isFirstApartment", !inputs.isFirstApartment)}
-            className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
-              inputs.isFirstApartment
-                ? "bg-safe/15 text-safe border border-safe/30"
-                : "bg-secondary/50 text-secondary-foreground border border-border/40"
-            }`}
-          >
-            {inputs.isFirstApartment ? "כן" : "לא"}
-          </button>
-        </div>
-      </div>
-
-      <h2 className="font-heading font-bold text-foreground text-sm mt-5 sm:mt-6 mb-3 sm:mb-4">נתונים פיננסיים</h2>
-
-      <div className="space-y-3">
-        <NumericField
-          label="הון עצמי"
-          value={inputs.downPayment}
-          onChange={(v) => update("downPayment", v)}
-          prefix="₪"
-          large
-        />
-        <NumericField
-          label="אחוז מימון"
-          value={inputs.financingPercent}
-          onChange={(v) => update("financingPercent", v)}
-          suffix="%"
-          hint={inputs.financingPercent > 75 ? "⚠️ מעל 75% — הבנק כנראה לא יאשר" : undefined}
-        />
-        <NumericField
-          label="הכנסה חודשית נטו"
-          value={inputs.monthlyIncome}
-          onChange={(v) => update("monthlyIncome", v)}
-          prefix="₪"
-          large
-        />
-        <NumericField
-          label="כרית ביטחון אחרי הרכישה"
-          value={inputs.cashBuffer}
-          onChange={(v) => update("cashBuffer", v)}
-          prefix="₪"
-          hint="כמה כסף נשאר לך אחרי כל העלויות"
-        />
-
-        <div className="border-t border-border/30 pt-3 mt-3">
-          <div className="flex items-center gap-3 mb-2">
-            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">עזרה מההורים?</label>
-            <button
-              onClick={() => update("parentHelp", !inputs.parentHelp)}
-              className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
-                inputs.parentHelp
-                  ? "bg-warning/15 text-warning border border-warning/30"
-                  : "bg-secondary/50 text-secondary-foreground border border-border/40"
-              }`}
+          <div>
+            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">אזור</label>
+            <select
+              value={inputs.region}
+              onChange={(e) => update("region", e.target.value)}
+              className="w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-3 sm:py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
             >
-              {inputs.parentHelp ? "כן" : "לא"}
-            </button>
+              {REGIONS.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
           </div>
-          {inputs.parentHelp && (
+
+          <div>
+            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">סוג נכס</label>
+            <div className="flex gap-2">
+              {(["investment", "primary"] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => update("propertyType", type)}
+                  className={`flex-1 py-3 sm:py-2.5 rounded-xl text-sm font-heading font-medium transition-all active:scale-[0.97] ${
+                    inputs.propertyType === type
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                      : "bg-secondary/50 text-secondary-foreground hover:bg-accent border border-border/40"
+                  }`}
+                >
+                  {type === "investment" ? "השקעה" : "מגורים"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {inputs.propertyType === "investment" && (
             <NumericField
-              label="סכום העזרה"
-              value={inputs.parentHelpAmount}
-              onChange={(v) => update("parentHelpAmount", v)}
+              label="שכר דירה צפוי (חודשי)"
+              value={inputs.monthlyRent}
+              onChange={(v) => update("monthlyRent", v)}
               prefix="₪"
             />
           )}
+
+          <div className="flex items-center gap-3">
+            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">דירה ראשונה?</label>
+            <button
+              onClick={() => update("isFirstApartment", !inputs.isFirstApartment)}
+              className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
+                inputs.isFirstApartment
+                  ? "bg-safe/15 text-safe border border-safe/30"
+                  : "bg-secondary/50 text-secondary-foreground border border-border/40"
+              }`}
+            >
+              {inputs.isFirstApartment ? "כן" : "לא"}
+            </button>
+          </div>
+        </div>
+
+        <h2 className="font-heading font-bold text-foreground text-sm mt-5 sm:mt-6 mb-3 sm:mb-4">נתונים פיננסיים</h2>
+
+        <div className="space-y-3">
+          <NumericField
+            label="הון עצמי"
+            value={inputs.downPayment}
+            onChange={(v) => update("downPayment", v)}
+            prefix="₪"
+            large
+          />
+          <NumericField
+            label="אחוז מימון"
+            value={inputs.financingPercent}
+            onChange={(v) => update("financingPercent", v)}
+            suffix="%"
+            hint={inputs.financingPercent > 75 ? "⚠️ מעל 75% — הבנק כנראה לא יאשר" : undefined}
+          />
+          <NumericField
+            label="הכנסה חודשית נטו"
+            value={inputs.monthlyIncome}
+            onChange={(v) => update("monthlyIncome", v)}
+            prefix="₪"
+            large
+          />
+          <NumericField
+            label="כרית ביטחון אחרי הרכישה"
+            value={inputs.cashBuffer}
+            onChange={(v) => update("cashBuffer", v)}
+            prefix="₪"
+            hint="כמה כסף נשאר לך אחרי כל העלויות"
+          />
+
+          <div className="border-t border-border/30 pt-3 mt-3">
+            <div className="flex items-center gap-3 mb-2">
+              <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">עזרה מההורים?</label>
+              <button
+                onClick={() => update("parentHelp", !inputs.parentHelp)}
+                className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
+                  inputs.parentHelp
+                    ? "bg-warning/15 text-warning border border-warning/30"
+                    : "bg-secondary/50 text-secondary-foreground border border-border/40"
+                }`}
+              >
+                {inputs.parentHelp ? "כן" : "לא"}
+              </button>
+            </div>
+            {inputs.parentHelp && (
+              <NumericField
+                label="סכום העזרה"
+                value={inputs.parentHelpAmount}
+                onChange={(v) => update("parentHelpAmount", v)}
+                prefix="₪"
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
