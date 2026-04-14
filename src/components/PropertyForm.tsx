@@ -47,16 +47,21 @@ function NumericField({ label, value, onChange, prefix, suffix, hint, large }: {
   );
 }
 
-function SummaryCard({ label, value, sub }: {
+function SummaryCard({ label, value, sub, prominent }: {
   label: string;
   value: string;
   sub?: string;
+  prominent?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 text-center">
-      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-heading mb-1">{label}</div>
-      <div className="text-lg sm:text-xl font-heading font-bold text-foreground tracking-tight">{value}</div>
-      {sub && <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">{sub}</div>}
+    <div className={`py-2.5 sm:py-3 ${prominent ? 'px-1' : 'px-1'}`}>
+      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-heading mb-0.5">{label}</div>
+      <div className={`font-heading font-bold text-foreground tracking-tight whitespace-nowrap tabular-nums ${
+        prominent ? 'text-base sm:text-xl' : 'text-sm sm:text-lg'
+      }`} style={{ letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </div>
+      {sub && <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 whitespace-nowrap">{sub}</div>}
     </div>
   );
 }
@@ -115,25 +120,32 @@ export function PropertyForm({ inputs, onChange }: Props) {
   const loanAmount = inputs.price - effectiveEquity;
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
-      <h2 className="font-heading font-bold text-foreground text-sm mb-3 sm:mb-4">
+    <div className="space-y-4 sm:space-y-5">
+      <h2 className="font-heading font-bold text-foreground text-sm">
         פרטי הנכס
       </h2>
 
-      {/* Top summary row — 3 cards */}
-      <div className="grid grid-cols-3 gap-2 mb-3 sm:mb-4">
-        <SummaryCard label="מחיר הנכס" value={`₪${formatWithCommas(inputs.price)}`} />
-        <SummaryCard label="סה״כ הון עצמי" value={`₪${formatWithCommas(effectiveEquity)}`} />
-        <SummaryCard
-          label="אחוז מימון"
-          value={`${inputs.financingPercent}%`}
-          sub={`₪${formatWithCommas(loanAmount)}`}
-        />
-      </div>
+      {/* Top summary — stacked on mobile, 3-col on desktop */}
+      <div className="rounded-2xl border border-border/30 bg-secondary/20 px-4 sm:px-5">
+        {/* Price — prominent first item */}
+        <SummaryCard label="מחיר הנכס" value={`₪${formatWithCommas(inputs.price)}`} prominent />
+        
+        <div className="h-px bg-border/25" />
+        
+        {/* Equity + Financing — side by side */}
+        <div className="grid grid-cols-2 gap-4">
+          <SummaryCard label="סה״כ הון עצמי" value={`₪${formatWithCommas(effectiveEquity)}`} />
+          <SummaryCard
+            label="אחוז מימון"
+            value={`${inputs.financingPercent}%`}
+            sub={`משכנתא ₪${formatWithCommas(loanAmount)}`}
+          />
+        </div>
 
-      {/* Financing bar */}
-      <div className="mb-4 sm:mb-5">
-        <FinancingBar equityPercent={equityPercent} financingPercent={inputs.financingPercent} />
+        {/* Financing bar — inside the same container */}
+        <div className="pb-3 sm:pb-4 pt-1">
+          <FinancingBar equityPercent={equityPercent} financingPercent={inputs.financingPercent} />
+        </div>
       </div>
 
       <div className="space-y-3">
