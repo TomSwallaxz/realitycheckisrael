@@ -215,13 +215,50 @@ export function PropertyForm({ inputs, onChange }: Props) {
             suffix="%"
             hint={inputs.financingPercent > 75 ? "⚠️ מעל 75% — הבנק כנראה לא יאשר" : undefined}
           />
+          {/* Borrower toggle */}
+          <div className="flex items-center justify-between">
+            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">מבנה לווים</label>
+            <div className="flex gap-1.5">
+              <button
+                onClick={() => { update("dualBorrower", false); update("secondBorrowerIncome", 0); }}
+                className={`px-3 py-2 sm:py-1.5 rounded-xl text-xs font-heading font-medium transition-all active:scale-95 ${
+                  !inputs.dualBorrower
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-secondary/50 text-secondary-foreground border border-border/40"
+                }`}
+              >
+                👤 לווה יחיד
+              </button>
+              <button
+                onClick={() => update("dualBorrower", true)}
+                className={`px-3 py-2 sm:py-1.5 rounded-xl text-xs font-heading font-medium transition-all active:scale-95 ${
+                  inputs.dualBorrower
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-secondary/50 text-secondary-foreground border border-border/40"
+                }`}
+              >
+                👥 שני לווים
+              </button>
+            </div>
+          </div>
+
           <NumericField
-            label="הכנסה חודשית נטו"
+            label={inputs.dualBorrower ? "הכנסה חודשית — לווה 1" : "הכנסה חודשית נטו"}
             value={inputs.monthlyIncome}
             onChange={(v) => update("monthlyIncome", v)}
             prefix="₪"
             large
           />
+          {inputs.dualBorrower && (
+            <NumericField
+              label="הכנסה חודשית — לווה 2"
+              value={inputs.secondBorrowerIncome}
+              onChange={(v) => update("secondBorrowerIncome", v)}
+              prefix="₪"
+              large
+              hint="בן/בת זוג או ערב"
+            />
+          )}
           <NumericField
             label="הוצאות חודשיות קבועות"
             value={inputs.fixedMonthlyExpenses}
