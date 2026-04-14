@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { MortgageStructure, Strategy, STRATEGY_INFO, DEFAULT_RATES } from '@/lib/calculator';
-import { Info, ChevronDown } from 'lucide-react';
+import { Info, ChevronDown, X } from 'lucide-react';
 
 interface Props {
   mortgage: MortgageStructure;
@@ -48,9 +48,35 @@ const fullExplanations: Record<string, { title: string; content: { label: string
   },
 };
 
+const labelColors: Record<string, string> = {
+  'מה זה?': 'text-primary',
+  'איך זה מחושב?': 'text-primary',
+  'השפעה על ההחזר': 'text-warning',
+  'יתרונות': 'text-safe',
+  'חסרונות': 'text-danger',
+};
+
 export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrategyChange }: Props) {
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
-  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+  const [openPopover, setOpenPopover] = useState<string | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const triggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  // Close popover on click outside
+  useEffect(() => {
+    if (!openPopover) return;
+    const handler = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        // Check if click was on a trigger button
+        const clickedTrigger = Object.values(triggerRefs.current).some(
+          ref => ref && ref.contains(e.target as Node)
+        );
+        if (!clickedTrigger) setOpenPopover(null);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [openPopover]);
 
   const update = (key: keyof MortgageStructure, value: number) => {
     onMortgageChange({ ...mortgage, [key]: value });
