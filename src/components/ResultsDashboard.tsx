@@ -305,9 +305,9 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           level={burdenLevel}
         />
         <MetricCard
-          label="תזרים נטו"
+          label="כמה נשאר לך כל חודש"
           value={formatNIS(result.netCashFlow)}
-          sub="אחרי כל ההוצאות"
+          sub="הכנסה פחות משכנתא והוצאות"
           level={cashFlowLevel}
         />
         {inputs.propertyType === 'investment' && (
