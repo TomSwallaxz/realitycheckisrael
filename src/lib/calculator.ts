@@ -233,8 +233,8 @@ function generateWarningBanners(inputs: PropertyInputs, result: Omit<AnalysisRes
     banners.push('🔴 יותר מ-45% מההכנסה שלך הולכת למשכנתא. הבנק אולי יאשר — אבל החיים לא');
   }
 
-  if (inputs.purchaseTax > 0) {
-    // This gets added in analyze
+  if (purchaseTax > 0) {
+    // handled below
   }
 
   return banners;

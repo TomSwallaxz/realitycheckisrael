@@ -1,13 +1,19 @@
-import { AnalysisResult, PropertyInputs } from '@/lib/calculator';
+import { AnalysisResult, PropertyInputs, formatNIS } from '@/lib/calculator';
 
 interface Props {
   result: AnalysisResult;
   inputs: PropertyInputs;
+  motivations: string[];
 }
 
-function formatCurrency(n: number): string {
-  return '₪' + Math.round(n).toLocaleString();
-}
+const MOTIVATION_RESPONSES: Record<string, string> = {
+  family_pressure: 'לחץ מהמשפחה זה לא סיבה לקנות דירה. זו ההחלטה הכלכלית הגדולה ביותר שלך — לא שלהם.',
+  fomo: '״המחירים יעלו״ — אולי. אבל אם העסקה לא עומדת בפני עצמה היום, היא לא תעמוד מחר.',
+  stability: 'יציבות זה לגיטימי. אבל יציבות עם חוב כבד זה לא באמת יציבות.',
+  investment: 'תשואה טובה על נדל״ן? אולי. אבל תבדוק את המספרים — לא את הסיפורים.',
+  status: 'דירה משלך = הצלחה? בדוק שוב. הצלחה זה שקט נפשי, לא משכנתא.',
+  rent_waste: '״שכירות זה בזבוז״ — מיתוס. גם ריבית, מס רכישה, ותחזוקה הם ״בזבוז״.',
+};
 
 function VerdictBanner({ result }: { result: AnalysisResult }) {
   const bgMap = {
@@ -26,18 +32,18 @@ function VerdictBanner({ result }: { result: AnalysisResult }) {
       <div className={`font-heading font-bold text-lg ${textMap[result.verdictLevel]}`}>
         {result.verdict}
       </div>
-      <div className="flex gap-6 mt-3 text-sm">
+      <div className="flex flex-wrap gap-x-6 gap-y-2 mt-3 text-sm">
         <div>
-          <span className="text-muted-foreground">Risk: </span>
+          <span className="text-muted-foreground">סיכון: </span>
           <span className={`font-semibold ${textMap[result.verdictLevel]}`}>{result.riskScore}</span>
         </div>
         <div>
-          <span className="text-muted-foreground">Stress: </span>
+          <span className="text-muted-foreground">לחץ צפוי: </span>
           <span className={`font-semibold ${textMap[result.verdictLevel]}`}>{result.stressLevel}</span>
         </div>
         <div>
-          <span className="text-muted-foreground">Min Buffer: </span>
-          <span className="font-semibold text-foreground">{formatCurrency(result.minRequiredBuffer)}</span>
+          <span className="text-muted-foreground">כרית ביטחון מינימלית: </span>
+          <span className="font-semibold text-foreground">{formatNIS(result.minRequiredBuffer)}</span>
         </div>
       </div>
     </div>
@@ -59,92 +65,74 @@ function MetricCard({ label, value, sub, level }: {
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
-      <div className="text-xs text-muted-foreground font-heading uppercase tracking-wider">{label}</div>
-      <div className={`text-2xl font-heading font-bold mt-1 ${colorMap[level || 'neutral']}`}>{value}</div>
+      <div className="text-xs text-muted-foreground font-heading">{label}</div>
+      <div className={`text-2xl font-heading font-bold mt-1 font-mono ${colorMap[level || 'neutral']}`}>{value}</div>
       {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
     </div>
   );
 }
 
-function ScenarioCard({ scenario, cashBuffer }: {
+function ScenarioCard({ scenario }: {
   scenario: AnalysisResult['scenarios'][0];
-  cashBuffer: number;
 }) {
   const level = scenario.survives
     ? scenario.monthlyCashFlow >= 0 ? 'safe' : 'warning'
     : 'danger';
 
-  const borderMap = {
-    safe: 'border-safe/30',
-    warning: 'border-warning/30',
-    danger: 'border-danger/30',
-  };
-  const bgMap = {
-    safe: 'bg-safe/5',
-    warning: 'bg-warning/5',
-    danger: 'bg-danger/5',
-  };
-  const textMap = {
-    safe: 'text-safe',
-    warning: 'text-warning',
-    danger: 'text-danger',
-  };
-  const dotMap = {
-    safe: 'bg-safe',
-    warning: 'bg-warning',
-    danger: 'bg-danger',
-  };
+  const borderMap = { safe: 'border-safe/30', warning: 'border-warning/30', danger: 'border-danger/30' };
+  const bgMap = { safe: 'bg-safe/5', warning: 'bg-warning/5', danger: 'bg-danger/5' };
+  const textMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
+  const dotMap = { safe: 'bg-safe', warning: 'bg-warning', danger: 'bg-danger' };
 
   return (
     <div className={`rounded-lg border p-4 ${borderMap[level]} ${bgMap[level]}`}>
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-1">
         <div className={`w-2 h-2 rounded-full ${dotMap[level]}`} />
-        <span className="font-heading font-semibold text-sm text-foreground">{scenario.name}</span>
+        <span className="font-heading font-bold text-sm text-foreground">{scenario.name}</span>
       </div>
+      <p className="text-xs text-muted-foreground mb-3">{scenario.description}</p>
 
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Monthly Payment</span>
-          <span className="text-foreground font-medium">{formatCurrency(scenario.monthlyPayment)}</span>
+          <span className="text-muted-foreground">החזר חודשי</span>
+          <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyPayment)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Effective Rent</span>
-          <span className="text-foreground font-medium">{formatCurrency(scenario.monthlyRent)}</span>
+          <span className="text-muted-foreground">שכ״ד אפקטיבי</span>
+          <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyRent)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Expenses</span>
-          <span className="text-foreground font-medium">{formatCurrency(scenario.monthlyExpenses)}</span>
+          <span className="text-muted-foreground">הוצאות</span>
+          <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyExpenses)}</span>
         </div>
         <div className="border-t border-border my-1" />
         <div className="flex justify-between font-semibold">
-          <span className="text-muted-foreground">Cash Flow</span>
-          <span className={textMap[level]}>{formatCurrency(scenario.monthlyCashFlow)}/mo</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Annual Cash Burn</span>
-          <span className="text-foreground">{formatCurrency(scenario.annualCashBurn)}</span>
+          <span className="text-muted-foreground">תזרים חודשי</span>
+          <span className={`font-mono ${textMap[level]}`}>{formatNIS(scenario.monthlyCashFlow)}</span>
         </div>
       </div>
 
-      <div className={`mt-3 rounded-md px-3 py-2 text-xs font-heading font-semibold ${
+      <div className={`mt-3 rounded-md px-3 py-2 text-xs font-heading font-bold ${
         scenario.survives
-          ? 'bg-safe/10 text-safe'
+          ? scenario.monthlyCashFlow >= 0
+            ? 'bg-safe/10 text-safe'
+            : 'bg-warning/10 text-warning'
           : 'bg-danger/10 text-danger'
       }`}>
         {scenario.survives
           ? scenario.monthlyCashFlow >= 0
-            ? '✓ Positive cash flow'
-            : `⚠ Survives ~${scenario.monthsBeforeBroke} months on buffer`
+            ? '✓ תזרים חיובי'
+            : `⚠ שורד ~${scenario.monthsBeforeBroke} חודשים על כרית הביטחון`
           : scenario.monthsBeforeBroke === 0
-            ? '✗ Broke immediately'
-            : `✗ Broke in ${scenario.monthsBeforeBroke} months`
+            ? '✗ נגמר הכסף מיד'
+            : `✗ נשבר אחרי ${scenario.monthsBeforeBroke} חודשים`
         }
       </div>
     </div>
   );
 }
 
-export function ResultsDashboard({ result, inputs }: Props) {
+export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const cashFlowLevel = result.netCashFlow >= 0 ? 'safe' : result.netCashFlow > -1000 ? 'warning' : 'danger';
   const yieldLevel = result.annualYield >= 5 ? 'safe' : result.annualYield >= 3 ? 'warning' : 'danger';
   const burdenPercent = (result.monthlyPayment / inputs.monthlyIncome * 100);
@@ -152,47 +140,71 @@ export function ResultsDashboard({ result, inputs }: Props) {
 
   return (
     <div className="space-y-5">
+      {/* Warning banners */}
+      {result.warningBanners.map((banner, i) => (
+        <div key={i} className="rounded-lg bg-danger/10 border border-danger/30 px-4 py-3 text-sm text-danger font-heading font-semibold">
+          {banner}
+        </div>
+      ))}
+
       <VerdictBanner result={result} />
 
       {/* Key metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <MetricCard
-          label="Monthly Payment"
-          value={formatCurrency(result.monthlyPayment)}
-          sub={`${burdenPercent.toFixed(0)}% of income`}
+          label="החזר חודשי"
+          value={formatNIS(result.monthlyPayment)}
+          sub={`${burdenPercent.toFixed(0)}% מההכנסה`}
           level={burdenLevel}
         />
         <MetricCard
-          label="Net Cash Flow"
-          value={formatCurrency(result.netCashFlow)}
-          sub="After all expenses"
+          label="תזרים נטו"
+          value={formatNIS(result.netCashFlow)}
+          sub="אחרי כל ההוצאות"
           level={cashFlowLevel}
         />
+        {inputs.propertyType === 'investment' && (
+          <MetricCard
+            label="תשואה שנתית"
+            value={`${result.annualYield.toFixed(1)}%`}
+            sub="ברוטו"
+            level={yieldLevel}
+          />
+        )}
         <MetricCard
-          label="Gross Yield"
-          value={`${result.annualYield.toFixed(1)}%`}
-          sub="Annual return"
-          level={yieldLevel}
+          label="מס רכישה"
+          value={formatNIS(result.purchaseTax)}
+          sub="כסף שנעלם ביום 1"
+          level={result.purchaseTax > 50000 ? 'danger' : 'neutral'}
         />
-        <MetricCard
-          label="Risk Score"
-          value={result.riskScore}
-          level={result.verdictLevel}
-        />
+      </div>
+
+      {/* Real cost */}
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h3 className="font-heading font-bold text-sm text-foreground mb-1">
+          👉 העלות האמיתית — לא רק המשכנתא
+        </h3>
+        <p className="text-xs text-muted-foreground mb-3">הון עצמי + מס רכישה + עלויות נלוות</p>
+        <div className="text-2xl font-heading font-bold text-foreground font-mono">
+          {formatNIS(result.totalRealCost)}
+        </div>
       </div>
 
       {/* Mortgage breakdown */}
       <div className="rounded-lg border border-border bg-card p-4">
-        <h3 className="font-heading font-semibold text-sm uppercase tracking-wider text-foreground mb-3">
-          Mortgage Breakdown
+        <h3 className="font-heading font-bold text-sm text-foreground mb-3">
+          פירוט המשכנתא
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {result.mortgageBreakdown.map(track => (
-            <div key={track.label} className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{track.label}</span>
-              <div className="text-right">
-                <span className="text-foreground font-medium">{formatCurrency(track.monthly)}/mo</span>
-                <span className="text-muted-foreground ml-2">({formatCurrency(track.amount)} @ {track.rate}%)</span>
+            <div key={track.label} className="flex items-start justify-between text-sm">
+              <div>
+                <span className="text-foreground font-medium">{track.label}</span>
+                <div className="text-xs text-muted-foreground">{track.desc}</div>
+              </div>
+              <div className="text-left">
+                <span className="text-foreground font-medium font-mono">{formatNIS(track.monthly)}/חודש</span>
+                <div className="text-xs text-muted-foreground font-mono">{formatNIS(track.amount)} @ {track.rate}%</div>
               </div>
             </div>
           ))}
@@ -201,15 +213,61 @@ export function ResultsDashboard({ result, inputs }: Props) {
 
       {/* Scenarios */}
       <div>
-        <h3 className="font-heading font-semibold text-sm uppercase tracking-wider text-foreground mb-3">
-          Stress Scenarios
+        <h3 className="font-heading font-bold text-sm text-foreground mb-1">
+          תרחישי לחץ — מה קורה כשדברים משתבשים?
         </h3>
+        <p className="text-xs text-muted-foreground mb-3">זה לא ״אם״ — זה ״מתי״</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {result.scenarios.map(s => (
-            <ScenarioCard key={s.name} scenario={s} cashBuffer={inputs.cashBuffer} />
+            <ScenarioCard key={s.name} scenario={s} />
           ))}
         </div>
       </div>
+
+      {/* Psychology insights */}
+      {(result.psychologyInsights.length > 0 || motivations.length > 0) && (
+        <div className="rounded-lg border border-warning/30 bg-warning/5 p-5">
+          <h3 className="font-heading font-bold text-sm text-warning mb-3">
+            🧠 מה באמת מניע אותך?
+          </h3>
+
+          {/* Motivation responses */}
+          {motivations.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {motivations.map(m => MOTIVATION_RESPONSES[m] && (
+                <div key={m} className="text-sm text-foreground bg-background/50 rounded-md p-3 border border-border">
+                  👉 {MOTIVATION_RESPONSES[m]}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* System insights */}
+          {result.psychologyInsights.map((insight, i) => {
+            const severityMap = {
+              info: 'border-primary/30 bg-primary/5',
+              warning: 'border-warning/30 bg-warning/5',
+              danger: 'border-danger/30 bg-danger/5',
+            };
+            const textMap = {
+              info: 'text-primary',
+              warning: 'text-warning',
+              danger: 'text-danger',
+            };
+
+            return (
+              <div key={i} className={`rounded-md p-3 border mb-2 ${severityMap[insight.severity]}`}>
+                <div className={`text-xs font-heading font-bold mb-1 ${textMap[insight.severity]}`}>
+                  {insight.trigger}
+                </div>
+                <div className="text-sm text-foreground">
+                  {insight.message}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
