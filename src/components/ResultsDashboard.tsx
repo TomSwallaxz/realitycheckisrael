@@ -28,11 +28,11 @@ function VerdictBanner({ result }: { result: AnalysisResult }) {
   };
 
   return (
-    <div className={`rounded-2xl border p-6 backdrop-blur-sm ${bgMap[result.verdictLevel]}`}>
-      <div className={`font-heading font-extrabold text-xl ${textMap[result.verdictLevel]}`}>
+    <div className={`rounded-2xl border p-4 sm:p-6 backdrop-blur-sm ${bgMap[result.verdictLevel]}`}>
+      <div className={`font-heading font-extrabold text-lg sm:text-xl ${textMap[result.verdictLevel]}`}>
         {result.verdict}
       </div>
-      <div className="flex flex-wrap gap-x-6 gap-y-2 mt-3 text-sm">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-1.5 sm:gap-x-6 sm:gap-y-2 mt-2 sm:mt-3 text-sm">
         <div>
           <span className="text-muted-foreground">סיכון: </span>
           <span className={`font-semibold ${textMap[result.verdictLevel]}`}>{result.riskScore}</span>
@@ -64,10 +64,10 @@ function MetricCard({ label, value, sub, level }: {
   };
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 shadow-sm">
-      <div className="text-xs text-muted-foreground font-heading">{label}</div>
-      <div className={`text-2xl font-heading font-bold mt-1 font-mono ${colorMap[level || 'neutral']}`}>{value}</div>
-      {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
+    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
+      <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{label}</div>
+      <div className={`text-lg sm:text-2xl font-heading font-bold mt-0.5 sm:mt-1 font-mono ${colorMap[level || 'neutral']}`}>{value}</div>
+      {sub && <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">{sub}</div>}
     </div>
   );
 }
@@ -85,14 +85,14 @@ function ScenarioCard({ scenario }: {
   const dotMap = { safe: 'bg-safe', warning: 'bg-warning', danger: 'bg-danger' };
 
   return (
-    <div className={`rounded-2xl border p-4 backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
+    <div className={`rounded-2xl border p-3.5 sm:p-4 backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
       <div className="flex items-center gap-2 mb-1">
-        <div className={`w-2 h-2 rounded-full ${dotMap[level]}`} />
+        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${dotMap[level]}`} />
         <span className="font-heading font-bold text-sm text-foreground">{scenario.name}</span>
       </div>
-      <p className="text-xs text-muted-foreground mb-3">{scenario.description}</p>
+      <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">{scenario.description}</p>
 
-      <div className="space-y-2 text-sm">
+      <div className="space-y-1.5 sm:space-y-2 text-[13px] sm:text-sm">
         <div className="flex justify-between">
           <span className="text-muted-foreground">החזר חודשי</span>
           <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyPayment)}</span>
@@ -112,7 +112,7 @@ function ScenarioCard({ scenario }: {
         </div>
       </div>
 
-      <div className={`mt-3 rounded-xl px-3 py-2 text-xs font-heading font-bold ${
+      <div className={`mt-2.5 sm:mt-3 rounded-xl px-3 py-2 text-[11px] sm:text-xs font-heading font-bold ${
         scenario.survives
           ? scenario.monthlyCashFlow >= 0
             ? 'bg-safe/10 text-safe'
@@ -139,11 +139,11 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const burdenLevel = burdenPercent <= 30 ? 'safe' : burdenPercent <= 40 ? 'warning' : 'danger';
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5">
       <VerdictBanner result={result} />
 
-      {/* Key metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* Key metrics — 2 cols on mobile */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         <MetricCard
           label="החזר חודשי"
           value={formatNIS(result.monthlyPayment)}
@@ -173,51 +173,51 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
       </div>
 
       {/* Real cost */}
-      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-5 shadow-sm">
+      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
         <h3 className="font-heading font-bold text-sm text-foreground mb-1">
           העלות האמיתית — לא רק המשכנתא
         </h3>
-        <p className="text-xs text-muted-foreground mb-3">הון עצמי + מס רכישה + עלויות נלוות</p>
-        <div className="text-2xl font-heading font-bold text-foreground font-mono">
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">הון עצמי + מס רכישה + עלויות נלוות</p>
+        <div className="text-xl sm:text-2xl font-heading font-bold text-foreground font-mono">
           {formatNIS(result.totalRealCost)}
         </div>
       </div>
 
       {/* Mortgage breakdown */}
-      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-5 shadow-sm">
-        <h3 className="font-heading font-bold text-sm text-foreground mb-3">
+      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
+        <h3 className="font-heading font-bold text-sm text-foreground mb-2 sm:mb-3">
           פירוט המשכנתא
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           {result.mortgageBreakdown.map(track => (
-            <div key={track.label} className="flex items-start justify-between text-sm">
-              <div>
+            <div key={track.label} className="flex items-start justify-between text-[13px] sm:text-sm gap-2">
+              <div className="min-w-0">
                 <span className="text-foreground font-medium">{track.label}</span>
-                <div className="text-xs text-muted-foreground">{track.desc}</div>
+                <div className="text-[11px] sm:text-xs text-muted-foreground">{track.desc}</div>
               </div>
-              <div className="text-left">
+              <div className="text-left flex-shrink-0">
                 <span className="text-foreground font-medium font-mono">{formatNIS(track.monthly)}/חודש</span>
-                <div className="text-xs text-muted-foreground font-mono">{formatNIS(track.amount)} @ {track.rate}%</div>
+                <div className="text-[11px] sm:text-xs text-muted-foreground font-mono">{formatNIS(track.amount)} @ {track.rate}%</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Warning banners - shown after data, not before */}
+      {/* Warning banners */}
       {result.warningBanners.map((banner, i) => (
-        <div key={i} className="rounded-2xl bg-danger/8 border border-danger/20 px-5 py-4 text-sm text-danger font-heading font-semibold">
+        <div key={i} className="rounded-2xl bg-danger/8 border border-danger/20 px-4 sm:px-5 py-3 sm:py-4 text-[13px] sm:text-sm text-danger font-heading font-semibold">
           🚨 {banner}
         </div>
       ))}
 
-      {/* Scenarios */}
+      {/* Scenarios — always stacked */}
       <div>
         <h3 className="font-heading font-bold text-sm text-foreground mb-1">
           תרחישי לחץ — מה קורה כשדברים משתבשים?
         </h3>
-        <p className="text-xs text-muted-foreground mb-3">זה לא ״אם״ — זה ״מתי״</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">זה לא ״אם״ — זה ״מתי״</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
           {result.scenarios.map(s => (
             <ScenarioCard key={s.name} scenario={s} />
           ))}
@@ -226,15 +226,15 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
 
       {/* Psychology insights */}
       {(result.psychologyInsights.length > 0 || motivations.length > 0) && (
-        <div className="rounded-2xl border border-warning/20 bg-warning/5 backdrop-blur-sm p-6">
-          <h3 className="font-heading font-bold text-sm text-warning mb-3">
+        <div className="rounded-2xl border border-warning/20 bg-warning/5 backdrop-blur-sm p-4 sm:p-6">
+          <h3 className="font-heading font-bold text-sm text-warning mb-2.5 sm:mb-3">
             🧠 מה באמת מניע אותך?
           </h3>
 
           {motivations.length > 0 && (
-            <div className="space-y-3 mb-4">
+            <div className="space-y-2.5 sm:space-y-3 mb-3 sm:mb-4">
               {motivations.map(m => MOTIVATION_RESPONSES[m] && (
-                <div key={m} className="text-sm text-foreground bg-background/40 rounded-xl p-3 border border-border/30">
+                <div key={m} className="text-[13px] sm:text-sm text-foreground bg-background/40 rounded-xl p-3 border border-border/30">
                   👉 {MOTIVATION_RESPONSES[m]}
                 </div>
               ))}
@@ -255,10 +255,10 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
 
             return (
               <div key={i} className={`rounded-xl p-3 border mb-2 ${severityMap[insight.severity]}`}>
-                <div className={`text-xs font-heading font-bold mb-1 ${textMap[insight.severity]}`}>
+                <div className={`text-[11px] sm:text-xs font-heading font-bold mb-1 ${textMap[insight.severity]}`}>
                   {insight.trigger}
                 </div>
-                <div className="text-sm text-foreground">
+                <div className="text-[13px] sm:text-sm text-foreground">
                   {insight.message}
                 </div>
               </div>
