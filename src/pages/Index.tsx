@@ -5,6 +5,7 @@ import { MortgageConfig } from '@/components/MortgageConfig';
 import { ResultsDashboard } from '@/components/ResultsDashboard';
 import { PsychologySection } from '@/components/PsychologySection';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { StickySummary } from '@/components/StickySummary';
 import heroBg from '@/assets/hero-cityscape.jpg';
 
 const Index = () => {
