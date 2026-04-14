@@ -199,7 +199,47 @@ export function PropertyForm({ inputs, onChange }: Props) {
           suffix="%"
           hint={inputs.financingPercent > 75 ? '⚠️ מעל 75% — הבנק כנראה לא יאשר' : undefined}
         />
-        <NumericField label="הכנסה חודשית נטו" value={inputs.monthlyIncome} onChange={v => update('monthlyIncome', v)} prefix="₪" large />
+
+        {/* Borrower structure */}
+        <div className="border border-border/40 rounded-xl p-3 sm:p-4 bg-secondary/20">
+          <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-2">מבנה לווים</label>
+          <div className="flex gap-2 mb-3">
+            {([false, true] as const).map(dual => (
+              <button
+                key={String(dual)}
+                onClick={() => update('dualBorrower', dual)}
+                className={`flex-1 py-3 sm:py-2.5 rounded-xl text-sm font-heading font-medium transition-all active:scale-[0.97] flex items-center justify-center gap-2 ${
+                  inputs.dualBorrower === dual
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                    : 'bg-secondary/50 text-secondary-foreground hover:bg-accent border border-border/40'
+                }`}
+              >
+                <span className="text-base">{dual ? '👥' : '👤'}</span>
+                {dual ? 'שני לווים' : 'לווה יחיד'}
+              </button>
+            ))}
+          </div>
+
+          <NumericField label="הכנסה חודשית נטו (לווה ראשי)" value={inputs.monthlyIncome} onChange={v => update('monthlyIncome', v)} prefix="₪" large />
+
+          {inputs.dualBorrower && (
+            <div className="mt-3">
+              <NumericField
+                label="הכנסה חודשית נטו (לווה נוסף)"
+                value={inputs.secondBorrowerIncome}
+                onChange={v => update('secondBorrowerIncome', v)}
+                prefix="₪"
+                large
+              />
+              {inputs.secondBorrowerIncome > 0 && (
+                <div className="mt-2 rounded-lg bg-safe/8 border border-safe/20 px-3 py-2 text-[11px] sm:text-xs text-safe font-heading">
+                  סה״כ הכנסה משותפת: ₪{formatWithCommas(inputs.monthlyIncome + inputs.secondBorrowerIncome)}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <NumericField
           label="כרית ביטחון אחרי הרכישה"
           value={inputs.cashBuffer}
