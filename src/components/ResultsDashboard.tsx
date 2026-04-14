@@ -1,4 +1,4 @@
-import { AnalysisResult, PropertyInputs, formatNIS } from '@/lib/calculator';
+import { AnalysisResult, PropertyInputs, formatNIS, BorrowerComparison } from '@/lib/calculator';
 
 interface Props {
   result: AnalysisResult;
@@ -133,9 +133,10 @@ function ScenarioCard({ scenario }: {
 }
 
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
+  const totalIncome = inputs.dualBorrower ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const cashFlowLevel = result.netCashFlow >= 0 ? 'safe' : result.netCashFlow > -1000 ? 'warning' : 'danger';
   const yieldLevel = result.annualYield >= 5 ? 'safe' : result.annualYield >= 3 ? 'warning' : 'danger';
-  const burdenPercent = (result.monthlyPayment / inputs.monthlyIncome * 100);
+  const burdenPercent = (result.monthlyPayment / totalIncome * 100);
   const burdenLevel = burdenPercent <= 30 ? 'safe' : burdenPercent <= 40 ? 'warning' : 'danger';
 
   return (
