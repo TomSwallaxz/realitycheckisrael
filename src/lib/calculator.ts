@@ -12,6 +12,7 @@ export interface PropertyInputs {
   downPayment: number;
   financingPercent: number;
   monthlyIncome: number;
+  fixedMonthlyExpenses: number;
   cashBuffer: number;
   region: string;
   isFirstApartment: boolean;
@@ -137,7 +138,7 @@ function calcMonthlyPayment(principal: number, annualRate: number, years: number
   return (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 }
 
-function calcMonthlyExpenses(price: number): number {
+function calcPropertyExpenses(price: number): number {
   const maintenance = price * 0.01 / 12;
   const repairs = price * 0.005 / 12;
   return maintenance + repairs;
@@ -164,9 +165,11 @@ function runScenario(
   const variableMonthly = calcMonthlyPayment(variableAmount, mortgage.variableRate + rateIncrease, mortgage.termYears);
 
   const monthlyPayment = primeMonthly + fixedMonthly + variableMonthly;
-  const monthlyExpenses = calcMonthlyExpenses(inputs.price);
+  const propertyExpenses = calcPropertyExpenses(inputs.price);
+  const monthlyExpenses = propertyExpenses + inputs.fixedMonthlyExpenses;
   const effectiveRent = inputs.propertyType === 'primary' ? 0 : inputs.monthlyRent * (12 - vacancyMonths) / 12;
-  const monthlyCashFlow = effectiveRent - monthlyPayment - monthlyExpenses;
+  const totalIncome = inputs.dualBorrower ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
+  const monthlyCashFlow = effectiveRent + totalIncome - monthlyPayment - monthlyExpenses;
 
   let monthsBeforeBroke: number | null = null;
   let survives = true;
@@ -289,11 +292,12 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
   const variableMonthly = calcMonthlyPayment(variableAmount, mortgage.variableRate, mortgage.termYears);
 
   const monthlyPayment = primeMonthly + fixedMonthly + variableMonthly;
-  const monthlyExpenses = calcMonthlyExpenses(inputs.price);
+  const propertyExpenses = calcPropertyExpenses(inputs.price);
+  const monthlyExpenses = propertyExpenses + inputs.fixedMonthlyExpenses;
   const effectiveRent = inputs.propertyType === 'primary' ? 0 : inputs.monthlyRent;
-  const netCashFlow = effectiveRent - monthlyPayment - monthlyExpenses;
+  const netCashFlow = effectiveRent + totalIncome - monthlyPayment - monthlyExpenses;
   const annualYield = inputs.propertyType === 'primary' ? 0 :
-    ((inputs.monthlyRent * 12 - monthlyExpenses * 12) / inputs.price) * 100;
+    ((inputs.monthlyRent * 12 - propertyExpenses * 12) / inputs.price) * 100;
 
   const purchaseTax = calcPurchaseTax(inputs.price, inputs.isFirstApartment);
   const lawyerFee = Math.max(5000, inputs.price * 0.005);
