@@ -320,9 +320,22 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     { label: 'משתנה', amount: variableAmount, rate: mortgage.variableRate, monthly: variableMonthly, desc: 'זול בהתחלה, לא צפוי' },
   ];
 
-  const baseCase = runScenario('מצב רגיל', 'חודש אחד ללא שוכר, ריבית יציבה', inputs, mortgage, 0, 1, 0);
-  const badCase = runScenario('מצב רע', '2 חודשים בלי שוכר, ריבית +1.5%', inputs, mortgage, 1.5, 2, 0);
-  const worstCase = runScenario('מצב גרוע מאוד', '3.5 חודשים בלי שוכר, ריבית +3%, תיקון 25,000₪', inputs, mortgage, 3, 3.5, 25000);
+  const isInvestment = inputs.propertyType === 'investment';
+  const baseCase = runScenario(
+    'מצב רגיל',
+    isInvestment ? 'שוכר קבוע, ריבית יציבה' : 'החזר חודשי רגיל, ללא הפתעות',
+    inputs, mortgage, 0, isInvestment ? 1 : 0, 0
+  );
+  const badCase = runScenario(
+    'מצב רע',
+    isInvestment ? 'ירידה בשכירות, ריבית +1.5%' : 'ריבית עולה ב-1.5%, תיקון קטן',
+    inputs, mortgage, 1.5, isInvestment ? 2 : 0, isInvestment ? 0 : 10000
+  );
+  const worstCase = runScenario(
+    'מצב גרוע מאוד',
+    isInvestment ? 'חודשים ללא שוכר, ריבית +3%, תיקון 25K' : 'ריבית +3%, תיקון גדול 25K',
+    inputs, mortgage, 3, isInvestment ? 3.5 : 0, 25000
+  );
 
   const scenarios = [baseCase, badCase, worstCase];
 

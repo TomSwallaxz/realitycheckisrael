@@ -73,8 +73,9 @@ function MetricCard({ label, value, sub, level }: {
   );
 }
 
-function ScenarioCard({ scenario }: {
+function ScenarioCard({ scenario, propertyType }: {
   scenario: AnalysisResult['scenarios'][0];
+  propertyType: 'investment' | 'primary';
 }) {
   const level = scenario.survives
     ? scenario.monthlyCashFlow >= 0 ? 'safe' : 'warning'
@@ -85,6 +86,8 @@ function ScenarioCard({ scenario }: {
   const textMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
   const dotMap = { safe: 'bg-safe', warning: 'bg-warning', danger: 'bg-danger' };
 
+  const isInvestment = propertyType === 'investment';
+
   return (
     <div className={`rounded-2xl border p-3.5 sm:p-4 backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
       <div className="flex items-center gap-2 mb-1">
@@ -94,22 +97,30 @@ function ScenarioCard({ scenario }: {
       <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">{scenario.description}</p>
 
       <div className="space-y-1.5 sm:space-y-2 text-[13px] sm:text-sm">
+        {isInvestment && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">הכנסה משכירות</span>
+            <span className={`font-medium font-mono ${scenario.monthlyRent > 0 ? 'text-safe' : 'text-danger'}`}>
+              {scenario.monthlyRent > 0 ? `+${formatNIS(scenario.monthlyRent)}` : '₪0'}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between">
-          <span className="text-muted-foreground">החזר חודשי</span>
-          <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyPayment)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">שכ״ד אפקטיבי</span>
-          <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyRent)}</span>
+          <span className="text-muted-foreground">החזר משכנתא</span>
+          <span className="text-foreground font-medium font-mono">-{formatNIS(scenario.monthlyPayment)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">הוצאות</span>
-          <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyExpenses)}</span>
+          <span className="text-foreground font-medium font-mono">-{formatNIS(scenario.monthlyExpenses)}</span>
         </div>
         <div className="border-t border-border/30 my-1" />
         <div className="flex justify-between font-semibold">
-          <span className="text-muted-foreground">תזרים חודשי</span>
-          <span className={`font-mono ${textMap[level]}`}>{formatNIS(scenario.monthlyCashFlow)}</span>
+          <span className="text-muted-foreground">
+            {isInvestment ? 'תזרים חודשי' : 'עלות חודשית'}
+          </span>
+          <span className={`font-mono ${textMap[level]}`}>
+            {isInvestment ? formatNIS(scenario.monthlyCashFlow) : formatNIS(Math.abs(scenario.monthlyCashFlow))}
+          </span>
         </div>
       </div>
 
@@ -122,7 +133,7 @@ function ScenarioCard({ scenario }: {
       }`}>
         {scenario.survives
           ? scenario.monthlyCashFlow >= 0
-            ? '✓ תזרים חיובי'
+            ? isInvestment ? '✓ תזרים חיובי — הנכס מכסה את עצמו' : '✓ עלות סבירה'
             : `⚠ שורד ~${scenario.monthsBeforeBroke} חודשים על כרית הביטחון`
           : scenario.monthsBeforeBroke === 0
             ? '✗ נגמר הכסף מיד'
@@ -526,16 +537,44 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         </div>
       ))}
 
-      {/* Scenarios — always stacked */}
+      {/* Scenarios — property-type aware */}
       <div>
-        <h3 className="font-heading font-bold text-sm text-foreground mb-1">
-          תרחישי לחץ — מה קורה כשדברים משתבשים?
-        </h3>
-        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">זה לא ״אם״ — זה ״מתי״</p>
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="font-heading font-bold text-sm text-foreground">
+            תרחישי לחץ — מה קורה כשדברים משתבשים?
+          </h3>
+          <span className={`text-[10px] sm:text-[11px] font-heading font-medium px-2.5 py-1 rounded-full ${
+            inputs.propertyType === 'investment'
+              ? 'bg-primary/10 text-primary border border-primary/20'
+              : 'bg-accent text-accent-foreground border border-border/40'
+          }`}>
+            {inputs.propertyType === 'investment' ? '🏢 השקעה' : '🏠 מגורים'}
+          </span>
+        </div>
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">
+          {inputs.propertyType === 'investment'
+            ? 'בדיקה: מה קורה לתזרים כשהשכירות יורדת או נעלמת?'
+            : 'בדיקה: כמה זה באמת עולה לך כל חודש כשדברים משתבשים?'
+          }
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
           {result.scenarios.map(s => (
-            <ScenarioCard key={s.name} scenario={s} />
+            <ScenarioCard key={s.name} scenario={s} propertyType={inputs.propertyType} />
           ))}
+        </div>
+
+        {/* Smart insight */}
+        <div className="mt-3 rounded-xl bg-secondary/30 border border-border/30 px-3 py-2.5 text-[12px] sm:text-[13px] text-foreground leading-relaxed">
+          💡 {inputs.propertyType === 'investment'
+            ? result.scenarios[0].monthlyCashFlow < 0
+              ? 'גם עם שוכר, התזרים שלילי — אתה מסבסד את הנכס מכיסך כל חודש.'
+              : result.scenarios[1].monthlyCashFlow < 0
+                ? 'במצב רגיל הנכס מכסה את עצמו, אבל ירידה בשכירות או חודש ריק יגרמו להפסד.'
+                : 'הנכס מכסה את עצמו גם בתרחיש רע — מצב יציב יחסית.'
+            : result.scenarios[0].monthlyCashFlow < -3000
+              ? 'זה המחיר האמיתי שאתה משלם כל חודש — ודא שאתה יכול לעמוד בזה לטווח ארוך.'
+              : 'זה המחיר האמיתי שאתה משלם כל חודש על הדירה.'
+          }
         </div>
       </div>
 
