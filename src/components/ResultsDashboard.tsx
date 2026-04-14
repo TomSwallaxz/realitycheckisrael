@@ -66,7 +66,7 @@ function MetricCard({ label, value, sub, level }: {
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
       <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{label}</div>
-      <div className={`text-lg sm:text-2xl font-heading font-bold mt-0.5 sm:mt-1 font-mono ${colorMap[level || 'neutral']}`}>{value}</div>
+      <div className={`text-xl sm:text-2xl font-heading font-extrabold mt-0.5 sm:mt-1 tracking-tight ${colorMap[level || 'neutral']}`}>{value}</div>
       {sub && <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">{sub}</div>}
     </div>
   );
