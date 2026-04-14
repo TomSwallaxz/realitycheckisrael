@@ -491,6 +491,9 @@ function calcApprovalScore(inputs: PropertyInputs, monthlyPayment: number, total
   if (inputs.borrowerMode === 'single') {
     tips.push({ action: 'הוסף לווה נוסף / ערב', points: 15 });
   }
+  if (!inputs.parentHelp || parentCont === 0) {
+    tips.push({ action: 'הוסף עזרה מההורים להגדלת הון עצמי', points: 10 });
+  }
   if (equityPercent < 25) {
     const gain = equityPercent < 15 ? 20 : 10;
     tips.push({ action: 'הגדל הון עצמי ל-25%+', points: gain });
