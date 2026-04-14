@@ -59,13 +59,13 @@ function NumericField({
 
 function SummaryItem({ label, value, sub, prominent }: { label: string; value: string; sub?: string; prominent?: boolean }) {
   return (
-    <div className={`text-center ${prominent ? 'py-3' : 'py-2'}`}>
-      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-heading mb-0.5">{label}</div>
+    <div className={`text-center ${prominent ? 'py-4 mb-2' : 'py-2'}`}>
+      <div className={`text-muted-foreground font-heading ${prominent ? 'text-sm sm:text-base mb-1' : 'text-[10px] sm:text-[11px] mb-0.5'}`}>{label}</div>
       <div
-        className={`font-heading font-bold text-foreground whitespace-nowrap tracking-tight leading-tight ${
-          prominent ? 'text-base sm:text-xl' : 'text-sm sm:text-lg'
+        className={`font-heading font-bold text-foreground whitespace-nowrap leading-tight ${
+          prominent ? 'text-[32px] sm:text-[44px] font-extrabold tracking-[-0.03em]' : 'text-sm sm:text-lg tracking-tight'
         }`}
-        style={{ fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}
+        style={{ fontVariantNumeric: 'tabular-nums' }}
       >
         {value}
       </div>
