@@ -4,9 +4,9 @@ import { Sun, Moon } from 'lucide-react';
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') !== 'light';
+      return localStorage.getItem('theme') === 'dark';
     }
-    return true;
+    return false;
   });
 
   useEffect(() => {
@@ -23,7 +23,10 @@ export function ThemeToggle() {
   // Apply saved theme on mount
   useEffect(() => {
     const saved = localStorage.getItem('theme');
-    if (saved === 'light') {
+    if (saved === 'dark') {
+      document.documentElement.classList.remove('light');
+      setIsDark(true);
+    } else {
       document.documentElement.classList.add('light');
       setIsDark(false);
     }

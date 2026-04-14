@@ -135,3 +135,12 @@
     margin: 0;
   }
 }
+
+/* Hero overlay — dark mode: dark gradient, light mode: subtle warm gradient */
+.hero-overlay {
+  background: linear-gradient(to bottom, hsl(220 20% 7% / 0.35), hsl(220 20% 7% / 0.5), hsl(220 20% 7% / 1));
+}
+
+.light .hero-overlay {
+  background: linear-gradient(to bottom, transparent 0%, hsl(220 20% 97% / 0.1) 40%, hsl(220 20% 97% / 0.6) 75%, hsl(220 20% 97% / 1) 100%);
+}
