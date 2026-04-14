@@ -152,7 +152,8 @@ function runScenario(
   vacancyMonths: number,
   unexpectedRepair: number
 ): ScenarioResult {
-  const loanAmount = inputs.price - inputs.downPayment;
+  const parentContribution = (inputs.parentHelp && inputs.parentHelpAmount > 0) ? inputs.parentHelpAmount : 0;
+  const loanAmount = inputs.price - inputs.downPayment - parentContribution;
 
   const primeAmount = loanAmount * mortgage.primePercent / 100;
   const fixedAmount = loanAmount * mortgage.fixedPercent / 100;
@@ -273,7 +274,11 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     ? inputs.monthlyIncome + inputs.secondBorrowerIncome
     : inputs.monthlyIncome;
 
-  const loanAmount = inputs.price - inputs.downPayment;
+  // Effective down payment includes parent help
+  const parentContribution = (inputs.parentHelp && inputs.parentHelpAmount > 0) ? inputs.parentHelpAmount : 0;
+  const effectiveDownPayment = inputs.downPayment + parentContribution;
+
+  const loanAmount = inputs.price - effectiveDownPayment;
 
   const primeAmount = loanAmount * mortgage.primePercent / 100;
   const fixedAmount = loanAmount * mortgage.fixedPercent / 100;
@@ -294,9 +299,15 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
   const lawyerFee = Math.max(5000, inputs.price * 0.005);
   const brokerFee = inputs.price * 0.01;
   const appraiserFee = 3000;
-  const totalRealCost = inputs.downPayment + purchaseTax + lawyerFee + brokerFee + appraiserFee;
+  const totalRealCost = effectiveDownPayment + purchaseTax + lawyerFee + brokerFee + appraiserFee;
   const costBreakdown: { label: string; amount: number }[] = [
-    { label: 'הון עצמי', amount: inputs.downPayment },
+    { label: 'סה״כ הון עצמי', amount: effectiveDownPayment },
+    ...(parentContribution > 0
+      ? [
+          { label: '  ↳ שלך', amount: inputs.downPayment },
+          { label: '  ↳ עזרה מההורים', amount: parentContribution },
+        ]
+      : []),
     { label: 'מס רכישה', amount: purchaseTax },
     { label: 'עו״ד', amount: lawyerFee },
     { label: 'תיווך', amount: brokerFee },
