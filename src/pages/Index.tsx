@@ -67,7 +67,9 @@ const Index = () => {
   };
 
   const heroRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
   const [heroScale, setHeroScale] = useState(1);
+  const [showSticky, setShowSticky] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,10 +77,20 @@ const Index = () => {
       const maxShrink = 120;
       const progress = Math.min(scrollY / maxShrink, 1);
       setHeroScale(1 - progress * 0.15);
+
+      // Show sticky when scrolled past the property form
+      if (formRef.current) {
+        const rect = formRef.current.getBoundingClientRect();
+        setShowSticky(rect.bottom < 0);
+      }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <div className="min-h-screen bg-background">
