@@ -57,12 +57,12 @@ function NumericField({
   );
 }
 
-function SummaryCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function SummaryCard({ label, value, sub, prominent }: { label: string; value: string; sub?: string; prominent?: boolean }) {
   return (
-    <div className="rounded-xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 text-center">
-      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-heading mb-1">{label}</div>
-      <div className="text-lg sm:text-xl font-heading font-bold text-foreground tracking-tight">{value}</div>
-      {sub && <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">{sub}</div>}
+    <div className={`text-center ${prominent ? 'py-3' : 'py-2'}`}>
+      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-heading mb-0.5">{label}</div>
+      <div className={`font-heading font-bold text-foreground whitespace-nowrap tabular-nums tracking-tight leading-tight ${prominent ? 'text-base sm:text-xl' : 'text-sm sm:text-lg'}`} style={{ letterSpacing: '-0.02em' }}>{value}</div>
+      {sub && <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 whitespace-nowrap">{sub}</div>}
     </div>
   );
 }
