@@ -374,6 +374,41 @@ function ImprovementTipsSection({ result, inputs }: { result: AnalysisResult; in
   );
 }
 
+function DownloadPDFButton({ result, inputs, motivations }: Props) {
+  const [loading, setLoading] = useState(false);
+
+  const handleDownload = async () => {
+    setLoading(true);
+    try {
+      // Small delay for UX feedback
+      await new Promise(r => setTimeout(r, 300));
+      generateDealPDF(result, inputs, motivations);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleDownload}
+      disabled={loading}
+      className="w-full py-3.5 rounded-xl border border-border/50 bg-card/80 hover:bg-card text-foreground font-heading font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+    >
+      {loading ? (
+        <>
+          <span className="w-4 h-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
+          <span>מכין דוח...</span>
+        </>
+      ) : (
+        <>
+          <span>📄</span>
+          <span>הורד דוח PDF</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const cashFlowLevel = result.netCashFlow >= 0 ? "safe" : result.netCashFlow > -1000 ? "warning" : "danger";
   const yieldLevel = result.annualYield >= 5 ? "safe" : result.annualYield >= 3 ? "warning" : "danger";
