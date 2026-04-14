@@ -200,6 +200,88 @@ function BorrowerComparisonCard({ comparison }: { comparison: BorrowerComparison
         💡 {comparison.insight}
       </div>
     </div>
+);
+}
+
+function ApprovalScoreCard({ approval }: { approval: ApprovalScore }) {
+  const [animatedScore, setAnimatedScore] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const target = approval.score;
+    const duration = 800;
+    const startTime = performance.now();
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setAnimatedScore(Math.round(start + (target - start) * eased));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [approval.score]);
+
+  const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
+  const bgMap = { safe: 'bg-safe', warning: 'bg-warning', danger: 'bg-danger' };
+  const bgLightMap = { safe: 'bg-safe/10', warning: 'bg-warning/10', danger: 'bg-danger/10' };
+  const borderMap = { safe: 'border-safe/25', warning: 'border-warning/25', danger: 'border-danger/25' };
+
+  return (
+    <div className={`rounded-2xl border ${borderMap[approval.level]} bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm`}>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-heading font-bold text-sm text-foreground">
+          📊 סיכוי אישור המשכנתא
+        </h3>
+        <div className="text-[10px] sm:text-[11px] text-muted-foreground font-heading">הערכה חכמה</div>
+      </div>
+
+      {/* Score + bar */}
+      <div className="flex items-center gap-4 mb-3">
+        <div className={`text-3xl sm:text-4xl font-heading font-extrabold tracking-tight ${colorMap[approval.level]}`}>
+          {animatedScore}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <span className={`text-xs font-heading font-bold ${colorMap[approval.level]}`}>{approval.label}</span>
+            <span className="text-[10px] text-muted-foreground">/100</span>
+          </div>
+          <div className="h-3 rounded-full bg-secondary/60 overflow-hidden">
+            <div
+              className={`h-full rounded-full ${bgMap[approval.level]} transition-all duration-700 ease-out`}
+              style={{ width: `${animatedScore}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Dual borrower improvement */}
+      {approval.improvement > 0 && (
+        <div className="rounded-xl bg-safe/8 border border-safe/20 px-3 py-2 mb-3 text-[12px] sm:text-[13px] text-safe font-heading font-bold flex items-center gap-1.5">
+          <span>⬆</span>
+          +{approval.improvement} נקודות שיפור בזכות לווה נוסף
+        </div>
+      )}
+
+      {/* Insight */}
+      <div className="rounded-xl bg-secondary/30 px-3 py-2.5 mb-3 text-[12px] sm:text-[13px] text-foreground leading-relaxed">
+        💡 {approval.insight}
+      </div>
+
+      {/* Tips */}
+      {approval.tips.length > 0 && (
+        <div>
+          <div className="text-[11px] sm:text-xs text-muted-foreground font-heading mb-2">איך לשפר את הציון:</div>
+          <div className="space-y-1.5">
+            {approval.tips.map((tip, i) => (
+              <div key={i} className={`flex items-center justify-between rounded-lg px-3 py-2 ${bgLightMap['safe']} text-[12px] sm:text-[13px]`}>
+                <span className="text-foreground">✦ {tip.action}</span>
+                <span className="text-safe font-heading font-bold">+{tip.points}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -246,6 +328,9 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
 
       {/* Borrower comparison */}
       {result.borrowerComparison && <BorrowerComparisonCard comparison={result.borrowerComparison} />}
+
+      {/* Approval Score */}
+      <ApprovalScoreCard approval={result.approvalScore} />
 
       {/* Real cost */}
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
