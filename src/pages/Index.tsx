@@ -71,7 +71,7 @@ const Index = () => {
           alt="נוף עירוני"
           className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-[center_25%]"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/60 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/30 to-background light:from-white/10 light:via-white/20 light:to-background" />
         
         {/* Theme Toggle */}
         <div className="absolute top-4 left-4 z-20">
