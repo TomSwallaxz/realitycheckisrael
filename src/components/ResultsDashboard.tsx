@@ -335,12 +335,27 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
       {/* Real cost */}
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
         <h3 className="font-heading font-bold text-sm text-foreground mb-1">
-          העלות האמיתית — לא רק המשכנתא
+          💰 העלות האמיתית — לא רק המשכנתא
         </h3>
-        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">הון עצמי + מס רכישה + עלויות נלוות</p>
-        <div className="text-xl sm:text-2xl font-heading font-bold text-foreground font-mono">
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">סך הכסף שתצטרך להביא כדי לסגור את העסקה</p>
+        <div className="text-xl sm:text-2xl font-heading font-extrabold text-foreground font-mono">
           {formatNIS(result.totalRealCost)}
         </div>
+
+        <div className="border-t border-border/20 my-3 sm:my-4" />
+
+        <div className="space-y-[7px]">
+          {result.costBreakdown.filter(item => item.amount > 0).map(item => (
+            <div key={item.label} className="flex items-center justify-between text-[13px] sm:text-sm">
+              <span className="text-muted-foreground">{item.label}</span>
+              <span className="text-foreground font-medium font-mono">{formatNIS(item.amount)}</span>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-[10px] sm:text-[11px] text-muted-foreground/70 mt-3 sm:mt-4 leading-relaxed">
+          זה הסכום שתצטרך להביא מהבית כדי לסגור את העסקה (לא כולל החזרי משכנתא עתידיים)
+        </p>
       </div>
 
       {/* Mortgage breakdown */}

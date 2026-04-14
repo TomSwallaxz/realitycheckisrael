@@ -78,6 +78,7 @@ export interface AnalysisResult {
   minRequiredBuffer: number;
   purchaseTax: number;
   totalRealCost: number;
+  costBreakdown: { label: string; amount: number }[];
   scenarios: ScenarioResult[];
   mortgageBreakdown: { label: string; amount: number; rate: number; monthly: number; desc: string }[];
   psychologyInsights: PsychologyInsight[];
@@ -290,7 +291,17 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     ((inputs.monthlyRent * 12 - monthlyExpenses * 12) / inputs.price) * 100;
 
   const purchaseTax = calcPurchaseTax(inputs.price, inputs.isFirstApartment);
-  const totalRealCost = inputs.downPayment + purchaseTax + 15000;
+  const lawyerFee = Math.max(5000, inputs.price * 0.005);
+  const brokerFee = inputs.price * 0.01;
+  const appraiserFee = 3000;
+  const totalRealCost = inputs.downPayment + purchaseTax + lawyerFee + brokerFee + appraiserFee;
+  const costBreakdown: { label: string; amount: number }[] = [
+    { label: 'הון עצמי', amount: inputs.downPayment },
+    { label: 'מס רכישה', amount: purchaseTax },
+    { label: 'עו״ד', amount: lawyerFee },
+    { label: 'תיווך', amount: brokerFee },
+    { label: 'שמאי', amount: appraiserFee },
+  ];
 
   const mortgageBreakdown = [
     { label: 'פריים', amount: primeAmount, rate: mortgage.primeRate, monthly: primeMonthly, desc: 'זול אבל מסוכן — עולה עם הריבית' },
@@ -396,6 +407,7 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     scenarios,
     mortgageBreakdown,
     borrowerComparison,
+    costBreakdown,
     approvalScore: calcApprovalScore(inputs, monthlyPayment, totalIncome, monthlyExpenses),
   };
 
