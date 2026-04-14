@@ -43,21 +43,27 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
         ))}
       </div>
 
-      <div className="mb-4">
-        <div className="flex h-3 rounded-full overflow-hidden" style={{ direction: 'ltr' }}>
+      {/* Allocation pills – RTL: Prime on the right */}
+      <div className="mb-5">
+        <div className="flex gap-1.5" style={{ direction: 'rtl' }}>
           {tracks.map(t => (
             <div
               key={t.key}
-              className={`${t.color} transition-all`}
+              className={`${t.color} h-4 rounded-full shadow-sm transition-all duration-500 ease-out hover:brightness-110`}
               style={{ width: `${mortgage[t.key]}%` }}
             />
           ))}
         </div>
-        <div className="flex justify-between mt-2">
+        <div className="flex gap-1.5 mt-3" style={{ direction: 'rtl' }}>
           {tracks.map(t => (
-            <div key={t.key} className="text-center">
-              <span className="text-xs text-foreground font-heading font-medium">{t.label} {mortgage[t.key]}%</span>
-              <div className="text-[10px] text-muted-foreground">{t.desc}</div>
+            <div
+              key={t.key}
+              className="text-center transition-all duration-500"
+              style={{ width: `${mortgage[t.key]}%` }}
+            >
+              <span className="text-base font-heading font-bold text-foreground">{mortgage[t.key]}%</span>
+              <div className="text-[11px] text-muted-foreground font-heading mt-0.5">{t.label}</div>
+              <div className="text-[10px] text-muted-foreground/60">{t.desc}</div>
             </div>
           ))}
         </div>
