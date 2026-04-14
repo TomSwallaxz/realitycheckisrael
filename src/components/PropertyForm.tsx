@@ -109,8 +109,10 @@ export function PropertyForm({ inputs, onChange }: Props) {
     onChange(newInputs);
   };
 
-  const equityPercent = inputs.price > 0 ? Math.round((inputs.downPayment / inputs.price) * 100) : 0;
-  const loanAmount = inputs.price - inputs.downPayment;
+  const parentContribution = (inputs.parentHelp && inputs.parentHelpAmount > 0) ? inputs.parentHelpAmount : 0;
+  const effectiveEquity = inputs.downPayment + parentContribution;
+  const equityPercent = inputs.price > 0 ? Math.round((effectiveEquity / inputs.price) * 100) : 0;
+  const loanAmount = inputs.price - effectiveEquity;
 
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
@@ -121,7 +123,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
       {/* Top summary row — 3 cards */}
       <div className="grid grid-cols-3 gap-2 mb-3 sm:mb-4">
         <SummaryCard label="מחיר הנכס" value={`₪${formatWithCommas(inputs.price)}`} />
-        <SummaryCard label="הון עצמי" value={`₪${formatWithCommas(inputs.downPayment)}`} />
+        <SummaryCard label="סה״כ הון עצמי" value={`₪${formatWithCommas(effectiveEquity)}`} />
         <SummaryCard
           label="אחוז מימון"
           value={`${inputs.financingPercent}%`}
