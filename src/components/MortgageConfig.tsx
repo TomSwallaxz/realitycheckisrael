@@ -1,4 +1,4 @@
-import { MortgageStructure, Strategy, STRATEGY_INFO } from '@/lib/calculator';
+import { MortgageStructure, Strategy, STRATEGY_INFO, DEFAULT_RATES } from '@/lib/calculator';
 
 interface Props {
   mortgage: MortgageStructure;
@@ -69,19 +69,32 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        {tracks.map(t => (
-          <div key={t.rateKey}>
-            <label className="block text-xs text-muted-foreground mb-1">ריבית {t.label}</label>
-            <input
-              type="number"
-              step="0.1"
-              value={mortgage[t.rateKey]}
-              onChange={e => update(t.rateKey, Number(e.target.value))}
-              className="w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-            />
-          </div>
-        ))}
+      <div className="grid grid-cols-3 gap-3 mb-3">
+        {tracks.map(t => {
+          const defaultVal = DEFAULT_RATES[t.rateKey];
+          const isDefault = mortgage[t.rateKey] === defaultVal;
+          return (
+            <div key={t.rateKey}>
+              <label className="block text-xs text-muted-foreground mb-1">ריבית {t.label}</label>
+              <input
+                type="number"
+                step="0.1"
+                value={mortgage[t.rateKey]}
+                onChange={e => update(t.rateKey, Number(e.target.value))}
+                className="w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+              />
+              <p className="text-[10px] text-muted-foreground/50 mt-1">
+                {isDefault ? 'ערך לדוגמה — ניתן לעריכה' : 'ערך מותאם'}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="rounded-xl bg-secondary/30 border border-border/30 px-3 py-2.5 mb-4">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          ℹ️ הריביות המוצגות הן <span className="text-foreground/80 font-medium">להמחשה בלבד</span> ואינן מייצגות הצעה בנקאית. יש לבדוק מול הבנק או יועץ משכנתאות לפני קבלת החלטה.
+        </p>
       </div>
 
       <div>
