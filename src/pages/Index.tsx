@@ -20,6 +20,8 @@ const Index = () => {
     isFirstApartment: false,
     parentHelp: false,
     parentHelpAmount: 0,
+    dualBorrower: false,
+    secondBorrowerIncome: 0,
   });
 
   const [mortgage, setMortgage] = useState<MortgageStructure>({
