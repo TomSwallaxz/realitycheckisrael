@@ -77,7 +77,7 @@ function FinancingBar({ equityPercent, financingPercent }: {
           <span className="text-sm sm:text-base font-heading font-bold text-primary mr-1.5">{fin}%</span>
         </div>
         <div className="text-right">
-          <span className="text-sm sm:text-base font-heading font-bold text-emerald-500 ml-1.5">{eq}%</span>
+          <span className="text-sm sm:text-base font-heading font-bold text-safe ml-1.5">{eq}%</span>
           <span className="text-[11px] sm:text-xs text-muted-foreground font-heading">הון עצמי</span>
         </div>
       </div>
@@ -89,7 +89,7 @@ function FinancingBar({ equityPercent, financingPercent }: {
           style={{ width: `${fin}%` }}
         />
         <div
-          className="bg-emerald-500 rounded-e-full transition-all duration-500 ease-out"
+          className="bg-safe rounded-e-full transition-all duration-500 ease-out"
           style={{ width: `${eq}%` }}
         />
       </div>
