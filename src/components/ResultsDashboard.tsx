@@ -1,4 +1,5 @@
-import { AnalysisResult, PropertyInputs, formatNIS, BorrowerComparison } from '@/lib/calculator';
+import { useState, useEffect } from 'react';
+import { AnalysisResult, PropertyInputs, formatNIS, BorrowerComparison, ApprovalScore } from '@/lib/calculator';
 
 interface Props {
   result: AnalysisResult;

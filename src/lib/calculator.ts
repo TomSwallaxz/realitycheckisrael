@@ -406,10 +406,7 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     warningBanners.push(`💸 מס רכישה לבד: ${formatNIS(purchaseTax)} — כסף שנעלם ביום הראשון`);
   }
 
-  // Approval Score
-  const approvalScore = calcApprovalScore(inputs, monthlyPayment, totalIncome, monthlyExpenses);
-
-  return { ...partialResult, psychologyInsights, warningBanners, approvalScore };
+  return { ...partialResult, psychologyInsights, warningBanners };
 }
 
 function calcApprovalScore(inputs: PropertyInputs, monthlyPayment: number, totalIncome: number, monthlyExpenses: number): ApprovalScore {
