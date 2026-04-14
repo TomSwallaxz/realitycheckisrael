@@ -69,7 +69,7 @@ const Index = () => {
         <img
           src={heroBg}
           alt="נוף עירוני"
-          className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-[center_25%]"
+          className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-[center_25%] hero-image"
         />
         <div className="absolute inset-0 hero-overlay" />
         
