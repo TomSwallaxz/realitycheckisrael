@@ -17,6 +17,8 @@ export interface PropertyInputs {
   isFirstApartment: boolean;
   parentHelp: boolean;
   parentHelpAmount: number;
+  dualBorrower: boolean;
+  secondBorrowerIncome: number;
 }
 
 export interface MortgageStructure {
