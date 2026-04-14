@@ -5,6 +5,7 @@ import { MortgageConfig } from '@/components/MortgageConfig';
 import { ResultsDashboard } from '@/components/ResultsDashboard';
 import { PsychologySection } from '@/components/PsychologySection';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { StickySummary } from '@/components/StickySummary';
 import heroBg from '@/assets/hero-cityscape.jpg';
 
 const Index = () => {
@@ -66,7 +67,9 @@ const Index = () => {
   };
 
   const heroRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
   const [heroScale, setHeroScale] = useState(1);
+  const [showSticky, setShowSticky] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,13 +77,26 @@ const Index = () => {
       const maxShrink = 120;
       const progress = Math.min(scrollY / maxShrink, 1);
       setHeroScale(1 - progress * 0.15);
+
+      // Show sticky when scrolled past the property form
+      if (formRef.current) {
+        const rect = formRef.current.getBoundingClientRect();
+        setShowSticky(rect.bottom < 0);
+      }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Sticky Summary */}
+      <StickySummary inputs={inputs} result={result} visible={showSticky} onEditClick={scrollToForm} />
+
       {/* Hero Section — compact on mobile, shrinks on scroll */}
       <div ref={heroRef} className="relative overflow-hidden" style={{ minHeight: `calc(${heroScale} * max(220px, min(340px, 35vh)))` }}>
         <img
@@ -113,7 +129,9 @@ const Index = () => {
         <div className="content-card p-4 sm:p-6 lg:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
             <div className="lg:col-span-5 space-y-4 sm:space-y-5">
-              <PropertyForm inputs={inputs} onChange={handleInputChange} />
+              <div ref={formRef}>
+                <PropertyForm inputs={inputs} onChange={handleInputChange} />
+              </div>
               <MortgageConfig
                 mortgage={mortgage}
                 strategy={strategy}

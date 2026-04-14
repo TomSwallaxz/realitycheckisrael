@@ -167,3 +167,11 @@
 .light .content-card {
   box-shadow: 0 -4px 40px -8px hsl(220 20% 7% / 0.08), 0 4px 16px -4px hsl(220 20% 7% / 0.05);
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
