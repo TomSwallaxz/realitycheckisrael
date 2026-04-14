@@ -325,23 +325,28 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
   ];
 
   const isInvestment = inputs.propertyType === 'investment';
+  const optimisticCase = runScenario(
+    'מצב אופטימי',
+    isInvestment ? 'שכירות מלאה, ללא תקופות ריקות, ללא תיקונים' : 'יציבות מלאה, ללא הפתעות',
+    inputs, mortgage, 0, 0, 0
+  );
   const baseCase = runScenario(
-    'מצב רגיל',
-    isInvestment ? 'שוכר קבוע, ריבית יציבה' : 'החזר חודשי רגיל, ללא הפתעות',
+    'המצב הסביר',
+    isInvestment ? 'חודש ריק אחד בשנה, ריבית יציבה' : 'החזר חודשי רגיל, תחזוקה שוטפת',
     inputs, mortgage, 0, isInvestment ? 1 : 0, 0
   );
   const badCase = runScenario(
     'מצב רע',
-    isInvestment ? 'ירידה בשכירות, ריבית +1.5%' : 'ריבית עולה ב-1.5%, תיקון קטן',
+    isInvestment ? '2 חודשים ריקים, ריבית +1.5%' : 'ריבית עולה ב-1.5%, תיקון ₪10K',
     inputs, mortgage, 1.5, isInvestment ? 2 : 0, isInvestment ? 0 : 10000
   );
   const worstCase = runScenario(
     'מצב גרוע מאוד',
-    isInvestment ? 'חודשים ללא שוכר, ריבית +3%, תיקון 25K' : 'ריבית +3%, תיקון גדול 25K',
+    isInvestment ? '3.5 חודשים ללא שוכר, ריבית +3%, תיקון ₪25K' : 'ריבית +3%, תיקון גדול ₪25K',
     inputs, mortgage, 3, isInvestment ? 3.5 : 0, 25000
   );
 
-  const scenarios = [baseCase, badCase, worstCase];
+  const scenarios = [optimisticCase, baseCase, badCase, worstCase];
 
   // Risk assessment — use totalIncome
   let riskPoints = 0;
