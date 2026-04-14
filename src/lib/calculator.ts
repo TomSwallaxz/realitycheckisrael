@@ -233,9 +233,6 @@ function generateWarningBanners(inputs: PropertyInputs, result: Omit<AnalysisRes
     banners.push('🔴 יותר מ-45% מההכנסה שלך הולכת למשכנתא. הבנק אולי יאשר — אבל החיים לא');
   }
 
-  if (purchaseTax > 0) {
-    // handled below
-  }
 
   return banners;
 }
