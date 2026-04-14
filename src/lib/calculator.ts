@@ -138,7 +138,7 @@ function calcMonthlyPayment(principal: number, annualRate: number, years: number
   return (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 }
 
-function calcMonthlyExpenses(price: number): number {
+function calcPropertyExpenses(price: number): number {
   const maintenance = price * 0.01 / 12;
   const repairs = price * 0.005 / 12;
   return maintenance + repairs;
