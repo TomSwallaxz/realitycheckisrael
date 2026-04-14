@@ -4,6 +4,7 @@ import { PropertyForm } from '@/components/PropertyForm';
 import { MortgageConfig } from '@/components/MortgageConfig';
 import { ResultsDashboard } from '@/components/ResultsDashboard';
 import { PsychologySection } from '@/components/PsychologySection';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import heroBg from '@/assets/hero-cityscape.jpg';
 
 const Index = () => {
