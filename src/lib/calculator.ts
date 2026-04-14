@@ -247,7 +247,8 @@ function generateWarningBanners(inputs: PropertyInputs, result: Omit<AnalysisRes
     banners.push('⚠️ אתה לא שורד את התרחיש הגרוע. מה תעשה כשזה יקרה?');
   }
 
-  if (result.monthlyPayment / inputs.monthlyIncome > 0.45) {
+  const totalIncome = inputs.dualBorrower ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
+  if (result.monthlyPayment / totalIncome > 0.45) {
     banners.push('🔴 יותר מ-45% מההכנסה שלך הולכת למשכנתא. הבנק אולי יאשר — אבל החיים לא');
   }
 
