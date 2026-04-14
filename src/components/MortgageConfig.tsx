@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { MortgageStructure, Strategy, STRATEGY_INFO, DEFAULT_RATES } from '@/lib/calculator';
+import { Info } from 'lucide-react';
 
 interface Props {
   mortgage: MortgageStructure;
