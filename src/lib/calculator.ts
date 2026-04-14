@@ -259,7 +259,7 @@ function generateWarningBanners(inputs: PropertyInputs, result: Omit<AnalysisRes
     banners.push('🚨 אם אין לך לפחות 50,000₪ בצד — אתה נכנס לסיכון גבוה מאוד');
   }
 
-  if (!result.scenarios[2].survives) {
+  if (!result.scenarios[3].survives) {
     banners.push('⚠️ אתה לא שורד את התרחיש הגרוע. מה תעשה כשזה יקרה?');
   }
 
