@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { AnalysisResult, PropertyInputs, formatNIS } from "@/lib/calculator";
+import { generateDealPDF } from "@/lib/generatePDF";
 
 interface Props {
   result: AnalysisResult;
