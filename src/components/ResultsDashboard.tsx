@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { AnalysisResult, PropertyInputs, formatNIS, BorrowerComparison, ApprovalScore } from '@/lib/calculator';
+import { AnalysisResult, PropertyInputs, formatNIS } from "@/lib/calculator";
 
 interface Props {
   result: AnalysisResult;
@@ -8,24 +7,24 @@ interface Props {
 }
 
 const MOTIVATION_RESPONSES: Record<string, string> = {
-  family_pressure: 'לחץ מהמשפחה זה לא סיבה לקנות דירה. זו ההחלטה הכלכלית הגדולה ביותר שלך — לא שלהם.',
-  fomo: '״המחירים יעלו״ — אולי. אבל אם העסקה לא עומדת בפני עצמה היום, היא לא תעמוד מחר.',
-  stability: 'יציבות זה לגיטימי. אבל יציבות עם חוב כבד זה לא באמת יציבות.',
-  investment: 'תשואה טובה על נדל״ן? אולי. אבל תבדוק את המספרים — לא את הסיפורים.',
-  status: 'דירה משלך = הצלחה? בדוק שוב. הצלחה זה שקט נפשי, לא משכנתא.',
-  rent_waste: '״שכירות זה בזבוז״ — מיתוס. גם ריבית, מס רכישה, ותחזוקה הם ״בזבוז״.',
+  family_pressure: "לחץ מהמשפחה זה לא סיבה לקנות דירה. זו ההחלטה הכלכלית הגדולה ביותר שלך — לא שלהם.",
+  fomo: "״המחירים יעלו״ — אולי. אבל אם העסקה לא עומדת בפני עצמה היום, היא לא תעמוד מחר.",
+  stability: "יציבות זה לגיטימי. אבל יציבות עם חוב כבד זה לא באמת יציבות.",
+  investment: "תשואה טובה על נדל״ן? אולי. אבל תבדוק את המספרים — לא את הסיפורים.",
+  status: "דירה משלך = הצלחה? בדוק שוב. הצלחה זה שקט נפשי, לא משכנתא.",
+  rent_waste: "״שכירות זה בזבוז״ — מיתוס. גם ריבית, מס רכישה, ותחזוקה הם ״בזבוז״.",
 };
 
 function VerdictBanner({ result }: { result: AnalysisResult }) {
   const bgMap = {
-    safe: 'bg-safe/8 border-safe/20',
-    warning: 'bg-warning/8 border-warning/20',
-    danger: 'bg-danger/8 border-danger/20',
+    safe: "bg-safe/8 border-safe/20",
+    warning: "bg-warning/8 border-warning/20",
+    danger: "bg-danger/8 border-danger/20",
   };
   const textMap = {
-    safe: 'text-safe',
-    warning: 'text-warning',
-    danger: 'text-danger',
+    safe: "text-safe",
+    warning: "text-warning",
+    danger: "text-danger",
   };
 
   return (
@@ -51,277 +50,99 @@ function VerdictBanner({ result }: { result: AnalysisResult }) {
   );
 }
 
-function MetricCard({ label, value, sub, level }: {
+function MetricCard({
+  label,
+  value,
+  sub,
+  level,
+}: {
   label: string;
   value: string;
   sub?: string;
-  level?: 'safe' | 'warning' | 'danger' | 'neutral';
+  level?: "safe" | "warning" | "danger" | "neutral";
 }) {
   const colorMap = {
-    safe: 'text-safe',
-    warning: 'text-warning',
-    danger: 'text-danger',
-    neutral: 'text-foreground',
+    safe: "text-safe",
+    warning: "text-warning",
+    danger: "text-danger",
+    neutral: "text-foreground",
   };
 
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
       <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{label}</div>
-      <div className={`text-xl sm:text-2xl font-heading font-extrabold mt-0.5 sm:mt-1 tracking-tight ${colorMap[level || 'neutral']}`}>{value}</div>
+      <div
+        className={`text-xl sm:text-2xl font-heading font-extrabold mt-0.5 sm:mt-1 tracking-tight ${colorMap[level || "neutral"]}`}
+      >
+        {value}
+      </div>
       {sub && <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">{sub}</div>}
     </div>
   );
 }
 
-type ScenarioTier = 'optimistic' | 'realistic' | 'bad' | 'worst';
+function ScenarioCard({ scenario }: { scenario: AnalysisResult["scenarios"][0] }) {
+  const level = scenario.survives ? (scenario.monthlyCashFlow >= 0 ? "safe" : "warning") : "danger";
 
-const TIER_STYLES: Record<ScenarioTier, { border: string; bg: string; text: string; dot: string; badge: string }> = {
-  optimistic: { border: 'border-safe/25', bg: 'bg-safe/5', text: 'text-safe', dot: 'bg-safe', badge: 'bg-safe/10 text-safe' },
-  realistic: { border: 'border-warning/25', bg: 'bg-warning/5', text: 'text-warning', dot: 'bg-warning', badge: 'bg-warning/10 text-warning' },
-  bad: { border: 'border-danger/25', bg: 'bg-danger/5', text: 'text-danger', dot: 'bg-danger', badge: 'bg-danger/10 text-danger' },
-  worst: { border: 'border-danger/40', bg: 'bg-danger/10', text: 'text-danger', dot: 'bg-danger', badge: 'bg-danger/15 text-danger' },
-};
-
-const TIER_ICONS: Record<ScenarioTier, string> = {
-  optimistic: '🟢',
-  realistic: '🟠',
-  bad: '🔴',
-  worst: '⛔',
-};
-
-function ScenarioCard({ scenario, propertyType, tier }: {
-  scenario: AnalysisResult['scenarios'][0];
-  propertyType: 'investment' | 'primary';
-  tier: ScenarioTier;
-}) {
-  const style = TIER_STYLES[tier];
-  const isInvestment = propertyType === 'investment';
-
-  // For result status, use actual data
-  const resultLevel = scenario.survives
-    ? scenario.monthlyCashFlow >= 0 ? 'safe' : 'warning'
-    : 'danger';
-  const resultTextMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
+  const borderMap = { safe: "border-safe/20", warning: "border-warning/20", danger: "border-danger/20" };
+  const bgMap = { safe: "bg-safe/5", warning: "bg-warning/5", danger: "bg-danger/5" };
+  const textMap = { safe: "text-safe", warning: "text-warning", danger: "text-danger" };
+  const dotMap = { safe: "bg-safe", warning: "bg-warning", danger: "bg-danger" };
 
   return (
-    <div className={`rounded-2xl border p-3.5 sm:p-4 backdrop-blur-sm ${style.border} ${style.bg}`}>
+    <div className={`rounded-2xl border p-3.5 sm:p-4 backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-sm flex-shrink-0">{TIER_ICONS[tier]}</span>
+        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${dotMap[level]}`} />
         <span className="font-heading font-bold text-sm text-foreground">{scenario.name}</span>
       </div>
       <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">{scenario.description}</p>
 
       <div className="space-y-1.5 sm:space-y-2 text-[13px] sm:text-sm">
-        {isInvestment && (
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">הכנסה משכירות</span>
-            <span className={`font-medium font-mono ${scenario.monthlyRent > 0 ? 'text-safe' : 'text-danger'}`}>
-              {scenario.monthlyRent > 0 ? `+${formatNIS(scenario.monthlyRent)}` : '₪0'}
-            </span>
-          </div>
-        )}
         <div className="flex justify-between">
-          <span className="text-muted-foreground">החזר משכנתא</span>
-          <span className="text-foreground font-medium font-mono">-{formatNIS(scenario.monthlyPayment)}</span>
+          <span className="text-muted-foreground">החזר חודשי</span>
+          <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyPayment)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">שכ״ד אפקטיבי</span>
+          <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyRent)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">הוצאות</span>
-          <span className="text-foreground font-medium font-mono">-{formatNIS(scenario.monthlyExpenses)}</span>
+          <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyExpenses)}</span>
         </div>
         <div className="border-t border-border/30 my-1" />
         <div className="flex justify-between font-semibold">
-          <span className="text-muted-foreground">
-            {isInvestment ? 'תזרים חודשי' : 'כמה נשאר לך'}
-          </span>
-          <span className={`font-mono ${resultTextMap[resultLevel]}`}>
-            {formatNIS(scenario.monthlyCashFlow)}
-          </span>
+          <span className="text-muted-foreground">תזרים חודשי</span>
+          <span className={`font-mono ${textMap[level]}`}>{formatNIS(scenario.monthlyCashFlow)}</span>
         </div>
       </div>
 
-      <div className={`mt-2.5 sm:mt-3 rounded-xl px-3 py-2 text-[11px] sm:text-xs font-heading font-bold ${
-        scenario.survives
-          ? scenario.monthlyCashFlow >= 0
-            ? 'bg-safe/10 text-safe'
-            : 'bg-warning/10 text-warning'
-          : 'bg-danger/10 text-danger'
-      }`}>
+      <div
+        className={`mt-2.5 sm:mt-3 rounded-xl px-3 py-2 text-[11px] sm:text-xs font-heading font-bold ${
+          scenario.survives
+            ? scenario.monthlyCashFlow >= 0
+              ? "bg-safe/10 text-safe"
+              : "bg-warning/10 text-warning"
+            : "bg-danger/10 text-danger"
+        }`}
+      >
         {scenario.survives
           ? scenario.monthlyCashFlow >= 0
-            ? isInvestment ? '✓ תזרים חיובי — הנכס מכסה את עצמו' : '✓ מצב יציב'
+            ? "✓ תזרים חיובי"
             : `⚠ שורד ~${scenario.monthsBeforeBroke} חודשים על כרית הביטחון`
           : scenario.monthsBeforeBroke === 0
-            ? '✗ נגמר הכסף מיד'
-            : `✗ נשבר אחרי ${scenario.monthsBeforeBroke} חודשים`
-        }
+            ? "✗ נגמר הכסף מיד"
+            : `✗ נשבר אחרי ${scenario.monthsBeforeBroke} חודשים`}
       </div>
-    </div>
-  );
-}
-
-function BorrowerComparisonCard({ comparison }: { comparison: BorrowerComparison }) {
-  const textMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
-  const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/8', danger: 'bg-danger/8' };
-
-  return (
-    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
-      <h3 className="font-heading font-bold text-sm text-foreground mb-3">
-        👤👥 השוואת מבנה לווים
-      </h3>
-
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mb-3">
-        {/* Single borrower */}
-        <div className={`rounded-xl border p-3 ${comparison.single.riskLevel === 'danger' ? 'border-danger/20' : comparison.single.riskLevel === 'warning' ? 'border-warning/20' : 'border-safe/20'}`}>
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="text-base">👤</span>
-            <span className="font-heading font-bold text-xs text-foreground">לווה יחיד</span>
-          </div>
-          <div className="space-y-1.5 text-[12px] sm:text-[13px]">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">הכנסה</span>
-              <span className="font-mono font-medium text-foreground">{formatNIS(comparison.single.totalIncome)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">נטל החזר</span>
-              <span className={`font-mono font-bold ${textMap[comparison.single.riskLevel]}`}>{comparison.single.burdenPercent.toFixed(0)}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">יתרה חודשית</span>
-              <span className="font-mono font-medium text-foreground">{formatNIS(comparison.single.monthlyRemaining)}</span>
-            </div>
-          </div>
-          <div className={`mt-2 rounded-lg px-2 py-1 text-[10px] sm:text-[11px] font-heading font-bold text-center ${bgMap[comparison.single.riskLevel]} ${textMap[comparison.single.riskLevel]}`}>
-            {comparison.single.riskLevel === 'safe' ? 'סיכון נמוך' : comparison.single.riskLevel === 'warning' ? 'סיכון בינוני' : 'סיכון גבוה'}
-          </div>
-        </div>
-
-        {/* Dual borrower */}
-        <div className={`rounded-xl border p-3 ${comparison.dual.riskLevel === 'danger' ? 'border-danger/20' : comparison.dual.riskLevel === 'warning' ? 'border-warning/20' : 'border-safe/20'}`}>
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="text-base">👥</span>
-            <span className="font-heading font-bold text-xs text-foreground">שני לווים</span>
-          </div>
-          <div className="space-y-1.5 text-[12px] sm:text-[13px]">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">הכנסה</span>
-              <span className="font-mono font-medium text-foreground">{formatNIS(comparison.dual.totalIncome)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">נטל החזר</span>
-              <span className={`font-mono font-bold ${textMap[comparison.dual.riskLevel]}`}>{comparison.dual.burdenPercent.toFixed(0)}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">יתרה חודשית</span>
-              <span className="font-mono font-medium text-foreground">{formatNIS(comparison.dual.monthlyRemaining)}</span>
-            </div>
-          </div>
-          <div className={`mt-2 rounded-lg px-2 py-1 text-[10px] sm:text-[11px] font-heading font-bold text-center ${bgMap[comparison.dual.riskLevel]} ${textMap[comparison.dual.riskLevel]}`}>
-            {comparison.dual.riskLevel === 'safe' ? 'סיכון נמוך' : comparison.dual.riskLevel === 'warning' ? 'סיכון בינוני' : 'סיכון גבוה'}
-          </div>
-        </div>
-      </div>
-
-      {/* Insight */}
-      <div className="rounded-xl bg-primary/8 border border-primary/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-foreground leading-relaxed">
-        💡 {comparison.insight}
-      </div>
-    </div>
-);
-}
-
-function ApprovalScoreCard({ approval }: { approval: ApprovalScore }) {
-  const [animatedScore, setAnimatedScore] = useState(0);
-
-  useEffect(() => {
-    let start = 0;
-    const target = approval.score;
-    const duration = 800;
-    const startTime = performance.now();
-    const animate = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setAnimatedScore(Math.round(start + (target - start) * eased));
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  }, [approval.score]);
-
-  const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
-  const bgMap = { safe: 'bg-safe', warning: 'bg-warning', danger: 'bg-danger' };
-  const bgLightMap = { safe: 'bg-safe/10', warning: 'bg-warning/10', danger: 'bg-danger/10' };
-  const borderMap = { safe: 'border-safe/25', warning: 'border-warning/25', danger: 'border-danger/25' };
-
-  return (
-    <div className={`rounded-2xl border ${borderMap[approval.level]} bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm`}>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-heading font-bold text-sm text-foreground">
-          📊 סיכוי אישור המשכנתא
-        </h3>
-        <div className="text-[10px] sm:text-[11px] text-muted-foreground font-heading">הערכה חכמה</div>
-      </div>
-
-      {/* Score + bar */}
-      <div className="flex items-center gap-4 mb-3">
-        <div className={`text-3xl sm:text-4xl font-heading font-extrabold tracking-tight ${colorMap[approval.level]}`}>
-          {animatedScore}
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-1">
-            <span className={`text-xs font-heading font-bold ${colorMap[approval.level]}`}>{approval.label}</span>
-            <span className="text-[10px] text-muted-foreground">/100</span>
-          </div>
-          <div className="h-3 rounded-full bg-secondary/60 overflow-hidden">
-            <div
-              className={`h-full rounded-full ${bgMap[approval.level]} transition-all duration-700 ease-out`}
-              style={{ width: `${animatedScore}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Dual borrower improvement */}
-      {approval.improvement > 0 && (
-        <div className="rounded-xl bg-safe/8 border border-safe/20 px-3 py-2 mb-3 text-[12px] sm:text-[13px] text-safe font-heading font-bold flex items-center gap-1.5">
-          <span>⬆</span>
-          +{approval.improvement} נקודות שיפור בזכות לווה נוסף
-        </div>
-      )}
-
-      {/* Insight */}
-      <div className="rounded-xl bg-secondary/30 px-3 py-2.5 mb-3 text-[12px] sm:text-[13px] text-foreground leading-relaxed">
-        💡 {approval.insight}
-      </div>
-
-      {/* Tips */}
-      {approval.tips.length > 0 && (
-        <div>
-          <div className="text-[11px] sm:text-xs text-muted-foreground font-heading mb-2">איך לשפר את הציון:</div>
-          <div className="space-y-1.5">
-            {approval.tips.map((tip, i) => (
-              <div key={i} className={`flex items-center justify-between rounded-lg px-3 py-2 ${bgLightMap['safe']} text-[12px] sm:text-[13px]`}>
-                <span className="text-foreground">✦ {tip.action}</span>
-                <span className="text-safe font-heading font-bold">+{tip.points}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
-  const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
-  const cashFlowLevel = result.netCashFlow >= 0 ? 'safe' : result.netCashFlow > -1000 ? 'warning' : 'danger';
-  const yieldLevel = result.annualYield >= 5 ? 'safe' : result.annualYield >= 3 ? 'warning' : 'danger';
-  const burdenPercent = (result.monthlyPayment / totalIncome * 100);
-  const burdenLevel = burdenPercent <= 30 ? 'safe' : burdenPercent <= 40 ? 'warning' : 'danger';
-  const propertyExpenses = inputs.price * 0.015 / 12;
-  const totalMonthlyExpenses = propertyExpenses + inputs.fixedMonthlyExpenses;
-  const effectiveRent = inputs.propertyType === 'primary' ? 0 : inputs.monthlyRent;
-  const requiredBuffer = (result.monthlyPayment + totalMonthlyExpenses) * 6;
-  const bufferDiff = inputs.cashBuffer - requiredBuffer;
+  const cashFlowLevel = result.netCashFlow >= 0 ? "safe" : result.netCashFlow > -1000 ? "warning" : "danger";
+  const yieldLevel = result.annualYield >= 5 ? "safe" : result.annualYield >= 3 ? "warning" : "danger";
+  const burdenPercent = (result.monthlyPayment / inputs.monthlyIncome) * 100;
+  const burdenLevel = burdenPercent <= 30 ? "safe" : burdenPercent <= 40 ? "warning" : "danger";
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -335,209 +156,37 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           sub={`${burdenPercent.toFixed(0)}% מההכנסה`}
           level={burdenLevel}
         />
-        {inputs.propertyType === 'investment' && (
-          <MetricCard
-            label="תשואה שנתית"
-            value={`${result.annualYield.toFixed(1)}%`}
-            sub="ברוטו"
-            level={yieldLevel}
-          />
+        <MetricCard
+          label="תזרים נטו"
+          value={formatNIS(result.netCashFlow)}
+          sub="אחרי כל ההוצאות"
+          level={cashFlowLevel}
+        />
+        {inputs.propertyType === "investment" && (
+          <MetricCard label="תשואה שנתית" value={`${result.annualYield.toFixed(1)}%`} sub="ברוטו" level={yieldLevel} />
         )}
         <MetricCard
           label="מס רכישה"
           value={formatNIS(result.purchaseTax)}
           sub="כסף שנעלם ביום 1"
-          level={result.purchaseTax > 50000 ? 'danger' : 'neutral'}
+          level={result.purchaseTax > 50000 ? "danger" : "neutral"}
         />
       </div>
 
-      {/* Cash Flow Detail Card */}
-      <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur-sm shadow-sm ${
-        cashFlowLevel === 'safe' ? 'border-safe/20 bg-safe/5' : cashFlowLevel === 'warning' ? 'border-warning/20 bg-warning/5' : 'border-danger/20 bg-danger/5'
-      }`}>
-        <h3 className="font-heading font-bold text-sm text-foreground mb-1">
-          💸 כמה נשאר לך כל חודש
-        </h3>
-        <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">הכנסה פחות משכנתא, הוצאות קבועות ותחזוקה</p>
-
-        <div className="space-y-1.5 text-[13px] sm:text-sm">
-          {inputs.propertyType === 'investment' && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">שכ״ד חודשי</span>
-              <span className="font-mono font-medium text-safe">+{formatNIS(effectiveRent)}</span>
-            </div>
-          )}
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">הכנסה חודשית</span>
-            <span className="font-mono font-medium text-foreground">+{formatNIS(totalIncome)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">החזר משכנתא</span>
-            <span className="font-mono font-medium text-danger">-{formatNIS(result.monthlyPayment)}</span>
-          </div>
-          {inputs.fixedMonthlyExpenses > 0 && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">הוצאות קבועות</span>
-              <span className="font-mono font-medium text-danger">-{formatNIS(inputs.fixedMonthlyExpenses)}</span>
-            </div>
-          )}
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">תחזוקה + תיקונים</span>
-            <span className="font-mono font-medium text-danger">-{formatNIS(propertyExpenses)}</span>
-          </div>
-          <div className="border-t border-border/30 my-1.5" />
-          <div className="flex justify-between items-center">
-            <span className="font-heading font-bold text-foreground">תזרים נטו</span>
-            <span className={`font-mono font-extrabold text-lg ${
-              cashFlowLevel === 'safe' ? 'text-safe' : cashFlowLevel === 'warning' ? 'text-warning' : 'text-danger'
-            }`}>{formatNIS(result.netCashFlow)}</span>
-          </div>
-        </div>
-
-        {result.netCashFlow < 0 && (
-          <div className="mt-3 rounded-xl bg-danger/10 border border-danger/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-danger leading-relaxed font-heading font-bold">
-            ⚠️ אתה מוציא יותר ממה שאתה מכניס — זה מצב לא יציב
-          </div>
-        )}
-        {result.netCashFlow >= 0 && (
-          <div className="mt-3 rounded-xl bg-safe/10 border border-safe/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-safe leading-relaxed font-heading font-bold">
-            ✓ תזרים חיובי — יש לך מרווח נשימה
-          </div>
-        )}
-      </div>
-
-      {/* Safety Buffer Card */}
-      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
-        <h3 className="font-heading font-bold text-sm text-foreground mb-1">
-          🛡️ כרית ביטחון (6 חודשים)
-        </h3>
-        <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">
-          מבוסס על הוצאות חודשיות של {formatNIS(result.monthlyPayment + totalMonthlyExpenses)}
-        </p>
-
-        <div className="space-y-1.5 text-[13px] sm:text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">כרית נדרשת (6 × הוצאות)</span>
-            <span className="font-mono font-medium text-foreground">{formatNIS(requiredBuffer)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">כרית קיימת</span>
-            <span className="font-mono font-medium text-foreground">{formatNIS(inputs.cashBuffer)}</span>
-          </div>
-          <div className="border-t border-border/30 my-1.5" />
-          <div className="flex justify-between items-center">
-            <span className="font-heading font-bold text-foreground">{bufferDiff >= 0 ? 'עודף' : 'חסר'}</span>
-            <span className={`font-mono font-extrabold text-lg ${bufferDiff >= 0 ? 'text-safe' : 'text-danger'}`}>
-              {formatNIS(Math.abs(bufferDiff))}
-            </span>
-          </div>
-        </div>
-
-        {bufferDiff < 0 ? (
-          <div className="mt-3 rounded-xl bg-danger/10 border border-danger/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-danger leading-relaxed font-heading font-bold">
-            ⚠️ חסר לך {formatNIS(Math.abs(bufferDiff))} לכרית ביטחון מינימלית — כל תקלה תהפוך לבעיה
-          </div>
-        ) : (
-          <div className="mt-3 rounded-xl bg-safe/10 border border-safe/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-safe leading-relaxed font-heading font-bold">
-            ✓ יש לך כרית ביטחון מספקת — {Math.floor(inputs.cashBuffer / (result.monthlyPayment + totalMonthlyExpenses))} חודשים של הוצאות מכוסים
-          </div>
-        )}
-      </div>
-
-      {/* Borrower comparison */}
-      {result.borrowerComparison && <BorrowerComparisonCard comparison={result.borrowerComparison} />}
-
-      {/* Approval Score */}
-      <ApprovalScoreCard approval={result.approvalScore} />
-
       {/* Real cost */}
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
-        <h3 className="font-heading font-bold text-sm text-foreground mb-1">
-          💰 העלות האמיתית — לא רק המשכנתא
-        </h3>
-        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">סך הכסף שתצטרך להביא כדי לסגור את העסקה</p>
-
-        <div className="border-t border-border/20 my-3 sm:my-4" />
-
-        {/* Equity & cost breakdown */}
-        {(() => {
-          const equityItem = (result.costBreakdown ?? []).find(i => i.label === 'סה״כ הון עצמי');
-          const equitySubItems = (result.costBreakdown ?? []).filter(i => i.label.startsWith('  ↳'));
-          const otherItems = (result.costBreakdown ?? []).filter(i => i.label !== 'סה״כ הון עצמי' && !i.label.startsWith('  ↳') && i.amount > 0);
-          const shortfall = result.totalRealCost - inputs.cashBuffer;
-          const equityRatio = equityItem ? (equityItem.amount / result.totalRealCost) * 100 : 0;
-
-          return (
-            <>
-              {equityItem && (
-                <div className="py-2.5 px-3 rounded-xl bg-primary/5 border border-primary/10 mb-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-foreground font-bold text-sm">סה״כ הון עצמי (הכי חשוב)</span>
-                    <span className="text-foreground font-extrabold text-base font-mono">{formatNIS(equityItem.amount)}</span>
-                  </div>
-                  {equitySubItems.length > 0 && (
-                    <div className="mt-1.5 space-y-[3px]">
-                      {equitySubItems.map(sub => (
-                        <div key={sub.label} className="flex items-center justify-between text-[11px] sm:text-[12px]">
-                          <span className="text-muted-foreground">{sub.label.trim()}</span>
-                          <span className="text-muted-foreground font-mono">{formatNIS(sub.amount)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="space-y-[6px] mb-3">
-                {otherItems.map(item => (
-                  <div key={item.label} className="flex items-center justify-between text-[12px] sm:text-[13px]">
-                    <span className="text-muted-foreground">{item.label}</span>
-                    <span className="text-muted-foreground font-medium font-mono">{formatNIS(item.amount)}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t border-border/20 my-3" />
-
-              {/* Summary line */}
-              <div className="flex items-center justify-between py-2 px-3 rounded-xl bg-foreground/5">
-                <span className="text-foreground font-bold text-sm">צריך להביא מהבית:</span>
-                <span className="text-foreground font-extrabold text-lg font-mono">{formatNIS(result.totalRealCost)}</span>
-              </div>
-
-              {/* Shortfall / surplus */}
-              <div className={`mt-3 py-2 px-3 rounded-xl text-[13px] font-medium ${
-                shortfall > 0
-                  ? 'bg-destructive/10 text-destructive border border-destructive/20'
-                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-              }`}>
-                {shortfall > 0
-                  ? `🚨 חסר לך ${formatNIS(shortfall)} כדי לסגור את העסקה`
-                  : `✅ יש לך מספיק — נשאר ${formatNIS(Math.abs(shortfall))} אחרי סגירת העסקה`
-                }
-              </div>
-
-              {/* Insight */}
-              <p className="text-[10px] sm:text-[11px] text-muted-foreground/70 mt-3 leading-relaxed">
-                {equitySubItems.length > 0
-                  ? 'עזרה מההורים מגדילה את ההון העצמי ומקטינה את סכום המשכנתא הנדרש.'
-                  : equityRatio > 70
-                    ? 'רוב הסכום הוא הון עצמי — שאר העלויות קטנות יחסית אך עדיין חובה לקחת בחשבון.'
-                    : 'שים לב: העלויות הנלוות (מס, עו״ד, תיווך) מהוות חלק משמעותי מהסכום הנדרש.'
-                }
-              </p>
-            </>
-          );
-        })()}
+        <h3 className="font-heading font-bold text-sm text-foreground mb-1">העלות האמיתית — לא רק המשכנתא</h3>
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">הון עצמי + מס רכישה + עלויות נלוות</p>
+        <div className="text-xl sm:text-2xl font-heading font-bold text-foreground font-mono">
+          {formatNIS(result.totalRealCost)}
+        </div>
       </div>
 
       {/* Mortgage breakdown */}
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
-        <h3 className="font-heading font-bold text-sm text-foreground mb-2 sm:mb-3">
-          פירוט המשכנתא
-        </h3>
+        <h3 className="font-heading font-bold text-sm text-foreground mb-2 sm:mb-3">פירוט המשכנתא</h3>
         <div className="space-y-2.5 sm:space-y-3">
-          {result.mortgageBreakdown.map(track => (
+          {result.mortgageBreakdown.map((track) => (
             <div key={track.label} className="flex items-start justify-between text-[13px] sm:text-sm gap-2">
               <div className="min-w-0">
                 <span className="text-foreground font-medium">{track.label}</span>
@@ -545,7 +194,9 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
               </div>
               <div className="text-left flex-shrink-0">
                 <span className="text-foreground font-medium font-mono">{formatNIS(track.monthly)}/חודש</span>
-                <div className="text-[11px] sm:text-xs text-muted-foreground font-mono">{formatNIS(track.amount)} @ {track.rate}%</div>
+                <div className="text-[11px] sm:text-xs text-muted-foreground font-mono">
+                  {formatNIS(track.amount)} על {track.rate}%
+                </div>
               </div>
             </div>
           ))}
@@ -554,81 +205,56 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
 
       {/* Warning banners */}
       {result.warningBanners.map((banner, i) => (
-        <div key={i} className="rounded-2xl bg-danger/8 border border-danger/20 px-4 sm:px-5 py-3 sm:py-4 text-[13px] sm:text-sm text-danger font-heading font-semibold">
+        <div
+          key={i}
+          className="rounded-2xl bg-danger/8 border border-danger/20 px-4 sm:px-5 py-3 sm:py-4 text-[13px] sm:text-sm text-danger font-heading font-semibold"
+        >
           🚨 {banner}
         </div>
       ))}
 
-      {/* Scenarios — full spectrum */}
+      {/* Scenarios — always stacked */}
       <div>
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="font-heading font-bold text-sm text-foreground">
-            ספקטרום תרחישים — מהטוב לגרוע
-          </h3>
-          <span className={`text-[10px] sm:text-[11px] font-heading font-medium px-2.5 py-1 rounded-full ${
-            inputs.propertyType === 'investment'
-              ? 'bg-primary/10 text-primary border border-primary/20'
-              : 'bg-accent text-accent-foreground border border-border/40'
-          }`}>
-            {inputs.propertyType === 'investment' ? '🏢 השקעה' : '🏠 מגורים'}
-          </span>
-        </div>
-        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">
-          הטווח המלא: מהתרחיש הטוב ביותר ועד הגרוע ביותר
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-          {result.scenarios.map((s, i) => (
-            <ScenarioCard
-              key={s.name}
-              scenario={s}
-              propertyType={inputs.propertyType}
-              tier={(['optimistic', 'realistic', 'bad', 'worst'] as ScenarioTier[])[i]}
-            />
+        <h3 className="font-heading font-bold text-sm text-foreground mb-1">תרחישי לחץ — מה קורה כשדברים משתבשים?</h3>
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">זה לא ״אם״ — זה ״מתי״</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+          {result.scenarios.map((s) => (
+            <ScenarioCard key={s.name} scenario={s} />
           ))}
-        </div>
-
-        {/* Smart insight */}
-        <div className="mt-3 rounded-xl bg-secondary/30 border border-border/30 px-3 py-2.5 text-[12px] sm:text-[13px] text-foreground leading-relaxed">
-          💡 {inputs.propertyType === 'investment'
-            ? result.scenarios[1].monthlyCashFlow < 0
-              ? 'גם במצב הסביר התזרים שלילי — אתה מסבסד את הנכס מכיסך כל חודש.'
-              : result.scenarios[2].monthlyCashFlow < 0
-                ? 'במצב הסביר הנכס מכסה את עצמו, אבל במצב רע כבר תרגיש את זה.'
-                : 'הנכס מכסה את עצמו גם בתרחיש רע — מצב יציב יחסית.'
-            : result.scenarios[1].monthlyCashFlow < -3000
-              ? 'גם במצב הסביר ההוצאה החודשית משמעותית — ודא שאתה יכול לעמוד בזה לטווח ארוך.'
-              : 'המצב הסביר נראה ישים. הסתכל על התרחישים הגרועים כדי לוודא שיש לך כרית.'
-          }
         </div>
       </div>
 
       {/* Psychology insights */}
       {(result.psychologyInsights.length > 0 || motivations.length > 0) && (
         <div className="rounded-2xl border border-warning/20 bg-warning/5 backdrop-blur-sm p-4 sm:p-6">
-          <h3 className="font-heading font-bold text-sm text-warning mb-2.5 sm:mb-3">
-            🧠 מה באמת מניע אותך?
-          </h3>
+          <h3 className="font-heading font-bold text-sm text-warning mb-2.5 sm:mb-3">🧠 מה באמת מניע אותך?</h3>
 
           {motivations.length > 0 && (
             <div className="space-y-2.5 sm:space-y-3 mb-3 sm:mb-4">
-              {motivations.map(m => MOTIVATION_RESPONSES[m] && (
-                <div key={m} className="text-[13px] sm:text-sm text-foreground bg-background/40 rounded-xl p-3 border border-border/30">
-                  👉 {MOTIVATION_RESPONSES[m]}
-                </div>
-              ))}
+              {motivations.map(
+                (m) =>
+                  MOTIVATION_RESPONSES[m] && (
+                    <div
+                      key={m}
+                      className="text-[13px] sm:text-sm text-foreground bg-background/40 rounded-xl p-3 border border-border/30"
+                    >
+                      👉 {MOTIVATION_RESPONSES[m]}
+                    </div>
+                  ),
+              )}
             </div>
           )}
 
           {result.psychologyInsights.map((insight, i) => {
             const severityMap = {
-              info: 'border-primary/20 bg-primary/5',
-              warning: 'border-warning/20 bg-warning/5',
-              danger: 'border-danger/20 bg-danger/5',
+              info: "border-primary/20 bg-primary/5",
+              warning: "border-warning/20 bg-warning/5",
+              danger: "border-danger/20 bg-danger/5",
             };
             const textMap = {
-              info: 'text-primary',
-              warning: 'text-warning',
-              danger: 'text-danger',
+              info: "text-primary",
+              warning: "text-warning",
+              danger: "text-danger",
             };
 
             return (
@@ -636,20 +262,12 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
                 <div className={`text-[11px] sm:text-xs font-heading font-bold mb-1 ${textMap[insight.severity]}`}>
                   {insight.trigger}
                 </div>
-                <div className="text-[13px] sm:text-sm text-foreground">
-                  {insight.message}
-                </div>
+                <div className="text-[13px] sm:text-sm text-foreground">{insight.message}</div>
               </div>
             );
           })}
         </div>
       )}
-      {/* Inline disclaimer */}
-      <div className="mt-6 pt-4 border-t border-border/30">
-        <p className="text-[11px] sm:text-xs text-muted-foreground text-center leading-relaxed">
-          ⚠️ הערכה בלבד — לא התחייבות הבנק. תנאי האשראי בפועל נקבעים על ידי הבנק.
-        </p>
-      </div>
     </div>
   );
 }
