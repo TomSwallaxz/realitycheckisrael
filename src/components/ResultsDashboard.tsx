@@ -416,6 +416,38 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
       {/* Borrower comparison (only when dual) */}
       {result.borrowerComparison && <BorrowerComparisonSection result={result} />}
 
+      {/* Parent help impact */}
+      {inputs.parentHelp && inputs.parentHelpAmount > 0 && (
+        <div className="rounded-2xl border border-warning/20 bg-warning/5 backdrop-blur-sm p-4 sm:p-5">
+          <h3 className="font-heading font-bold text-sm text-foreground mb-2 flex items-center gap-2">
+            <span>🤝</span>
+            <span>השפעת עזרה מההורים</span>
+          </h3>
+          <div className="space-y-1.5 text-[13px] sm:text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">הון עצמי אישי</span>
+              <span className="font-mono font-medium text-foreground">{formatNIS(inputs.downPayment)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">עזרה מההורים</span>
+              <span className="font-mono font-medium text-warning">{formatNIS(inputs.parentHelpAmount)}</span>
+            </div>
+            <div className="border-t border-border/30 my-1" />
+            <div className="flex justify-between font-semibold">
+              <span className="text-foreground">סה״כ הון עצמי זמין</span>
+              <span className="font-mono font-bold text-foreground">{formatNIS(inputs.downPayment + inputs.parentHelpAmount)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">אחוז מימון בפועל</span>
+              <span className="font-mono font-medium text-foreground">{inputs.financingPercent}%</span>
+            </div>
+          </div>
+          <p className="text-[11px] sm:text-xs text-muted-foreground mt-2.5">
+            💡 עזרה מההורים מקטינה את סכום ההלוואה, מורידה את אחוז המימון, ומשפרת את סיכויי אישור המשכנתא.
+          </p>
+        </div>
+      )}
+
       {/* Real cost breakdown */}
       <CostBreakdownSection result={result} />
 
