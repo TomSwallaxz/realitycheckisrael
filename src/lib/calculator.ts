@@ -57,6 +57,16 @@ export interface BorrowerComparison {
   insight: string;
 }
 
+export interface ApprovalScore {
+  score: number;
+  level: 'safe' | 'warning' | 'danger';
+  label: string;
+  singleScore: number; // score without dual borrower
+  improvement: number; // how much dual borrower adds
+  tips: { action: string; points: number }[];
+  insight: string;
+}
+
 export interface AnalysisResult {
   monthlyPayment: number;
   netCashFlow: number;
@@ -73,6 +83,7 @@ export interface AnalysisResult {
   psychologyInsights: PsychologyInsight[];
   warningBanners: string[];
   borrowerComparison?: BorrowerComparison;
+  approvalScore: ApprovalScore;
 }
 
 export const REGIONS = [
@@ -394,7 +405,66 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     warningBanners.push(`💸 מס רכישה לבד: ${formatNIS(purchaseTax)} — כסף שנעלם ביום הראשון`);
   }
 
-  return { ...partialResult, psychologyInsights, warningBanners };
+  // Approval Score
+  const approvalScore = calcApprovalScore(inputs, monthlyPayment, totalIncome, monthlyExpenses);
+
+  return { ...partialResult, psychologyInsights, warningBanners, approvalScore };
+}
+
+function calcApprovalScore(inputs: PropertyInputs, monthlyPayment: number, totalIncome: number, monthlyExpenses: number): ApprovalScore {
+  const burdenPercent = (monthlyPayment / totalIncome) * 100;
+  const equityPercent = (inputs.downPayment / inputs.price) * 100;
+
+  // 1. Burden score (max 40)
+  const burdenScore = burdenPercent < 30 ? 40 : burdenPercent <= 40 ? 25 : 10;
+
+  // 2. Income score (max 20)
+  const incomeScore = totalIncome >= 25000 ? 20 : totalIncome >= 15000 ? 15 : totalIncome >= 10000 ? 10 : 5;
+
+  // 3. Dual borrower bonus (max 15)
+  const dualBonus = (inputs.dualBorrower && inputs.secondBorrowerIncome > 0) ? 15 : 0;
+
+  // 4. Equity score (max 25)
+  const equityScore = equityPercent >= 25 ? 25 : equityPercent >= 15 ? 15 : 5;
+
+  const score = Math.min(100, burdenScore + incomeScore + dualBonus + equityScore);
+
+  // Single score (without dual bonus) for comparison
+  const singleBurden = (monthlyPayment / inputs.monthlyIncome) * 100;
+  const singleBurdenScore = singleBurden < 30 ? 40 : singleBurden <= 40 ? 25 : 10;
+  const singleIncomeScore = inputs.monthlyIncome >= 25000 ? 20 : inputs.monthlyIncome >= 15000 ? 15 : inputs.monthlyIncome >= 10000 ? 10 : 5;
+  const singleScore = Math.min(100, singleBurdenScore + singleIncomeScore + equityScore);
+
+  const improvement = score - singleScore;
+
+  const level: ApprovalScore['level'] = score >= 70 ? 'safe' : score >= 45 ? 'warning' : 'danger';
+  const label = score >= 70 ? 'סיכוי גבוה' : score >= 45 ? 'סיכוי גבולי' : 'סיכוי נמוך';
+
+  // Tips
+  const tips: ApprovalScore['tips'] = [];
+  if (!inputs.dualBorrower) {
+    tips.push({ action: 'הוסף לווה נוסף / ערב', points: 15 });
+  }
+  if (equityPercent < 25) {
+    const gain = equityPercent < 15 ? 20 : 10;
+    tips.push({ action: 'הגדל הון עצמי ל-25%+', points: gain });
+  }
+  if (burdenPercent > 30) {
+    const gain = burdenPercent > 40 ? 30 : 15;
+    tips.push({ action: 'הקטן סכום ההלוואה', points: gain });
+  }
+
+  // Insight
+  let insight: string;
+  if (level === 'safe') {
+    insight = 'הפרופיל הפיננסי שלך חזק — סיכוי גבוה לאישור המשכנתא.';
+  } else if (level === 'warning') {
+    insight = 'במצב הנוכחי הסיכוי לאישור גבולי. ' + (tips.length > 0 ? `${tips[0].action} יכול לשפר את הציון ב-${tips[0].points} נקודות.` : '');
+  } else {
+    insight = 'הסיכוי לאישור נמוך. מומלץ לשפר את ההון העצמי או להקטין את סכום ההלוואה.';
+  }
+
+  return { score, level, label, singleScore, improvement, tips, insight };
 }
 
 export function formatNIS(n: number): string {
