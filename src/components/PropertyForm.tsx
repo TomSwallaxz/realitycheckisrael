@@ -5,6 +5,8 @@ interface Props {
   onChange: (inputs: PropertyInputs) => void;
 }
 
+type BorrowerMode = "single" | "dual";
+
 function formatWithCommas(n: number): string {
   return n.toLocaleString("he-IL");
 }
@@ -110,6 +112,17 @@ export function PropertyForm({ inputs, onChange }: Props) {
     onChange(newInputs);
   };
 
+  const borrowerMode: BorrowerMode = inputs.dualBorrower ? "dual" : "single";
+  const isDualBorrower = borrowerMode === "dual";
+
+  const setBorrowerMode = (mode: BorrowerMode) => {
+    onChange({
+      ...inputs,
+      dualBorrower: mode === "dual",
+      secondBorrowerIncome: mode === "single" ? 0 : inputs.secondBorrowerIncome,
+    });
+  };
+
   const equityPercent = inputs.price > 0 ? Math.round((inputs.downPayment / inputs.price) * 100) : 0;
   const loanAmount = inputs.price - inputs.downPayment;
 
@@ -161,6 +174,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
               {(["investment", "primary"] as const).map((type) => (
                 <button
                   key={type}
+                  type="button"
                   onClick={() => update("propertyType", type)}
                   className={`flex-1 py-3 sm:py-2.5 rounded-xl text-sm font-heading font-medium transition-all active:scale-[0.97] ${
                     inputs.propertyType === type
@@ -186,6 +200,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
           <div className="flex items-center gap-3">
             <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">דירה ראשונה?</label>
             <button
+              type="button"
               onClick={() => update("isFirstApartment", !inputs.isFirstApartment)}
               className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
                 inputs.isFirstApartment
@@ -215,26 +230,29 @@ export function PropertyForm({ inputs, onChange }: Props) {
             suffix="%"
             hint={inputs.financingPercent > 75 ? "⚠️ מעל 75% — הבנק כנראה לא יאשר" : undefined}
           />
-          {/* Borrower toggle */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">מבנה לווים</label>
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 rounded-xl bg-secondary/30 p-1">
               <button
-                onClick={() => { update("dualBorrower", false); update("secondBorrowerIncome", 0); }}
-                className={`px-3 py-2 sm:py-1.5 rounded-xl text-xs font-heading font-medium transition-all active:scale-95 ${
-                  !inputs.dualBorrower
+                type="button"
+                onClick={() => setBorrowerMode("single")}
+                aria-pressed={borrowerMode === "single"}
+                className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-heading font-medium transition-all active:scale-95 ${
+                  borrowerMode === "single"
                     ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-secondary/50 text-secondary-foreground border border-border/40"
+                    : "bg-transparent text-secondary-foreground border border-transparent"
                 }`}
               >
                 👤 לווה יחיד
               </button>
               <button
-                onClick={() => update("dualBorrower", true)}
-                className={`px-3 py-2 sm:py-1.5 rounded-xl text-xs font-heading font-medium transition-all active:scale-95 ${
-                  inputs.dualBorrower
+                type="button"
+                onClick={() => setBorrowerMode("dual")}
+                aria-pressed={borrowerMode === "dual"}
+                className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-heading font-medium transition-all active:scale-95 ${
+                  borrowerMode === "dual"
                     ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-secondary/50 text-secondary-foreground border border-border/40"
+                    : "bg-transparent text-secondary-foreground border border-transparent"
                 }`}
               >
                 👥 שני לווים
@@ -243,13 +261,13 @@ export function PropertyForm({ inputs, onChange }: Props) {
           </div>
 
           <NumericField
-            label={inputs.dualBorrower ? "הכנסה חודשית — לווה 1" : "הכנסה חודשית נטו"}
+            label={isDualBorrower ? "הכנסה חודשית — לווה 1" : "הכנסה חודשית נטו"}
             value={inputs.monthlyIncome}
             onChange={(v) => update("monthlyIncome", v)}
             prefix="₪"
             large
           />
-          {inputs.dualBorrower && (
+          {isDualBorrower && (
             <NumericField
               label="הכנסה חודשית — לווה 2"
               value={inputs.secondBorrowerIncome}
@@ -278,6 +296,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
             <div className="flex items-center gap-3 mb-2">
               <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">עזרה מההורים?</label>
               <button
+                type="button"
                 onClick={() => update("parentHelp", !inputs.parentHelp)}
                 className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
                   inputs.parentHelp
