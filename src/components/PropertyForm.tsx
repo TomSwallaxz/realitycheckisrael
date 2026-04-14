@@ -110,20 +110,25 @@ export function PropertyForm({ inputs, onChange }: Props) {
   const loanAmount = inputs.price - inputs.downPayment;
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
-      {/* Top summary row — 3 cards */}
-      <div className="grid grid-cols-3 gap-2 mb-3 sm:mb-4">
-        <SummaryCard label="מחיר הנכס" value={`₪${formatWithCommas(inputs.price)}`} />
-        <SummaryCard label="הון עצמי" value={`₪${formatWithCommas(inputs.downPayment)}`} />
-        <SummaryCard
-          label="אחוז מימון"
-          value={`${inputs.financingPercent}%`}
-          sub={`₪${formatWithCommas(loanAmount)}`}
-        />
-      </div>
+    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden box-border">
+      {/* Summary cards — no double frame, just clean sections */}
+      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
+        {/* Price — full width prominent card */}
+        <div className="border-b border-border/30 mb-3 pb-2">
+          <SummaryCard label="מחיר הנכס" value={`₪${formatWithCommas(inputs.price)}`} prominent />
+        </div>
 
-      {/* Financing bar */}
-      <div className="mb-4 sm:mb-5">
+        {/* Equity + Financing — 2 columns on mobile, not 3 */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <SummaryCard label="הון עצמי" value={`₪${formatWithCommas(inputs.downPayment)}`} />
+          <SummaryCard
+            label="אחוז מימון"
+            value={`${inputs.financingPercent}%`}
+            sub={`₪${formatWithCommas(loanAmount)}`}
+          />
+        </div>
+
+        {/* Financing bar */}
         <FinancingBar equityPercent={equityPercent} financingPercent={inputs.financingPercent} />
       </div>
 
