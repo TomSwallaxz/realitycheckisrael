@@ -17,9 +17,9 @@ const MOTIVATION_RESPONSES: Record<string, string> = {
 
 function VerdictBanner({ result }: { result: AnalysisResult }) {
   const bgMap = {
-    safe: 'bg-safe/10 border-safe/30',
-    warning: 'bg-warning/10 border-warning/30',
-    danger: 'bg-danger/10 border-danger/30',
+    safe: 'bg-safe/8 border-safe/20',
+    warning: 'bg-warning/8 border-warning/20',
+    danger: 'bg-danger/8 border-danger/20',
   };
   const textMap = {
     safe: 'text-safe',
@@ -28,8 +28,8 @@ function VerdictBanner({ result }: { result: AnalysisResult }) {
   };
 
   return (
-    <div className={`rounded-lg border p-5 ${bgMap[result.verdictLevel]}`}>
-      <div className={`font-heading font-bold text-lg ${textMap[result.verdictLevel]}`}>
+    <div className={`rounded-2xl border p-6 backdrop-blur-sm ${bgMap[result.verdictLevel]}`}>
+      <div className={`font-heading font-extrabold text-xl ${textMap[result.verdictLevel]}`}>
         {result.verdict}
       </div>
       <div className="flex flex-wrap gap-x-6 gap-y-2 mt-3 text-sm">
@@ -64,7 +64,7 @@ function MetricCard({ label, value, sub, level }: {
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 shadow-sm">
       <div className="text-xs text-muted-foreground font-heading">{label}</div>
       <div className={`text-2xl font-heading font-bold mt-1 font-mono ${colorMap[level || 'neutral']}`}>{value}</div>
       {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
@@ -79,13 +79,13 @@ function ScenarioCard({ scenario }: {
     ? scenario.monthlyCashFlow >= 0 ? 'safe' : 'warning'
     : 'danger';
 
-  const borderMap = { safe: 'border-safe/30', warning: 'border-warning/30', danger: 'border-danger/30' };
+  const borderMap = { safe: 'border-safe/20', warning: 'border-warning/20', danger: 'border-danger/20' };
   const bgMap = { safe: 'bg-safe/5', warning: 'bg-warning/5', danger: 'bg-danger/5' };
   const textMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
   const dotMap = { safe: 'bg-safe', warning: 'bg-warning', danger: 'bg-danger' };
 
   return (
-    <div className={`rounded-lg border p-4 ${borderMap[level]} ${bgMap[level]}`}>
+    <div className={`rounded-2xl border p-4 backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
       <div className="flex items-center gap-2 mb-1">
         <div className={`w-2 h-2 rounded-full ${dotMap[level]}`} />
         <span className="font-heading font-bold text-sm text-foreground">{scenario.name}</span>
@@ -105,14 +105,14 @@ function ScenarioCard({ scenario }: {
           <span className="text-muted-foreground">הוצאות</span>
           <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyExpenses)}</span>
         </div>
-        <div className="border-t border-border my-1" />
+        <div className="border-t border-border/30 my-1" />
         <div className="flex justify-between font-semibold">
           <span className="text-muted-foreground">תזרים חודשי</span>
           <span className={`font-mono ${textMap[level]}`}>{formatNIS(scenario.monthlyCashFlow)}</span>
         </div>
       </div>
 
-      <div className={`mt-3 rounded-md px-3 py-2 text-xs font-heading font-bold ${
+      <div className={`mt-3 rounded-xl px-3 py-2 text-xs font-heading font-bold ${
         scenario.survives
           ? scenario.monthlyCashFlow >= 0
             ? 'bg-safe/10 text-safe'
@@ -140,13 +140,6 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
 
   return (
     <div className="space-y-5">
-      {/* Warning banners */}
-      {result.warningBanners.map((banner, i) => (
-        <div key={i} className="rounded-lg bg-danger/10 border border-danger/30 px-4 py-3 text-sm text-danger font-heading font-semibold">
-          {banner}
-        </div>
-      ))}
-
       <VerdictBanner result={result} />
 
       {/* Key metrics */}
@@ -180,9 +173,9 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
       </div>
 
       {/* Real cost */}
-      <div className="rounded-lg border border-border bg-card p-4">
+      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-5 shadow-sm">
         <h3 className="font-heading font-bold text-sm text-foreground mb-1">
-          👉 העלות האמיתית — לא רק המשכנתא
+          העלות האמיתית — לא רק המשכנתא
         </h3>
         <p className="text-xs text-muted-foreground mb-3">הון עצמי + מס רכישה + עלויות נלוות</p>
         <div className="text-2xl font-heading font-bold text-foreground font-mono">
@@ -191,7 +184,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
       </div>
 
       {/* Mortgage breakdown */}
-      <div className="rounded-lg border border-border bg-card p-4">
+      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-5 shadow-sm">
         <h3 className="font-heading font-bold text-sm text-foreground mb-3">
           פירוט המשכנתא
         </h3>
@@ -211,6 +204,13 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         </div>
       </div>
 
+      {/* Warning banners - shown after data, not before */}
+      {result.warningBanners.map((banner, i) => (
+        <div key={i} className="rounded-2xl bg-danger/8 border border-danger/20 px-5 py-4 text-sm text-danger font-heading font-semibold">
+          🚨 {banner}
+        </div>
+      ))}
+
       {/* Scenarios */}
       <div>
         <h3 className="font-heading font-bold text-sm text-foreground mb-1">
@@ -226,28 +226,26 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
 
       {/* Psychology insights */}
       {(result.psychologyInsights.length > 0 || motivations.length > 0) && (
-        <div className="rounded-lg border border-warning/30 bg-warning/5 p-5">
+        <div className="rounded-2xl border border-warning/20 bg-warning/5 backdrop-blur-sm p-6">
           <h3 className="font-heading font-bold text-sm text-warning mb-3">
             🧠 מה באמת מניע אותך?
           </h3>
 
-          {/* Motivation responses */}
           {motivations.length > 0 && (
             <div className="space-y-3 mb-4">
               {motivations.map(m => MOTIVATION_RESPONSES[m] && (
-                <div key={m} className="text-sm text-foreground bg-background/50 rounded-md p-3 border border-border">
+                <div key={m} className="text-sm text-foreground bg-background/40 rounded-xl p-3 border border-border/30">
                   👉 {MOTIVATION_RESPONSES[m]}
                 </div>
               ))}
             </div>
           )}
 
-          {/* System insights */}
           {result.psychologyInsights.map((insight, i) => {
             const severityMap = {
-              info: 'border-primary/30 bg-primary/5',
-              warning: 'border-warning/30 bg-warning/5',
-              danger: 'border-danger/30 bg-danger/5',
+              info: 'border-primary/20 bg-primary/5',
+              warning: 'border-warning/20 bg-warning/5',
+              danger: 'border-danger/20 bg-danger/5',
             };
             const textMap = {
               info: 'text-primary',
@@ -256,7 +254,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
             };
 
             return (
-              <div key={i} className={`rounded-md p-3 border mb-2 ${severityMap[insight.severity]}`}>
+              <div key={i} className={`rounded-xl p-3 border mb-2 ${severityMap[insight.severity]}`}>
                 <div className={`text-xs font-heading font-bold mb-1 ${textMap[insight.severity]}`}>
                   {insight.trigger}
                 </div>

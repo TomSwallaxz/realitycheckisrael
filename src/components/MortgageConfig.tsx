@@ -21,7 +21,7 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
   ];
 
   return (
-    <div className="rounded-lg border border-border bg-card p-5">
+    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-6 shadow-sm">
       <h2 className="font-heading font-bold text-foreground text-sm mb-4">
         מבנה המשכנתא
       </h2>
@@ -31,10 +31,10 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
           <button
             key={s}
             onClick={() => onStrategyChange(s)}
-            className={`flex-1 py-2.5 px-2 rounded-md text-xs font-heading font-medium transition-colors ${
+            className={`flex-1 py-2.5 px-2 rounded-xl text-xs font-heading font-medium transition-all ${
               strategy === s
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                : 'bg-secondary/50 text-secondary-foreground hover:bg-accent border border-border/40'
             }`}
           >
             <div className="font-bold">{STRATEGY_INFO[s].label}</div>
@@ -43,7 +43,6 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
         ))}
       </div>
 
-      {/* Track visual */}
       <div className="mb-4">
         <div className="flex h-3 rounded-full overflow-hidden" style={{ direction: 'ltr' }}>
           {tracks.map(t => (
@@ -64,7 +63,6 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
         </div>
       </div>
 
-      {/* Rate inputs */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         {tracks.map(t => (
           <div key={t.rateKey}>
@@ -74,7 +72,7 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
               step="0.1"
               value={mortgage[t.rateKey]}
               onChange={e => update(t.rateKey, Number(e.target.value))}
-              className="w-full rounded-md border border-border bg-secondary text-foreground text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-ring"
+              className="w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
             />
           </div>
         ))}
@@ -86,7 +84,7 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
           type="number"
           value={mortgage.termYears}
           onChange={e => update('termYears', Number(e.target.value))}
-          className="w-full rounded-md border border-border bg-secondary text-foreground text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-ring"
+          className="w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
         />
       </div>
     </div>
