@@ -559,11 +559,11 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         </div>
       ))}
 
-      {/* Scenarios — property-type aware */}
+      {/* Scenarios — full spectrum */}
       <div>
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-heading font-bold text-sm text-foreground">
-            תרחישי לחץ — מה קורה כשדברים משתבשים?
+            ספקטרום תרחישים — מהטוב לגרוע
           </h3>
           <span className={`text-[10px] sm:text-[11px] font-heading font-medium px-2.5 py-1 rounded-full ${
             inputs.propertyType === 'investment'
@@ -574,28 +574,30 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           </span>
         </div>
         <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">
-          {inputs.propertyType === 'investment'
-            ? 'בדיקה: מה קורה לתזרים כשהשכירות יורדת או נעלמת?'
-            : 'בדיקה: כמה זה באמת עולה לך כל חודש כשדברים משתבשים?'
-          }
+          הטווח המלא: מהתרחיש הטוב ביותר ועד הגרוע ביותר
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-          {result.scenarios.map(s => (
-            <ScenarioCard key={s.name} scenario={s} propertyType={inputs.propertyType} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+          {result.scenarios.map((s, i) => (
+            <ScenarioCard
+              key={s.name}
+              scenario={s}
+              propertyType={inputs.propertyType}
+              tier={(['optimistic', 'realistic', 'bad', 'worst'] as ScenarioTier[])[i]}
+            />
           ))}
         </div>
 
         {/* Smart insight */}
         <div className="mt-3 rounded-xl bg-secondary/30 border border-border/30 px-3 py-2.5 text-[12px] sm:text-[13px] text-foreground leading-relaxed">
           💡 {inputs.propertyType === 'investment'
-            ? result.scenarios[0].monthlyCashFlow < 0
-              ? 'גם עם שוכר, התזרים שלילי — אתה מסבסד את הנכס מכיסך כל חודש.'
-              : result.scenarios[1].monthlyCashFlow < 0
-                ? 'במצב רגיל הנכס מכסה את עצמו, אבל ירידה בשכירות או חודש ריק יגרמו להפסד.'
+            ? result.scenarios[1].monthlyCashFlow < 0
+              ? 'גם במצב הסביר התזרים שלילי — אתה מסבסד את הנכס מכיסך כל חודש.'
+              : result.scenarios[2].monthlyCashFlow < 0
+                ? 'במצב הסביר הנכס מכסה את עצמו, אבל במצב רע כבר תרגיש את זה.'
                 : 'הנכס מכסה את עצמו גם בתרחיש רע — מצב יציב יחסית.'
-            : result.scenarios[0].monthlyCashFlow < -3000
-              ? 'זה המחיר האמיתי שאתה משלם כל חודש — ודא שאתה יכול לעמוד בזה לטווח ארוך.'
-              : 'זה המחיר האמיתי שאתה משלם כל חודש על הדירה.'
+            : result.scenarios[1].monthlyCashFlow < -3000
+              ? 'גם במצב הסביר ההוצאה החודשית משמעותית — ודא שאתה יכול לעמוד בזה לטווח ארוך.'
+              : 'המצב הסביר נראה ישים. הסתכל על התרחישים הגרועים כדי לוודא שיש לך כרית.'
           }
         </div>
       </div>
