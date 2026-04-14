@@ -256,6 +256,10 @@ function generateWarningBanners(inputs: PropertyInputs, result: Omit<AnalysisRes
 }
 
 export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): AnalysisResult {
+  const totalIncome = inputs.dualBorrower
+    ? inputs.monthlyIncome + inputs.secondBorrowerIncome
+    : inputs.monthlyIncome;
+
   const loanAmount = inputs.price - inputs.downPayment;
 
   const primeAmount = loanAmount * mortgage.primePercent / 100;
@@ -274,7 +278,7 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     ((inputs.monthlyRent * 12 - monthlyExpenses * 12) / inputs.price) * 100;
 
   const purchaseTax = calcPurchaseTax(inputs.price, inputs.isFirstApartment);
-  const totalRealCost = inputs.downPayment + purchaseTax + 15000; // lawyer, misc fees
+  const totalRealCost = inputs.downPayment + purchaseTax + 15000;
 
   const mortgageBreakdown = [
     { label: 'פריים', amount: primeAmount, rate: mortgage.primeRate, monthly: primeMonthly, desc: 'זול אבל מסוכן — עולה עם הריבית' },
@@ -288,7 +292,7 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
 
   const scenarios = [baseCase, badCase, worstCase];
 
-  // Risk assessment
+  // Risk assessment — use totalIncome
   let riskPoints = 0;
   const ltv = loanAmount / inputs.price;
   if (ltv > 0.75) riskPoints += 2;
@@ -303,12 +307,16 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
   if (inputs.cashBuffer < monthlyPayment * 6) riskPoints += 2;
   else if (inputs.cashBuffer < monthlyPayment * 12) riskPoints += 1;
 
-  const monthlyBurden = monthlyPayment / inputs.monthlyIncome;
+  const monthlyBurden = monthlyPayment / totalIncome;
   if (monthlyBurden > 0.4) riskPoints += 2;
   else if (monthlyBurden > 0.3) riskPoints += 1;
 
-  // Primary residence is inherently more risky (no income offset)
   if (inputs.propertyType === 'primary') riskPoints += 1;
+
+  // Dual borrower risk adjustment: reduce risk by ~12%
+  if (inputs.dualBorrower && inputs.secondBorrowerIncome > 0) {
+    riskPoints = Math.max(0, Math.round(riskPoints * 0.88));
+  }
 
   const riskScore = riskPoints <= 3 ? 'נמוך' as const : riskPoints <= 6 ? 'בינוני' as const : 'גבוה' as const;
 
@@ -329,6 +337,39 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
   const stressLevel = riskScore;
   const minRequiredBuffer = Math.max(monthlyPayment * 12 + 25000, worstCase.annualCashBurn * 1.5);
 
+  // Borrower comparison
+  let borrowerComparison: BorrowerComparison | undefined;
+  if (inputs.dualBorrower && inputs.secondBorrowerIncome > 0) {
+    const singleIncome = inputs.monthlyIncome;
+    const dualIncome = totalIncome;
+    const singleBurden = (monthlyPayment / singleIncome) * 100;
+    const dualBurden = (monthlyPayment / dualIncome) * 100;
+    const singleRemaining = singleIncome - monthlyPayment - monthlyExpenses;
+    const dualRemaining = dualIncome - monthlyPayment - monthlyExpenses;
+    const getRiskLevel = (b: number): 'safe' | 'warning' | 'danger' =>
+      b <= 30 ? 'safe' : b <= 40 ? 'warning' : 'danger';
+
+    // Estimate risk points for single
+    let singleRiskPoints = 0;
+    if (ltv > 0.75) singleRiskPoints += 2; else if (ltv > 0.6) singleRiskPoints += 1;
+    if (netCashFlow < 0) singleRiskPoints += 2; else if (netCashFlow < 500) singleRiskPoints += 1;
+    if (!badCase.survives) singleRiskPoints += 3; else if (!worstCase.survives) singleRiskPoints += 2;
+    if (inputs.cashBuffer < monthlyPayment * 6) singleRiskPoints += 2; else if (inputs.cashBuffer < monthlyPayment * 12) singleRiskPoints += 1;
+    if (monthlyPayment / singleIncome > 0.4) singleRiskPoints += 2; else if (monthlyPayment / singleIncome > 0.3) singleRiskPoints += 1;
+    if (inputs.propertyType === 'primary') singleRiskPoints += 1;
+
+    const savedPoints = singleRiskPoints - riskPoints;
+    const extraMonthly = dualRemaining - singleRemaining;
+
+    borrowerComparison = {
+      single: { totalIncome: singleIncome, burdenPercent: singleBurden, riskLevel: getRiskLevel(singleBurden), monthlyRemaining: singleRemaining },
+      dual: { totalIncome: dualIncome, burdenPercent: dualBurden, riskLevel: getRiskLevel(dualBurden), monthlyRemaining: dualRemaining },
+      savedRiskPoints: savedPoints,
+      extraMonthly,
+      insight: `הוספת לווה נוסף מורידה את נטל ההחזר מ-${singleBurden.toFixed(0)}% ל-${dualBurden.toFixed(0)}% מההכנסה, ומשאירה ${formatNIS(extraMonthly)} יותר בכל חודש. הסיכוי לאישור המשכנתא עולה משמעותית.`,
+    };
+  }
+
   const partialResult = {
     monthlyPayment,
     netCashFlow,
@@ -342,6 +383,7 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     totalRealCost,
     scenarios,
     mortgageBreakdown,
+    borrowerComparison,
   };
 
   const psychologyInsights = generatePsychologyInsights(inputs, partialResult);
