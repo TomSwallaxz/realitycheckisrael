@@ -291,6 +291,10 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const yieldLevel = result.annualYield >= 5 ? 'safe' : result.annualYield >= 3 ? 'warning' : 'danger';
   const burdenPercent = (result.monthlyPayment / totalIncome * 100);
   const burdenLevel = burdenPercent <= 30 ? 'safe' : burdenPercent <= 40 ? 'warning' : 'danger';
+  const monthlyExpenses = inputs.price * 0.015 / 12; // maintenance + repairs
+  const effectiveRent = inputs.propertyType === 'primary' ? 0 : inputs.monthlyRent;
+  const requiredBuffer = (result.monthlyPayment + monthlyExpenses) * 6;
+  const bufferDiff = inputs.cashBuffer - requiredBuffer;
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -303,12 +307,6 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           value={formatNIS(result.monthlyPayment)}
           sub={`${burdenPercent.toFixed(0)}% מההכנסה`}
           level={burdenLevel}
-        />
-        <MetricCard
-          label="תזרים נטו"
-          value={formatNIS(result.netCashFlow)}
-          sub="אחרי כל ההוצאות"
-          level={cashFlowLevel}
         />
         {inputs.propertyType === 'investment' && (
           <MetricCard
@@ -324,6 +322,93 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           sub="כסף שנעלם ביום 1"
           level={result.purchaseTax > 50000 ? 'danger' : 'neutral'}
         />
+      </div>
+
+      {/* Cash Flow Detail Card */}
+      <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur-sm shadow-sm ${
+        cashFlowLevel === 'safe' ? 'border-safe/20 bg-safe/5' : cashFlowLevel === 'warning' ? 'border-warning/20 bg-warning/5' : 'border-danger/20 bg-danger/5'
+      }`}>
+        <h3 className="font-heading font-bold text-sm text-foreground mb-1">
+          💸 כמה נשאר לך כל חודש
+        </h3>
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">הכנסה פחות משכנתא והוצאות</p>
+
+        <div className="space-y-1.5 text-[13px] sm:text-sm">
+          {inputs.propertyType === 'investment' && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">שכ״ד חודשי</span>
+              <span className="font-mono font-medium text-safe">+{formatNIS(effectiveRent)}</span>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">הכנסה חודשית</span>
+            <span className="font-mono font-medium text-foreground">+{formatNIS(totalIncome)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">החזר משכנתא</span>
+            <span className="font-mono font-medium text-danger">-{formatNIS(result.monthlyPayment)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">הוצאות קבועות (תחזוקה + תיקונים)</span>
+            <span className="font-mono font-medium text-danger">-{formatNIS(monthlyExpenses)}</span>
+          </div>
+          <div className="border-t border-border/30 my-1.5" />
+          <div className="flex justify-between items-center">
+            <span className="font-heading font-bold text-foreground">תזרים נטו</span>
+            <span className={`font-mono font-extrabold text-lg ${
+              cashFlowLevel === 'safe' ? 'text-safe' : cashFlowLevel === 'warning' ? 'text-warning' : 'text-danger'
+            }`}>{formatNIS(result.netCashFlow)}</span>
+          </div>
+        </div>
+
+        {result.netCashFlow < 0 && (
+          <div className="mt-3 rounded-xl bg-danger/10 border border-danger/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-danger leading-relaxed font-heading font-bold">
+            ⚠️ אתה מוציא יותר ממה שאתה מכניס — זה מצב לא יציב
+          </div>
+        )}
+        {result.netCashFlow >= 0 && (
+          <div className="mt-3 rounded-xl bg-safe/10 border border-safe/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-safe leading-relaxed font-heading font-bold">
+            ✓ תזרים חיובי — יש לך מרווח נשימה
+          </div>
+        )}
+      </div>
+
+      {/* Safety Buffer Card */}
+      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
+        <h3 className="font-heading font-bold text-sm text-foreground mb-1">
+          🛡️ כרית ביטחון (6 חודשים)
+        </h3>
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">
+          מבוסס על הוצאות חודשיות של {formatNIS(result.monthlyPayment + monthlyExpenses)}
+        </p>
+
+        <div className="space-y-1.5 text-[13px] sm:text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">כרית נדרשת (6 × הוצאות)</span>
+            <span className="font-mono font-medium text-foreground">{formatNIS(requiredBuffer)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">כרית קיימת</span>
+            <span className="font-mono font-medium text-foreground">{formatNIS(inputs.cashBuffer)}</span>
+          </div>
+          <div className="border-t border-border/30 my-1.5" />
+          <div className="flex justify-between items-center">
+            <span className="font-heading font-bold text-foreground">{bufferDiff >= 0 ? 'עודף' : 'חסר'}</span>
+            <span className={`font-mono font-extrabold text-lg ${bufferDiff >= 0 ? 'text-safe' : 'text-danger'}`}>
+              {formatNIS(Math.abs(bufferDiff))}
+            </span>
+          </div>
+        </div>
+
+        {bufferDiff < 0 ? (
+          <div className="mt-3 rounded-xl bg-danger/10 border border-danger/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-danger leading-relaxed font-heading font-bold">
+            ⚠️ חסר לך {formatNIS(Math.abs(bufferDiff))} לכרית ביטחון מינימלית — כל תקלה תהפוך לבעיה
+          </div>
+        ) : (
+          <div className="mt-3 rounded-xl bg-safe/10 border border-safe/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-safe leading-relaxed font-heading font-bold">
+            ✓ יש לך כרית ביטחון מספקת — {Math.floor(inputs.cashBuffer / (result.monthlyPayment + monthlyExpenses))} חודשים של הוצאות מכוסים
+          </div>
+        )}
       </div>
 
       {/* Borrower comparison */}
