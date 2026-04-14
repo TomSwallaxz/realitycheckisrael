@@ -20,19 +20,20 @@ function Field({ label, value, onChange, prefix, suffix, hint }: {
       </label>
       <div className="relative">
         {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{prefix}</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs sm:text-sm">{prefix}</span>
         )}
         <input
           type="number"
+          inputMode="numeric"
           value={value}
           onChange={e => onChange(Number(e.target.value))}
-          className={`w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all ${prefix ? 'pl-8' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'}`}
+          className={`w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all ${prefix ? 'pl-7 sm:pl-8' : 'pl-3'} ${suffix ? 'pr-7 sm:pr-8' : 'pr-3'}`}
         />
         {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{suffix}</span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs sm:text-sm">{suffix}</span>
         )}
       </div>
-      {hint && <p className="text-xs text-muted-foreground/60 mt-1">{hint}</p>}
+      {hint && <p className="text-[11px] text-muted-foreground/60 mt-1">{hint}</p>}
     </div>
   );
 }
@@ -50,8 +51,8 @@ export function PropertyForm({ inputs, onChange }: Props) {
   };
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-6 shadow-sm">
-      <h2 className="font-heading font-bold text-foreground text-sm mb-4">
+    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
+      <h2 className="font-heading font-bold text-foreground text-sm mb-3 sm:mb-4">
         פרטי הנכס
       </h2>
 
@@ -63,7 +64,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
           <select
             value={inputs.region}
             onChange={e => update('region', e.target.value)}
-            className="w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+            className="w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-3 sm:py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
           >
             {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -76,7 +77,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
               <button
                 key={type}
                 onClick={() => update('propertyType', type)}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-heading font-medium transition-all ${
+                className={`flex-1 py-3 sm:py-2.5 rounded-xl text-sm font-heading font-medium transition-all active:scale-[0.97] ${
                   inputs.propertyType === type
                     ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
                     : 'bg-secondary/50 text-secondary-foreground hover:bg-accent border border-border/40'
@@ -96,7 +97,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
           <label className="block text-xs text-muted-foreground font-heading">דירה ראשונה?</label>
           <button
             onClick={() => update('isFirstApartment', !inputs.isFirstApartment)}
-            className={`px-4 py-1.5 rounded-full text-xs font-heading font-medium transition-all ${
+            className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
               inputs.isFirstApartment
                 ? 'bg-safe/15 text-safe border border-safe/30'
                 : 'bg-secondary/50 text-secondary-foreground border border-border/40'
@@ -107,7 +108,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
         </div>
       </div>
 
-      <h2 className="font-heading font-bold text-foreground text-sm mt-6 mb-4">
+      <h2 className="font-heading font-bold text-foreground text-sm mt-5 sm:mt-6 mb-3 sm:mb-4">
         נתונים פיננסיים
       </h2>
 
@@ -134,7 +135,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
             <label className="block text-xs text-muted-foreground font-heading">עזרה מההורים?</label>
             <button
               onClick={() => update('parentHelp', !inputs.parentHelp)}
-              className={`px-4 py-1.5 rounded-full text-xs font-heading font-medium transition-all ${
+              className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
                 inputs.parentHelp
                   ? 'bg-warning/15 text-warning border border-warning/30'
                   : 'bg-secondary/50 text-secondary-foreground border border-border/40'
