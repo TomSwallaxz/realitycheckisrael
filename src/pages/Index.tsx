@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PropertyInputs, MortgageStructure, Strategy, getStrategyPreset, analyze, AnalysisResult } from '@/lib/calculator';
+import { PropertyInputs, MortgageStructure, Strategy, getStrategyPreset, analyze, AnalysisResult, DEFAULT_RATES } from '@/lib/calculator';
 import { PropertyForm } from '@/components/PropertyForm';
 import { MortgageConfig } from '@/components/MortgageConfig';
 import { ResultsDashboard } from '@/components/ResultsDashboard';
@@ -25,9 +25,9 @@ const Index = () => {
     primePercent: 40,
     fixedPercent: 40,
     variablePercent: 20,
-    primeRate: 6.0,
-    fixedRate: 5.5,
-    variableRate: 5.0,
+    primeRate: DEFAULT_RATES.primeRate,
+    fixedRate: DEFAULT_RATES.fixedRate,
+    variableRate: DEFAULT_RATES.variableRate,
     termYears: 25,
   });
 

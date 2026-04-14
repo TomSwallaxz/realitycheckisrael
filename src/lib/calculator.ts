@@ -1,3 +1,10 @@
+// Centralized default rates — example values for illustration only
+export const DEFAULT_RATES = {
+  primeRate: 6.0,
+  fixedRate: 5.5,
+  variableRate: 5.0,
+} as const;
+
 export interface PropertyInputs {
   price: number;
   monthlyRent: number;
