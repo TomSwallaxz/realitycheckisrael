@@ -1,11 +1,9 @@
-import { PropertyInputs, REGIONS } from "@/lib/calculator";
+import { BorrowerMode, PropertyInputs, REGIONS } from "@/lib/calculator";
 
 interface Props {
   inputs: PropertyInputs;
   onChange: (inputs: PropertyInputs) => void;
 }
-
-type BorrowerMode = "single" | "dual";
 
 function formatWithCommas(n: number): string {
   return n.toLocaleString("he-IL");
@@ -101,7 +99,7 @@ function FinancingBar({ equityPercent }: { equityPercent: number }) {
 }
 
 export function PropertyForm({ inputs, onChange }: Props) {
-  const update = (key: keyof PropertyInputs, value: number | string | boolean) => {
+  const update = (key: keyof PropertyInputs, value: number | string) => {
     const newInputs = { ...inputs, [key]: value };
     if (key === "financingPercent") {
       newInputs.downPayment = Math.round(newInputs.price * (1 - (value as number) / 100));
@@ -112,13 +110,13 @@ export function PropertyForm({ inputs, onChange }: Props) {
     onChange(newInputs);
   };
 
-  const borrowerMode: BorrowerMode = inputs.dualBorrower ? "dual" : "single";
+  const borrowerMode: BorrowerMode = inputs.borrowerMode;
   const isDualBorrower = borrowerMode === "dual";
 
   const setBorrowerMode = (mode: BorrowerMode) => {
     onChange({
       ...inputs,
-      dualBorrower: mode === "dual",
+      borrowerMode: mode,
       secondBorrowerIncome: mode === "single" ? 0 : inputs.secondBorrowerIncome,
     });
   };
@@ -128,14 +126,11 @@ export function PropertyForm({ inputs, onChange }: Props) {
 
   return (
     <div className="space-y-4 w-full max-w-full overflow-x-hidden">
-      {/* Summary section — single clean card */}
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
-        {/* Price — full width, prominent */}
         <div className="border-b border-border/30 mb-3 pb-1">
           <SummaryItem label="מחיר הנכס" value={`₪${formatWithCommas(inputs.price)}`} prominent />
         </div>
 
-        {/* Equity + Financing — always 2 columns */}
         <div className="grid grid-cols-2 gap-2 mb-4">
           <SummaryItem label="הון עצמי" value={`₪${formatWithCommas(inputs.downPayment)}`} />
           <SummaryItem
@@ -148,7 +143,6 @@ export function PropertyForm({ inputs, onChange }: Props) {
         <FinancingBar equityPercent={equityPercent} />
       </div>
 
-      {/* Form fields — separate clean card */}
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
         <div className="space-y-3">
           <NumericField label="מחיר הנכס" value={inputs.price} onChange={(v) => update("price", v)} prefix="₪" large />
@@ -175,7 +169,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
                 <button
                   key={type}
                   type="button"
-                  onClick={() => update("propertyType", type)}
+                  onClick={() => onChange({ ...inputs, propertyType: type })}
                   className={`flex-1 py-3 sm:py-2.5 rounded-xl text-sm font-heading font-medium transition-all active:scale-[0.97] ${
                     inputs.propertyType === type
                       ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
@@ -201,7 +195,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
             <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">דירה ראשונה?</label>
             <button
               type="button"
-              onClick={() => update("isFirstApartment", !inputs.isFirstApartment)}
+              onClick={() => onChange({ ...inputs, isFirstApartment: !inputs.isFirstApartment })}
               className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
                 inputs.isFirstApartment
                   ? "bg-safe/15 text-safe border border-safe/30"
@@ -255,7 +249,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
                     : "bg-transparent text-secondary-foreground border border-transparent"
                 }`}
               >
-                👥 שני לווים
+                👥 שני לווים (זוג / ערב)
               </button>
             </div>
           </div>
@@ -297,7 +291,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
               <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">עזרה מההורים?</label>
               <button
                 type="button"
-                onClick={() => update("parentHelp", !inputs.parentHelp)}
+                onClick={() => onChange({ ...inputs, parentHelp: !inputs.parentHelp })}
                 className={`px-4 py-2 sm:py-1.5 rounded-full text-xs font-heading font-medium transition-all active:scale-95 ${
                   inputs.parentHelp
                     ? "bg-warning/15 text-warning border border-warning/30"
