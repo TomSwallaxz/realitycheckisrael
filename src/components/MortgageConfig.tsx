@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { MortgageStructure, Strategy, STRATEGY_INFO, DEFAULT_RATES } from '@/lib/calculator';
+import { Info } from 'lucide-react';
 
 interface Props {
   mortgage: MortgageStructure;
@@ -8,11 +10,19 @@ interface Props {
 }
 
 export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrategyChange }: Props) {
+  const [openTooltip, setOpenTooltip] = useState<string | null>(null);
+
   const update = (key: keyof MortgageStructure, value: number) => {
     onMortgageChange({ ...mortgage, [key]: value });
   };
 
   const strategies: Strategy[] = ['conservative', 'balanced', 'aggressive'];
+
+  const rateTooltips: Record<string, string> = {
+    primeRate: 'ריבית שמבוססת על ריבית בנק ישראל בתוספת מרווח קבוע. היא יכולה להשתנות עם הזמן, ולכן ההחזר החודשי יכול לעלות או לרדת.',
+    fixedRate: 'ריבית שנשארת קבועה לאורך כל התקופה. נותנת יציבות וודאות גבוהה יותר, אבל בדרך כלל פחות גמישה.',
+    variableRate: 'ריבית שמתעדכנת אחת לכמה שנים לפי תנאי המסלול. בתחילת הדרך היא יכולה להיות נוחה יותר, אבל בעתיד ההחזר עלול להשתנות.',
+  };
 
   const tracks = [
     { label: 'פריים', key: 'primePercent' as const, rateKey: 'primeRate' as const, color: 'bg-primary', desc: 'זול אבל מסוכן' },
@@ -77,9 +87,35 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
         {tracks.map(t => {
           const defaultVal = DEFAULT_RATES[t.rateKey];
           const isDefault = mortgage[t.rateKey] === defaultVal;
+          const isOpen = openTooltip === t.rateKey;
           return (
-            <div key={t.rateKey}>
-              <label className="block text-[11px] sm:text-xs text-muted-foreground mb-1 truncate">ריבית {t.label}</label>
+            <div key={t.rateKey} className="relative">
+              <label className="flex items-center gap-1 text-[11px] sm:text-xs text-muted-foreground mb-1">
+                <span className="truncate">ריבית {t.label}</span>
+                <button
+                  type="button"
+                  onClick={() => setOpenTooltip(isOpen ? null : t.rateKey)}
+                  onMouseEnter={() => setOpenTooltip(t.rateKey)}
+                  onMouseLeave={() => setOpenTooltip(null)}
+                  className="flex-shrink-0 text-muted-foreground/60 hover:text-primary transition-colors"
+                  aria-label={`מידע על ריבית ${t.label}`}
+                >
+                  <Info size={13} />
+                </button>
+              </label>
+
+              {/* Tooltip */}
+              {isOpen && (
+                <div
+                  className="absolute z-30 top-full mt-1 left-0 right-0 sm:left-auto sm:right-0 sm:w-56 rounded-xl border border-border/60 bg-card shadow-lg shadow-black/10 p-3 text-[11px] sm:text-xs text-foreground/80 leading-relaxed"
+                  onMouseEnter={() => setOpenTooltip(t.rateKey)}
+                  onMouseLeave={() => setOpenTooltip(null)}
+                  onClick={() => setOpenTooltip(null)}
+                >
+                  {rateTooltips[t.rateKey]}
+                </div>
+              )}
+
               <input
                 type="number"
                 inputMode="decimal"
