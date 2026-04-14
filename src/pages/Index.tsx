@@ -52,7 +52,8 @@ const Index = () => {
   const handleInputChange = (newInputs: PropertyInputs) => {
     setInputs(newInputs);
     if (newInputs.price > 0) {
-      const fp = Math.round(((newInputs.price - newInputs.downPayment) / newInputs.price) * 100);
+      const parentCont = (newInputs.parentHelp && newInputs.parentHelpAmount > 0) ? newInputs.parentHelpAmount : 0;
+      const fp = Math.round(((newInputs.price - newInputs.downPayment - parentCont) / newInputs.price) * 100);
       if (fp !== newInputs.financingPercent) {
         setInputs({ ...newInputs, financingPercent: fp });
       }
