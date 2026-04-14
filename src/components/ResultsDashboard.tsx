@@ -312,7 +312,7 @@ function ApprovalScoreCard({ approval }: { approval: ApprovalScore }) {
 }
 
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
-  const totalIncome = inputs.dualBorrower ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
+  const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const cashFlowLevel = result.netCashFlow >= 0 ? 'safe' : result.netCashFlow > -1000 ? 'warning' : 'danger';
   const yieldLevel = result.annualYield >= 5 ? 'safe' : result.annualYield >= 3 ? 'warning' : 'danger';
   const burdenPercent = (result.monthlyPayment / totalIncome * 100);

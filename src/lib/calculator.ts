@@ -5,6 +5,8 @@ export const DEFAULT_RATES = {
   variableRate: 5.0,
 } as const;
 
+export type BorrowerMode = 'single' | 'dual';
+
 export interface PropertyInputs {
   price: number;
   monthlyRent: number;
@@ -18,7 +20,7 @@ export interface PropertyInputs {
   isFirstApartment: boolean;
   parentHelp: boolean;
   parentHelpAmount: number;
-  dualBorrower: boolean;
+  borrowerMode: BorrowerMode;
   secondBorrowerIncome: number;
 }
 
@@ -168,7 +170,7 @@ function runScenario(
   const propertyExpenses = calcPropertyExpenses(inputs.price);
   const monthlyExpenses = propertyExpenses + inputs.fixedMonthlyExpenses;
   const effectiveRent = inputs.propertyType === 'primary' ? 0 : inputs.monthlyRent * (12 - vacancyMonths) / 12;
-  const totalIncome = inputs.dualBorrower ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
+  const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const monthlyCashFlow = effectiveRent + totalIncome - monthlyPayment - monthlyExpenses;
 
   let monthsBeforeBroke: number | null = null;
@@ -200,7 +202,7 @@ function runScenario(
 
 function generatePsychologyInsights(inputs: PropertyInputs, result: Omit<AnalysisResult, 'psychologyInsights' | 'warningBanners'>): PsychologyInsight[] {
   const insights: PsychologyInsight[] = [];
-  const totalIncome = inputs.dualBorrower ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
+  const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const burden = result.monthlyPayment / totalIncome;
   if (burden > 0.4) {
     insights.push({
@@ -263,7 +265,7 @@ function generateWarningBanners(inputs: PropertyInputs, result: Omit<AnalysisRes
     banners.push('⚠️ אתה לא שורד את התרחיש הגרוע. מה תעשה כשזה יקרה?');
   }
 
-  const totalIncome = inputs.dualBorrower ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
+  const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   if (result.monthlyPayment / totalIncome > 0.45) {
     banners.push('🔴 יותר מ-45% מההכנסה שלך הולכת למשכנתא. הבנק אולי יאשר — אבל החיים לא');
   }
@@ -273,7 +275,7 @@ function generateWarningBanners(inputs: PropertyInputs, result: Omit<AnalysisRes
 }
 
 export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): AnalysisResult {
-  const totalIncome = inputs.dualBorrower
+  const totalIncome = inputs.borrowerMode === 'dual'
     ? inputs.monthlyIncome + inputs.secondBorrowerIncome
     : inputs.monthlyIncome;
 
@@ -370,7 +372,7 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
   if (inputs.propertyType === 'primary') riskPoints += 1;
 
   // Dual borrower risk adjustment: reduce risk by ~12%
-  if (inputs.dualBorrower && inputs.secondBorrowerIncome > 0) {
+  if (inputs.borrowerMode === 'dual' && inputs.secondBorrowerIncome > 0) {
     riskPoints = Math.max(0, Math.round(riskPoints * 0.88));
   }
 
@@ -395,7 +397,7 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
 
   // Borrower comparison
   let borrowerComparison: BorrowerComparison | undefined;
-  if (inputs.dualBorrower && inputs.secondBorrowerIncome > 0) {
+  if (inputs.borrowerMode === 'dual' && inputs.secondBorrowerIncome > 0) {
     const singleIncome = inputs.monthlyIncome;
     const dualIncome = totalIncome;
     const singleBurden = (monthlyPayment / singleIncome) * 100;
@@ -466,7 +468,7 @@ function calcApprovalScore(inputs: PropertyInputs, monthlyPayment: number, total
   const incomeScore = totalIncome >= 25000 ? 20 : totalIncome >= 15000 ? 15 : totalIncome >= 10000 ? 10 : 5;
 
   // 3. Dual borrower bonus (max 15)
-  const dualBonus = (inputs.dualBorrower && inputs.secondBorrowerIncome > 0) ? 15 : 0;
+  const dualBonus = (inputs.borrowerMode === 'dual' && inputs.secondBorrowerIncome > 0) ? 15 : 0;
 
   // 4. Equity score (max 25)
   const equityScore = equityPercent >= 25 ? 25 : equityPercent >= 15 ? 15 : 5;
@@ -486,7 +488,7 @@ function calcApprovalScore(inputs: PropertyInputs, monthlyPayment: number, total
 
   // Tips
   const tips: ApprovalScore['tips'] = [];
-  if (!inputs.dualBorrower) {
+  if (inputs.borrowerMode === 'single') {
     tips.push({ action: 'הוסף לווה נוסף / ערב', points: 15 });
   }
   if (equityPercent < 25) {
