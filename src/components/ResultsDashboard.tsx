@@ -132,6 +132,76 @@ function ScenarioCard({ scenario }: {
   );
 }
 
+function BorrowerComparisonCard({ comparison }: { comparison: BorrowerComparison }) {
+  const textMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
+  const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/8', danger: 'bg-danger/8' };
+
+  return (
+    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
+      <h3 className="font-heading font-bold text-sm text-foreground mb-3">
+        👤👥 השוואת מבנה לווים
+      </h3>
+
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mb-3">
+        {/* Single borrower */}
+        <div className={`rounded-xl border p-3 ${comparison.single.riskLevel === 'danger' ? 'border-danger/20' : comparison.single.riskLevel === 'warning' ? 'border-warning/20' : 'border-safe/20'}`}>
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="text-base">👤</span>
+            <span className="font-heading font-bold text-xs text-foreground">לווה יחיד</span>
+          </div>
+          <div className="space-y-1.5 text-[12px] sm:text-[13px]">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">הכנסה</span>
+              <span className="font-mono font-medium text-foreground">{formatNIS(comparison.single.totalIncome)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">נטל החזר</span>
+              <span className={`font-mono font-bold ${textMap[comparison.single.riskLevel]}`}>{comparison.single.burdenPercent.toFixed(0)}%</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">יתרה חודשית</span>
+              <span className="font-mono font-medium text-foreground">{formatNIS(comparison.single.monthlyRemaining)}</span>
+            </div>
+          </div>
+          <div className={`mt-2 rounded-lg px-2 py-1 text-[10px] sm:text-[11px] font-heading font-bold text-center ${bgMap[comparison.single.riskLevel]} ${textMap[comparison.single.riskLevel]}`}>
+            {comparison.single.riskLevel === 'safe' ? 'סיכון נמוך' : comparison.single.riskLevel === 'warning' ? 'סיכון בינוני' : 'סיכון גבוה'}
+          </div>
+        </div>
+
+        {/* Dual borrower */}
+        <div className={`rounded-xl border p-3 ${comparison.dual.riskLevel === 'danger' ? 'border-danger/20' : comparison.dual.riskLevel === 'warning' ? 'border-warning/20' : 'border-safe/20'}`}>
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="text-base">👥</span>
+            <span className="font-heading font-bold text-xs text-foreground">שני לווים</span>
+          </div>
+          <div className="space-y-1.5 text-[12px] sm:text-[13px]">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">הכנסה</span>
+              <span className="font-mono font-medium text-foreground">{formatNIS(comparison.dual.totalIncome)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">נטל החזר</span>
+              <span className={`font-mono font-bold ${textMap[comparison.dual.riskLevel]}`}>{comparison.dual.burdenPercent.toFixed(0)}%</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">יתרה חודשית</span>
+              <span className="font-mono font-medium text-foreground">{formatNIS(comparison.dual.monthlyRemaining)}</span>
+            </div>
+          </div>
+          <div className={`mt-2 rounded-lg px-2 py-1 text-[10px] sm:text-[11px] font-heading font-bold text-center ${bgMap[comparison.dual.riskLevel]} ${textMap[comparison.dual.riskLevel]}`}>
+            {comparison.dual.riskLevel === 'safe' ? 'סיכון נמוך' : comparison.dual.riskLevel === 'warning' ? 'סיכון בינוני' : 'סיכון גבוה'}
+          </div>
+        </div>
+      </div>
+
+      {/* Insight */}
+      <div className="rounded-xl bg-primary/8 border border-primary/20 px-3 py-2.5 text-[12px] sm:text-[13px] text-foreground leading-relaxed">
+        💡 {comparison.insight}
+      </div>
+    </div>
+  );
+}
+
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const totalIncome = inputs.dualBorrower ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const cashFlowLevel = result.netCashFlow >= 0 ? 'safe' : result.netCashFlow > -1000 ? 'warning' : 'danger';
