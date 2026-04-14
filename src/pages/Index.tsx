@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PropertyInputs, MortgageStructure, Strategy, getStrategyPreset, analyze, AnalysisResult, DEFAULT_RATES } from '@/lib/calculator';
 import { PropertyForm } from '@/components/PropertyForm';
 import { MortgageConfig } from '@/components/MortgageConfig';
