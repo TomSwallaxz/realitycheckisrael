@@ -49,6 +49,14 @@ export interface PsychologyInsight {
   severity: 'info' | 'warning' | 'danger';
 }
 
+export interface BorrowerComparison {
+  single: { totalIncome: number; burdenPercent: number; riskLevel: 'safe' | 'warning' | 'danger'; monthlyRemaining: number };
+  dual: { totalIncome: number; burdenPercent: number; riskLevel: 'safe' | 'warning' | 'danger'; monthlyRemaining: number };
+  savedRiskPoints: number;
+  extraMonthly: number;
+  insight: string;
+}
+
 export interface AnalysisResult {
   monthlyPayment: number;
   netCashFlow: number;
@@ -64,6 +72,7 @@ export interface AnalysisResult {
   mortgageBreakdown: { label: string; amount: number; rate: number; monthly: number; desc: string }[];
   psychologyInsights: PsychologyInsight[];
   warningBanners: string[];
+  borrowerComparison?: BorrowerComparison;
 }
 
 export const REGIONS = [
