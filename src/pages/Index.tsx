@@ -64,13 +64,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section — compact on mobile */}
-      <div className="relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroBg})` }}
+      <div className="relative overflow-hidden min-h-[220px] sm:min-h-[280px] lg:min-h-[340px]">
+        <img
+          src={heroBg}
+          alt="נוף עירוני"
+          className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-[center_25%]"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/80 to-background" />
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 pt-8 sm:pt-12 pb-10 sm:pb-16">
+        <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/60 to-background" />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 pt-14 sm:pt-20 lg:pt-24 pb-14 sm:pb-20 lg:pb-24">
           <div className="max-w-2xl">
             <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
               מנוע החלטות נדל״ן
