@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PropertyInputs, MortgageStructure, Strategy, getStrategyPreset, analyze, AnalysisResult, DEFAULT_RATES } from '@/lib/calculator';
 import { PropertyForm } from '@/components/PropertyForm';
 import { MortgageConfig } from '@/components/MortgageConfig';
@@ -62,14 +62,29 @@ const Index = () => {
     setResult(r);
   };
 
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [heroScale, setHeroScale] = useState(1);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const maxShrink = 120;
+      const progress = Math.min(scrollY / maxShrink, 1);
+      setHeroScale(1 - progress * 0.15);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section — compact on mobile */}
-      <div className="relative overflow-hidden min-h-[220px] sm:min-h-[280px] lg:min-h-[340px]">
+      {/* Hero Section — compact on mobile, shrinks on scroll */}
+      <div ref={heroRef} className="relative overflow-hidden" style={{ minHeight: `calc(${heroScale} * max(220px, min(340px, 35vh)))` }}>
         <img
           src={heroBg}
           alt="נוף עירוני"
-          className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-[center_25%] hero-image"
+          className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-[center_25%] hero-image will-change-transform"
+          style={{ transform: `scale(${1 + (1 - heroScale) * 0.5})` }}
         />
         <div className="absolute inset-0 hero-overlay" />
         
@@ -90,41 +105,44 @@ const Index = () => {
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-3 sm:px-6 pb-8 sm:pb-12 -mt-2 sm:-mt-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
-          <div className="lg:col-span-5 space-y-4 sm:space-y-5">
-            <PropertyForm inputs={inputs} onChange={handleInputChange} />
-            <MortgageConfig
-              mortgage={mortgage}
-              strategy={strategy}
-              onMortgageChange={setMortgage}
-              onStrategyChange={handleStrategyChange}
-            />
-            <PsychologySection motivations={motivations} onChange={setMotivations} />
-            <button
-              onClick={handleAnalyze}
-              className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-sm tracking-wide hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
-            >
-              בדוק את העסקה
-            </button>
-          </div>
+      {/* Content card — floats above hero edge */}
+      <main className="mx-auto max-w-7xl px-3 sm:px-6 pb-8 sm:pb-12 -mt-6 sm:-mt-8 relative z-10">
+        <div className="content-card p-4 sm:p-6 lg:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
+            <div className="lg:col-span-5 space-y-4 sm:space-y-5">
+              <PropertyForm inputs={inputs} onChange={handleInputChange} />
+              <MortgageConfig
+                mortgage={mortgage}
+                strategy={strategy}
+                onMortgageChange={setMortgage}
+                onStrategyChange={handleStrategyChange}
+              />
+              <PsychologySection motivations={motivations} onChange={setMotivations} />
+              <button
+                onClick={handleAnalyze}
+                className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-sm tracking-wide hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
+              >
+                בדוק את העסקה
+              </button>
+            </div>
 
-          <div className="lg:col-span-7">
-            {result ? (
-              <ResultsDashboard result={result} inputs={inputs} motivations={motivations} />
-            ) : (
-              <div className="flex items-center justify-center h-full min-h-[240px] sm:min-h-[400px] rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm">
-                <div className="text-center px-6">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                    <span className="text-xl sm:text-2xl">🏠</span>
+            <div className="lg:col-span-7">
+              {result ? (
+                <ResultsDashboard result={result} inputs={inputs} motivations={motivations} />
+              ) : (
+                <div className="flex items-center justify-center h-full min-h-[240px] sm:min-h-[400px] rounded-2xl border border-border/50 bg-secondary/20">
+                  <div className="text-center px-6">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <span className="text-xl sm:text-2xl">🏠</span>
+                    </div>
+                    <p className="text-foreground/80 font-heading text-base sm:text-lg font-semibold">הכנס פרטים ולחץ על הכפתור</p>
+                    <p className="text-muted-foreground text-xs sm:text-sm mt-1.5 sm:mt-2 max-w-xs mx-auto">
+                      נבדוק אם העסקה הזו שורדת כשדברים משתבשים
+                    </p>
                   </div>
-                  <p className="text-foreground/80 font-heading text-base sm:text-lg font-semibold">הכנס פרטים ולחץ על הכפתור</p>
-                  <p className="text-muted-foreground text-xs sm:text-sm mt-1.5 sm:mt-2 max-w-xs mx-auto">
-                    נבדוק אם העסקה הזו שורדת כשדברים משתבשים
-                  </p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </main>
