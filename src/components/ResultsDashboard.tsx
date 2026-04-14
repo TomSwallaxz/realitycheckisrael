@@ -380,9 +380,8 @@ function DownloadPDFButton({ result, inputs, motivations }: Props) {
   const handleDownload = async () => {
     setLoading(true);
     try {
-      // Small delay for UX feedback
       await new Promise(r => setTimeout(r, 300));
-      generateDealPDF(result, inputs, motivations);
+      await generateDealPDF(result, inputs, motivations);
     } finally {
       setLoading(false);
     }
