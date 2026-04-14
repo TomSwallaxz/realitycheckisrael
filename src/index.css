@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -45,8 +45,9 @@
 
     --radius: 0.5rem;
 
-    --font-heading: 'Space Grotesk', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
+    --font-heading: 'Heebo', sans-serif;
+    --font-body: 'Heebo', sans-serif;
+    --font-mono: 'Space Grotesk', sans-serif;
 
     --sidebar-background: 220 18% 10%;
     --sidebar-foreground: 210 20% 90%;
@@ -67,9 +68,15 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    direction: rtl;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+  }
+
+  input[type="number"] {
+    direction: ltr;
+    text-align: right;
   }
 }

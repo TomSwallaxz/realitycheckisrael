@@ -1,4 +1,4 @@
-import { MortgageStructure, Strategy } from '@/lib/calculator';
+import { MortgageStructure, Strategy, STRATEGY_INFO } from '@/lib/calculator';
 
 interface Props {
   mortgage: MortgageStructure;
@@ -12,44 +12,40 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
     onMortgageChange({ ...mortgage, [key]: value });
   };
 
-  const strategies: { key: Strategy; label: string; desc: string }[] = [
-    { key: 'conservative', label: 'Conservative', desc: 'More fixed, less risk' },
-    { key: 'balanced', label: 'Balanced', desc: 'Default mix' },
-    { key: 'aggressive', label: 'Aggressive', desc: 'More prime/variable' },
-  ];
+  const strategies: Strategy[] = ['conservative', 'balanced', 'aggressive'];
 
   const tracks = [
-    { label: 'Prime', key: 'primePercent' as const, rateKey: 'primeRate' as const, color: 'bg-primary' },
-    { label: 'Fixed', key: 'fixedPercent' as const, rateKey: 'fixedRate' as const, color: 'bg-safe' },
-    { label: 'Variable', key: 'variablePercent' as const, rateKey: 'variableRate' as const, color: 'bg-warning' },
+    { label: 'פריים', key: 'primePercent' as const, rateKey: 'primeRate' as const, color: 'bg-primary', desc: 'זול אבל מסוכן' },
+    { label: 'קבועה', key: 'fixedPercent' as const, rateKey: 'fixedRate' as const, color: 'bg-safe', desc: 'יקר אבל יציב' },
+    { label: 'משתנה', key: 'variablePercent' as const, rateKey: 'variableRate' as const, color: 'bg-warning', desc: 'לא צפוי' },
   ];
 
   return (
     <div className="rounded-lg border border-border bg-card p-5">
-      <h2 className="font-heading font-semibold text-foreground text-sm uppercase tracking-wider mb-4">
-        Mortgage Structure
+      <h2 className="font-heading font-bold text-foreground text-sm mb-4">
+        מבנה המשכנתא
       </h2>
 
-      {/* Strategy selector */}
       <div className="flex gap-2 mb-5">
         {strategies.map(s => (
           <button
-            key={s.key}
-            onClick={() => onStrategyChange(s.key)}
-            className={`flex-1 py-2 px-2 rounded-md text-xs font-heading font-medium transition-colors ${
-              strategy === s.key
+            key={s}
+            onClick={() => onStrategyChange(s)}
+            className={`flex-1 py-2.5 px-2 rounded-md text-xs font-heading font-medium transition-colors ${
+              strategy === s
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-secondary text-secondary-foreground hover:bg-accent'
             }`}
           >
-            <div>{s.label}</div>
+            <div className="font-bold">{STRATEGY_INFO[s].label}</div>
+            <div className="text-[10px] opacity-70 mt-0.5">{STRATEGY_INFO[s].desc}</div>
           </button>
         ))}
       </div>
 
-      {/* Track bars */}
+      {/* Track visual */}
       <div className="mb-4">
-        <div className="flex h-3 rounded-full overflow-hidden">
+        <div className="flex h-3 rounded-full overflow-hidden" style={{ direction: 'ltr' }}>
           {tracks.map(t => (
             <div
               key={t.key}
@@ -58,11 +54,12 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
             />
           ))}
         </div>
-        <div className="flex justify-between mt-1.5">
+        <div className="flex justify-between mt-2">
           {tracks.map(t => (
-            <span key={t.key} className="text-xs text-muted-foreground">
-              {t.label} {mortgage[t.key]}%
-            </span>
+            <div key={t.key} className="text-center">
+              <span className="text-xs text-foreground font-heading font-medium">{t.label} {mortgage[t.key]}%</span>
+              <div className="text-[10px] text-muted-foreground">{t.desc}</div>
+            </div>
           ))}
         </div>
       </div>
@@ -71,7 +68,7 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
       <div className="grid grid-cols-3 gap-3 mb-4">
         {tracks.map(t => (
           <div key={t.rateKey}>
-            <label className="block text-xs text-muted-foreground mb-1">{t.label} Rate</label>
+            <label className="block text-xs text-muted-foreground mb-1">ריבית {t.label}</label>
             <input
               type="number"
               step="0.1"
@@ -83,9 +80,8 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
         ))}
       </div>
 
-      {/* Term */}
       <div>
-        <label className="block text-xs text-muted-foreground mb-1">Loan Term (years)</label>
+        <label className="block text-xs text-muted-foreground mb-1">תקופת ההלוואה (שנים)</label>
         <input
           type="number"
           value={mortgage.termYears}
