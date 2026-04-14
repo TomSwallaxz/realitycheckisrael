@@ -302,9 +302,10 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const yieldLevel = result.annualYield >= 5 ? 'safe' : result.annualYield >= 3 ? 'warning' : 'danger';
   const burdenPercent = (result.monthlyPayment / totalIncome * 100);
   const burdenLevel = burdenPercent <= 30 ? 'safe' : burdenPercent <= 40 ? 'warning' : 'danger';
-  const monthlyExpenses = inputs.price * 0.015 / 12; // maintenance + repairs
+  const propertyExpenses = inputs.price * 0.015 / 12;
+  const totalMonthlyExpenses = propertyExpenses + inputs.fixedMonthlyExpenses;
   const effectiveRent = inputs.propertyType === 'primary' ? 0 : inputs.monthlyRent;
-  const requiredBuffer = (result.monthlyPayment + monthlyExpenses) * 6;
+  const requiredBuffer = (result.monthlyPayment + totalMonthlyExpenses) * 6;
   const bufferDiff = inputs.cashBuffer - requiredBuffer;
 
   return (
