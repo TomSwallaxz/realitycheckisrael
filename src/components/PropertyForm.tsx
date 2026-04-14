@@ -26,7 +26,7 @@ function Field({ label, value, onChange, prefix, suffix, hint }: {
           type="number"
           value={value}
           onChange={e => onChange(Number(e.target.value))}
-          className={`w-full rounded-md border border-border bg-secondary text-foreground text-sm py-2.5 focus:outline-none focus:ring-1 focus:ring-ring ${prefix ? 'pl-8' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'}`}
+          className={`w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all ${prefix ? 'pl-8' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'}`}
         />
         {suffix && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{suffix}</span>
@@ -40,7 +40,6 @@ function Field({ label, value, onChange, prefix, suffix, hint }: {
 export function PropertyForm({ inputs, onChange }: Props) {
   const update = (key: keyof PropertyInputs, value: number | string | boolean) => {
     const newInputs = { ...inputs, [key]: value };
-    // Auto-sync down payment when financing percent changes
     if (key === 'financingPercent') {
       newInputs.downPayment = Math.round(newInputs.price * (1 - (value as number) / 100));
     }
@@ -51,7 +50,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card p-5">
+    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-6 shadow-sm">
       <h2 className="font-heading font-bold text-foreground text-sm mb-4">
         פרטי הנכס
       </h2>
@@ -64,7 +63,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
           <select
             value={inputs.region}
             onChange={e => update('region', e.target.value)}
-            className="w-full rounded-md border border-border bg-secondary text-foreground text-sm py-2.5 px-3 focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
           >
             {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -77,10 +76,10 @@ export function PropertyForm({ inputs, onChange }: Props) {
               <button
                 key={type}
                 onClick={() => update('propertyType', type)}
-                className={`flex-1 py-2 rounded-md text-sm font-heading font-medium transition-colors ${
+                className={`flex-1 py-2.5 rounded-xl text-sm font-heading font-medium transition-all ${
                   inputs.propertyType === type
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                    : 'bg-secondary/50 text-secondary-foreground hover:bg-accent border border-border/40'
                 }`}
               >
                 {type === 'investment' ? 'השקעה' : 'מגורים'}
@@ -97,10 +96,10 @@ export function PropertyForm({ inputs, onChange }: Props) {
           <label className="block text-xs text-muted-foreground font-heading">דירה ראשונה?</label>
           <button
             onClick={() => update('isFirstApartment', !inputs.isFirstApartment)}
-            className={`px-3 py-1 rounded-md text-xs font-heading font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-xs font-heading font-medium transition-all ${
               inputs.isFirstApartment
-                ? 'bg-safe/20 text-safe'
-                : 'bg-secondary text-secondary-foreground'
+                ? 'bg-safe/15 text-safe border border-safe/30'
+                : 'bg-secondary/50 text-secondary-foreground border border-border/40'
             }`}
           >
             {inputs.isFirstApartment ? 'כן' : 'לא'}
@@ -130,15 +129,15 @@ export function PropertyForm({ inputs, onChange }: Props) {
           hint="כמה כסף נשאר לך אחרי כל העלויות"
         />
 
-        <div className="border-t border-border pt-3 mt-3">
+        <div className="border-t border-border/30 pt-3 mt-3">
           <div className="flex items-center gap-3 mb-2">
             <label className="block text-xs text-muted-foreground font-heading">עזרה מההורים?</label>
             <button
               onClick={() => update('parentHelp', !inputs.parentHelp)}
-              className={`px-3 py-1 rounded-md text-xs font-heading font-medium transition-colors ${
+              className={`px-4 py-1.5 rounded-full text-xs font-heading font-medium transition-all ${
                 inputs.parentHelp
-                  ? 'bg-warning/20 text-warning'
-                  : 'bg-secondary text-secondary-foreground'
+                  ? 'bg-warning/15 text-warning border border-warning/30'
+                  : 'bg-secondary/50 text-secondary-foreground border border-border/40'
               }`}
             >
               {inputs.parentHelp ? 'כן' : 'לא'}
