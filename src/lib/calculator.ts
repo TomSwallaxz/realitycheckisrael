@@ -12,6 +12,7 @@ export interface PropertyInputs {
   downPayment: number;
   financingPercent: number;
   monthlyIncome: number;
+  fixedMonthlyExpenses: number;
   cashBuffer: number;
   region: string;
   isFirstApartment: boolean;
