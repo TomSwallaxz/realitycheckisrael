@@ -142,5 +142,14 @@
 }
 
 .light .hero-overlay {
-  background: linear-gradient(to bottom, transparent 0%, hsl(220 20% 97% / 0.1) 40%, hsl(220 20% 97% / 0.6) 75%, hsl(220 20% 97% / 1) 100%);
+  background: linear-gradient(to bottom, transparent 0%, transparent 50%, hsl(220 20% 97% / 0.3) 80%, hsl(220 20% 97% / 0.85) 95%, hsl(220 20% 97% / 1) 100%);
+}
+
+.hero-image {
+  image-rendering: auto;
+  filter: contrast(1.08) saturate(1.1);
+}
+
+.light .hero-image {
+  filter: contrast(1.15) saturate(1.15) brightness(1.02);
 }
