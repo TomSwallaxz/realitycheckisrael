@@ -396,10 +396,11 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     scenarios,
     mortgageBreakdown,
     borrowerComparison,
+    approvalScore: calcApprovalScore(inputs, monthlyPayment, totalIncome, monthlyExpenses),
   };
 
-  const psychologyInsights = generatePsychologyInsights(inputs, partialResult);
-  const warningBanners = generateWarningBanners(inputs, partialResult);
+  const psychologyInsights = generatePsychologyInsights(inputs, partialResult as any);
+  const warningBanners = generateWarningBanners(inputs, partialResult as any);
 
   if (purchaseTax > 50000) {
     warningBanners.push(`💸 מס רכישה לבד: ${formatNIS(purchaseTax)} — כסף שנעלם ביום הראשון`);
