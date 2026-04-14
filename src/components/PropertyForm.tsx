@@ -70,23 +70,28 @@ function FinancingBar({ equityPercent, financingPercent }: {
 
   return (
     <div>
-      <div className="flex justify-between text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">
-        <span>משכנתא {fin}%</span>
-        <span>הון עצמי {eq}%</span>
+      {/* Labels — RTL: equity on right, mortgage on left */}
+      <div className="flex justify-between items-baseline mb-2">
+        <div className="text-left">
+          <span className="text-[11px] sm:text-xs text-muted-foreground font-heading">משכנתא</span>
+          <span className="text-sm sm:text-base font-heading font-bold text-primary mr-1.5">{fin}%</span>
+        </div>
+        <div className="text-right">
+          <span className="text-sm sm:text-base font-heading font-bold text-safe ml-1.5">{eq}%</span>
+          <span className="text-[11px] sm:text-xs text-muted-foreground font-heading">הון עצמי</span>
+        </div>
       </div>
-      <div className="h-3 sm:h-3.5 rounded-full bg-secondary/60 overflow-hidden flex" dir="ltr">
+
+      {/* Bar — RTL: equity right, mortgage left */}
+      <div className="flex h-4 sm:h-5 gap-1 rounded-full overflow-hidden">
         <div
-          className="bg-primary/80 rounded-r-full transition-all duration-500 ease-out"
+          className="bg-primary rounded-s-full transition-all duration-500 ease-out"
           style={{ width: `${fin}%` }}
         />
         <div
-          className="bg-safe/60 rounded-l-full transition-all duration-500 ease-out"
+          className="bg-safe rounded-e-full transition-all duration-500 ease-out"
           style={{ width: `${eq}%` }}
         />
-      </div>
-      <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1">
-        <span>מימון</span>
-        <span>הון עצמי</span>
       </div>
     </div>
   );
