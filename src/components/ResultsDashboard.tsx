@@ -338,24 +338,64 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           💰 העלות האמיתית — לא רק המשכנתא
         </h3>
         <p className="text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">סך הכסף שתצטרך להביא כדי לסגור את העסקה</p>
-        <div className="text-xl sm:text-2xl font-heading font-extrabold text-foreground font-mono">
-          {formatNIS(result.totalRealCost)}
-        </div>
 
         <div className="border-t border-border/20 my-3 sm:my-4" />
 
-        <div className="space-y-[7px]">
-          {(result.costBreakdown ?? []).filter(item => item.amount > 0).map(item => (
-            <div key={item.label} className="flex items-center justify-between text-[13px] sm:text-sm">
-              <span className="text-muted-foreground">{item.label}</span>
-              <span className="text-foreground font-medium font-mono">{formatNIS(item.amount)}</span>
-            </div>
-          ))}
-        </div>
+        {/* Equity - highlighted */}
+        {(() => {
+          const equityItem = (result.costBreakdown ?? []).find(i => i.label === 'הון עצמי');
+          const otherItems = (result.costBreakdown ?? []).filter(i => i.label !== 'הון עצמי' && i.amount > 0);
+          const shortfall = result.totalRealCost - inputs.cashBuffer;
+          const equityRatio = equityItem ? (equityItem.amount / result.totalRealCost) * 100 : 0;
 
-        <p className="text-[10px] sm:text-[11px] text-muted-foreground/70 mt-3 sm:mt-4 leading-relaxed">
-          זה הסכום שתצטרך להביא מהבית כדי לסגור את העסקה (לא כולל החזרי משכנתא עתידיים)
-        </p>
+          return (
+            <>
+              {equityItem && (
+                <div className="flex items-center justify-between py-2 px-3 rounded-xl bg-primary/5 border border-primary/10 mb-3">
+                  <span className="text-foreground font-bold text-sm">הון עצמי (הכי חשוב)</span>
+                  <span className="text-foreground font-extrabold text-base font-mono">{formatNIS(equityItem.amount)}</span>
+                </div>
+              )}
+
+              <div className="space-y-[6px] mb-3">
+                {otherItems.map(item => (
+                  <div key={item.label} className="flex items-center justify-between text-[12px] sm:text-[13px]">
+                    <span className="text-muted-foreground">{item.label}</span>
+                    <span className="text-muted-foreground font-medium font-mono">{formatNIS(item.amount)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-border/20 my-3" />
+
+              {/* Summary line */}
+              <div className="flex items-center justify-between py-2 px-3 rounded-xl bg-foreground/5">
+                <span className="text-foreground font-bold text-sm">צריך להביא מהבית:</span>
+                <span className="text-foreground font-extrabold text-lg font-mono">{formatNIS(result.totalRealCost)}</span>
+              </div>
+
+              {/* Shortfall / surplus */}
+              <div className={`mt-3 py-2 px-3 rounded-xl text-[13px] font-medium ${
+                shortfall > 0
+                  ? 'bg-destructive/10 text-destructive border border-destructive/20'
+                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+              }`}>
+                {shortfall > 0
+                  ? `🚨 חסר לך ${formatNIS(shortfall)} כדי לסגור את העסקה`
+                  : `✅ יש לך מספיק — נשאר ${formatNIS(Math.abs(shortfall))} אחרי סגירת העסקה`
+                }
+              </div>
+
+              {/* Insight */}
+              <p className="text-[10px] sm:text-[11px] text-muted-foreground/70 mt-3 leading-relaxed">
+                {equityRatio > 70
+                  ? 'רוב הסכום הוא הון עצמי — שאר העלויות קטנות יחסית אך עדיין חובה לקחת בחשבון.'
+                  : 'שים לב: העלויות הנלוות (מס, עו״ד, תיווך) מהוות חלק משמעותי מהסכום הנדרש.'
+                }
+              </p>
+            </>
+          );
+        })()}
       </div>
 
       {/* Mortgage breakdown */}
