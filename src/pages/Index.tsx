@@ -94,6 +94,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Sticky Summary */}
+      <StickySummary inputs={inputs} result={result} visible={showSticky} onEditClick={scrollToForm} />
+
       {/* Hero Section — compact on mobile, shrinks on scroll */}
       <div ref={heroRef} className="relative overflow-hidden" style={{ minHeight: `calc(${heroScale} * max(220px, min(340px, 35vh)))` }}>
         <img
