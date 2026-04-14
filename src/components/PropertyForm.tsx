@@ -223,6 +223,13 @@ export function PropertyForm({ inputs, onChange }: Props) {
             large
           />
           <NumericField
+            label="הוצאות חודשיות קבועות"
+            value={inputs.fixedMonthlyExpenses}
+            onChange={(v) => update("fixedMonthlyExpenses", v)}
+            prefix="₪"
+            hint="רכב, אוכל, ביטוחים, הלוואות, ילדים, וכו׳"
+          />
+          <NumericField
             label="כרית ביטחון אחרי הרכישה"
             value={inputs.cashBuffer}
             onChange={(v) => update("cashBuffer", v)}

@@ -16,6 +16,7 @@ const Index = () => {
     downPayment: 540000,
     financingPercent: 70,
     monthlyIncome: 22000,
+    fixedMonthlyExpenses: 7000,
     cashBuffer: 100000,
     region: 'מרכז (תל אביב, גוש דן)',
     isFirstApartment: false,
