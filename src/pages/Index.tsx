@@ -72,6 +72,12 @@ const Index = () => {
           className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-[center_25%]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/60 to-background" />
+        
+        {/* Theme Toggle */}
+        <div className="absolute top-4 left-4 z-20">
+          <ThemeToggle />
+        </div>
+
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 pt-14 sm:pt-20 lg:pt-24 pb-14 sm:pb-20 lg:pb-24">
           <div className="max-w-2xl">
             <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
