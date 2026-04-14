@@ -183,6 +183,7 @@ function runScenario(
 }
 
 function generatePsychologyInsights(inputs: PropertyInputs, result: Omit<AnalysisResult, 'psychologyInsights' | 'warningBanners'>): PsychologyInsight[] {
+  const insights: PsychologyInsight[] = [];
   const totalIncome = inputs.dualBorrower ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const burden = result.monthlyPayment / totalIncome;
   if (burden > 0.4) {
