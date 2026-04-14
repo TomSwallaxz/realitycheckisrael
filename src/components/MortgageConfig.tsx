@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { MortgageStructure, Strategy, STRATEGY_INFO, DEFAULT_RATES } from '@/lib/calculator';
-import { Info, ChevronDown } from 'lucide-react';
+import { Info, ChevronDown, X } from 'lucide-react';
 
 interface Props {
   mortgage: MortgageStructure;
@@ -48,9 +48,35 @@ const fullExplanations: Record<string, { title: string; content: { label: string
   },
 };
 
+const labelColors: Record<string, string> = {
+  'מה זה?': 'text-primary',
+  'איך זה מחושב?': 'text-primary',
+  'השפעה על ההחזר': 'text-warning',
+  'יתרונות': 'text-safe',
+  'חסרונות': 'text-danger',
+};
+
 export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrategyChange }: Props) {
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
-  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+  const [openPopover, setOpenPopover] = useState<string | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const triggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  // Close popover on click outside
+  useEffect(() => {
+    if (!openPopover) return;
+    const handler = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        // Check if click was on a trigger button
+        const clickedTrigger = Object.values(triggerRefs.current).some(
+          ref => ref && ref.contains(e.target as Node)
+        );
+        if (!clickedTrigger) setOpenPopover(null);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [openPopover]);
 
   const update = (key: keyof MortgageStructure, value: number) => {
     onMortgageChange({ ...mortgage, [key]: value });
@@ -64,8 +90,18 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
     { label: 'משתנה', key: 'variablePercent' as const, rateKey: 'variableRate' as const, color: 'bg-warning', desc: 'לא צפוי' },
   ];
 
-  const toggleAccordion = (key: string) => {
-    setOpenAccordion(prev => (prev === key ? null : key));
+  const togglePopover = (key: string) => {
+    setOpenPopover(prev => (prev === key ? null : key));
+  };
+
+  // Calculate arrow position based on which track is open
+  const getArrowPosition = () => {
+    if (!openPopover) return '50%';
+    const idx = tracks.findIndex(t => t.rateKey === openPopover);
+    // Each column is ~33%, position arrow at center of that column
+    // RTL: first track is rightmost
+    const positions = ['83%', '50%', '17%'];
+    return positions[idx] || '50%';
   };
 
   return (
@@ -119,32 +155,32 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
         </div>
       </div>
 
-      {/* Rate inputs with tooltip + accordion */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3">
+      {/* Rate inputs */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-1">
         {tracks.map(t => {
           const defaultVal = DEFAULT_RATES[t.rateKey];
           const isDefault = mortgage[t.rateKey] === defaultVal;
           const isTooltipOpen = openTooltip === t.rateKey;
-          const isAccordionOpen = openAccordion === t.rateKey;
-          const explanation = fullExplanations[t.rateKey];
+          const isPopoverOpen = openPopover === t.rateKey;
 
           return (
             <div key={t.rateKey} className="relative">
               <label className="flex items-center gap-1 text-[11px] sm:text-xs text-muted-foreground mb-1">
-                {/* Clickable label text → accordion */}
                 <button
                   type="button"
-                  onClick={() => toggleAccordion(t.rateKey)}
+                  ref={el => { triggerRefs.current[t.rateKey] = el; }}
+                  onClick={() => togglePopover(t.rateKey)}
                   className="truncate text-start hover:text-foreground transition-colors cursor-pointer group flex items-center gap-0.5"
                 >
-                  <span className="group-hover:underline underline-offset-2 decoration-primary/40">ריבית {t.label}</span>
+                  <span className={`group-hover:underline underline-offset-2 decoration-primary/40 ${isPopoverOpen ? 'text-primary font-medium' : ''}`}>
+                    ריבית {t.label}
+                  </span>
                   <ChevronDown
                     size={11}
-                    className={`shrink-0 text-muted-foreground/50 transition-transform duration-200 ${isAccordionOpen ? 'rotate-180' : ''}`}
+                    className={`shrink-0 text-muted-foreground/50 transition-transform duration-200 ${isPopoverOpen ? 'rotate-180 text-primary' : ''}`}
                   />
                 </button>
 
-                {/* Info icon → tooltip */}
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setOpenTooltip(isTooltipOpen ? null : t.rateKey); }}
@@ -180,29 +216,51 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
               <p className="text-[9px] sm:text-[10px] text-muted-foreground/50 mt-1 leading-tight">
                 {isDefault ? 'לדוגמה' : 'מותאם'}
               </p>
-
-              {/* Accordion / collapsible full explanation */}
-              <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  isAccordionOpen ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
-                }`}
-              >
-                <div className="rounded-xl border border-border/40 bg-secondary/30 p-2.5 sm:p-3 space-y-2">
-                  <h4 className="text-[11px] sm:text-xs font-heading font-bold text-foreground">
-                    {explanation.title}
-                  </h4>
-                  {explanation.content.map((item, i) => (
-                    <div key={i}>
-                      <p className="text-[10px] sm:text-[11px] font-medium text-foreground/80">{item.label}</p>
-                      <p className="text-[9px] sm:text-[10px] text-muted-foreground leading-relaxed">{item.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           );
         })}
       </div>
+
+      {/* Wide popover explanation card */}
+      {openPopover && fullExplanations[openPopover] && (
+        <div className="relative mb-3 animate-in fade-in-0 slide-in-from-top-2 duration-200" ref={popoverRef}>
+          {/* Arrow */}
+          <div
+            className="absolute -top-[6px] w-3 h-3 rotate-45 border-t border-l border-border/60 bg-card z-10"
+            style={{ left: getArrowPosition(), transform: `translateX(-50%) rotate(45deg)` }}
+          />
+
+          <div className="rounded-xl border border-border/60 bg-card shadow-lg shadow-black/8 p-3 sm:p-4 mt-1">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-2.5">
+              <h4 className="text-xs sm:text-sm font-heading font-bold text-foreground">
+                {fullExplanations[openPopover].title}
+              </h4>
+              <button
+                type="button"
+                onClick={() => setOpenPopover(null)}
+                className="text-muted-foreground/50 hover:text-foreground transition-colors p-0.5 rounded-md hover:bg-secondary/50"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Content blocks — horizontal on desktop, stacked on mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5">
+              {fullExplanations[openPopover].content.map((item, i) => (
+                <div key={i} className="rounded-lg bg-secondary/30 border border-border/20 px-2.5 py-2">
+                  <p className={`text-[10px] sm:text-[11px] font-heading font-semibold mb-0.5 ${labelColors[item.label] || 'text-foreground/80'}`}>
+                    {item.label}
+                  </p>
+                  <p className="text-[10px] sm:text-[11px] text-muted-foreground leading-relaxed">
+                    {item.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-xl bg-secondary/30 border border-border/30 px-3 py-2 sm:py-2.5 mb-3 sm:mb-4">
         <p className="text-[10px] sm:text-[11px] text-muted-foreground leading-relaxed">
