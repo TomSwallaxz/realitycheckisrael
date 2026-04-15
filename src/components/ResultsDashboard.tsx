@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AnalysisResult, PropertyInputs, formatNIS } from "@/lib/calculator";
 import { generateDealPDF } from "@/lib/generatePDF";
 
@@ -408,32 +408,104 @@ function DownloadPDFButton({ result, inputs, motivations }: Props) {
   );
 }
 
+function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
+  const isInvestment = inputs.propertyType === 'investment';
+  const effectiveRent = isInvestment ? inputs.monthlyRent : 0;
+  const netFromPocket = result.monthlyPayment - effectiveRent;
+  const burdenPercent = (netFromPocket / totalIncome) * 100;
+  const burdenLevel: 'safe' | 'warning' | 'danger' = burdenPercent <= 30 ? 'safe' : burdenPercent <= 40 ? 'warning' : 'danger';
+
+  const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
+  const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/8', danger: 'bg-danger/8' };
+  const borderMap = { safe: 'border-safe/20', warning: 'border-warning/20', danger: 'border-danger/20' };
+
+  const title = isInvestment
+    ? 'כמה באמת יוצא לך מהכיס כל חודש'
+    : 'ההחזר החודשי בפועל';
+
+  return (
+    <div className={`col-span-2 rounded-2xl border p-3 sm:p-4 shadow-sm backdrop-blur-sm ${borderMap[burdenLevel]} ${bgMap[burdenLevel]}`}>
+      <div className="flex items-center gap-1.5 mb-2">
+        <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{title}</div>
+        <div className="relative">
+          <button
+            onClick={() => setShowTooltip(!showTooltip)}
+            className="w-4 h-4 rounded-full bg-muted/50 text-muted-foreground text-[10px] flex items-center justify-center hover:bg-muted transition-colors"
+            aria-label="איך זה מחושב?"
+          >
+            ?
+          </button>
+          {showTooltip && (
+            <div
+              ref={tooltipRef}
+              className="absolute z-50 bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 sm:w-64 rounded-xl border border-border bg-popover p-3 shadow-lg text-[11px] sm:text-xs text-popover-foreground"
+            >
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-border" />
+              {isInvestment
+                ? 'הסכום מבוסס על ההחזר החודשי למשכנתא, בניכוי הכנסות משכירות. לא כולל הוצאות קבועות אישיות.'
+                : 'הסכום מבוסס על ההחזר החודשי למשכנתא בלבד. לא כולל הוצאות קבועות אישיות.'}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main number */}
+      <div className={`text-2xl sm:text-3xl font-heading font-extrabold tracking-tight ${colorMap[burdenLevel]}`}>
+        {formatNIS(isInvestment ? netFromPocket : result.monthlyPayment)}
+      </div>
+      <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
+        {burdenPercent.toFixed(0)}% מההכנסה
+      </div>
+
+      {/* Breakdown */}
+      <div className="mt-2.5 pt-2.5 border-t border-border/30 space-y-1 text-[12px] sm:text-[13px]">
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">החזר חודשי למשכנתא</span>
+          <span className="font-mono font-medium text-foreground">{formatNIS(result.monthlyPayment)}</span>
+        </div>
+        {isInvestment && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">הכנסה משכירות</span>
+            <span className="font-mono font-medium text-safe">-{formatNIS(effectiveRent)}</span>
+          </div>
+        )}
+        {isInvestment && (
+          <>
+            <div className="border-t border-border/20 my-1" />
+            <div className="flex justify-between font-semibold">
+              <span className="text-foreground">סה״כ נטו מהכיס</span>
+              <span className={`font-mono font-bold ${colorMap[burdenLevel]}`}>{formatNIS(netFromPocket)}</span>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
-  const cashFlowLevel = result.netCashFlow >= 0 ? "safe" : result.netCashFlow > -1000 ? "warning" : "danger";
   const yieldLevel = result.annualYield >= 5 ? "safe" : result.annualYield >= 3 ? "warning" : "danger";
   const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const burdenPercent = (result.monthlyPayment / totalIncome) * 100;
   const burdenLevel = burdenPercent <= 30 ? "safe" : burdenPercent <= 40 ? "warning" : "danger";
 
-  const cashFlowLabel = inputs.propertyType === 'investment' ? 'תזרים חודשי' : 'כמה זה עולה לך כל חודש';
-
   return (
     <div className="space-y-4 sm:space-y-5">
       <VerdictBanner result={result} />
 
-      {/* Key metrics — 2 cols on mobile */}
+      {/* Monthly cost breakdown — full width */}
+      <MonthlyCostCard result={result} inputs={inputs} />
+
+      {/* Key metrics */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         <MetricCard
           label="החזר חודשי"
           value={formatNIS(result.monthlyPayment)}
           sub={`${burdenPercent.toFixed(0)}% מההכנסה`}
           level={burdenLevel}
-        />
-        <MetricCard
-          label={cashFlowLabel}
-          value={formatNIS(result.netCashFlow)}
-          sub="אחרי כל ההוצאות"
-          level={cashFlowLevel}
         />
         {inputs.propertyType === "investment" && (
           <MetricCard label="תשואה שנתית" value={`${result.annualYield.toFixed(1)}%`} sub="ברוטו" level={yieldLevel} />
