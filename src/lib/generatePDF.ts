@@ -263,7 +263,7 @@ export async function generateDealPDF(result: AnalysisResult, inputs: PropertyIn
     <div class="pdf-report" dir="rtl" lang="he">
       <div class="pdf-header">
         <div class="pdf-brand">Deal or No Deal</div>
-        <div class="pdf-subtitle">בדיקת כדאיות רכישת נכס</div>
+        <div class="pdf-subtitle">דוח הכנה לבנק — בדיקת כדאיות רכישת נכס</div>
         <div class="pdf-date">${escapeHtml(date)}</div>
       </div>
 
@@ -375,7 +375,43 @@ export async function generateDealPDF(result: AnalysisResult, inputs: PropertyIn
       </section>
 
       <section class="pdf-section">
-        <div class="pdf-section-head">⚡ תרחישי לחץ</div>
+        <div class="pdf-section-head">💡 המצב הפיננסי שלך — מה הבנק רואה</div>
+        <div class="pdf-section-body">
+          ${renderRow("הכנסה חודשית כוללת", formatNIS(totalIncome))}
+          ${renderRow("החזר חודשי צפוי", formatNIS(result.monthlyPayment))}
+          ${renderRow("נטל החזר מההכנסה", `${burdenPercent}%`, Number(burdenPercent) > 40 ? "danger" : Number(burdenPercent) > 30 ? "warning" : "safe")}
+          ${renderRow("הון עצמי זמין", formatNIS(totalEquity))}
+          ${renderRow("אחוז מימון", `${inputs.financingPercent}%`, inputs.financingPercent > 70 ? "danger" : inputs.financingPercent > 60 ? "warning" : "safe")}
+          ${renderRow("כרית ביטחון אחרי רכישה", formatNIS(inputs.cashBuffer), inputs.cashBuffer < result.monthlyPayment * 6 ? "danger" : "safe")}
+        </div>
+      </section>
+
+      <section class="pdf-section">
+        <div class="pdf-section-head">⚠️ נקודות חולשה — מה עלול להפריע לאישור</div>
+        <div class="pdf-section-body pdf-list">
+          ${Number(burdenPercent) > 35 ? `<div class="pdf-note pdf-note-${Number(burdenPercent) > 40 ? 'danger' : 'warning'}"><div class="pdf-note-title">נטל החזר גבוה (${burdenPercent}%)</div><div>הבנקים מעדיפים נטל עד 30%. מעל 40% מקשה מאוד על אישור.</div></div>` : ''}
+          ${inputs.financingPercent > 60 ? `<div class="pdf-note pdf-note-${inputs.financingPercent > 70 ? 'danger' : 'warning'}"><div class="pdf-note-title">אחוז מימון גבוה (${inputs.financingPercent}%)</div><div>ככל שאחוז המימון גבוה יותר, הבנק דורש יותר ביטחונות ומעלה ריבית.</div></div>` : ''}
+          ${inputs.cashBuffer < result.monthlyPayment * 6 ? `<div class="pdf-note pdf-note-danger"><div class="pdf-note-title">כרית ביטחון דקה</div><div>מומלץ לשמור לפחות ${formatNIS(result.monthlyPayment * 6)} (6 חודשי החזר) לאחר הרכישה.</div></div>` : ''}
+          ${inputs.borrowerMode === 'single' ? `<div class="pdf-note pdf-note-warning"><div class="pdf-note-title">לווה יחיד</div><div>הוספת לווה נוסף (בן/בת זוג או ערב) יכולה לשפר את סיכויי האישור משמעותית.</div></div>` : ''}
+          ${Number(burdenPercent) <= 35 && inputs.financingPercent <= 60 && inputs.cashBuffer >= result.monthlyPayment * 6 && inputs.borrowerMode === 'dual' ? `<div class="pdf-note pdf-note-safe"><div class="pdf-note-title">✓ לא זוהו חולשות משמעותיות</div><div>הפרופיל הפיננסי שלך חזק — ממשיך לבדוק תרחישים.</div></div>` : ''}
+        </div>
+      </section>
+
+      <section class="pdf-section">
+        <div class="pdf-section-head">📅 כמה תשלם לאורך זמן</div>
+        <div class="pdf-section-body">
+          ${renderRow("גובה המשכנתא", formatNIS(mortgageAmount))}
+          ${renderRow("תקופה", `${result.termYears} שנים (${result.termYears * 12} תשלומים)`)}
+          ${renderRow("סה״כ תשלם לבנק", formatNIS(result.monthlyPayment * result.termYears * 12), "primary")}
+          ${renderRow("מתוכם ריבית", formatNIS(result.monthlyPayment * result.termYears * 12 - mortgageAmount), "warning")}
+          <div class="pdf-small" style="margin-top: 10px; color: #6b7280;">
+            זהו הסכום הכולל שתשלם לאורך כל חיי המשכנתא, כולל קרן וריבית. החזר חודשי × ${result.termYears * 12} חודשים.
+          </div>
+        </div>
+      </section>
+
+      <section class="pdf-section">
+        <div class="pdf-section-head">⚡ תרחישי לחץ — אופטימי מול פסימי</div>
         <div class="pdf-section-body">
           <div class="pdf-scenario-grid">
             ${result.scenarios
