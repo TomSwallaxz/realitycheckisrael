@@ -768,7 +768,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         </div>
       )}
 
-      <DownloadPDFButton result={result} inputs={inputs} motivations={motivations} />
+      <BankReportCTA result={result} inputs={inputs} motivations={motivations} />
 
       <div className="text-center text-[11px] text-muted-foreground/60 pt-2 border-t border-border/20">
         {t('inline_disclaimer')}
