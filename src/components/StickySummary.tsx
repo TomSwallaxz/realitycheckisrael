@@ -1,4 +1,5 @@
 import { PropertyInputs, AnalysisResult, formatNIS } from '@/lib/calculator';
+import { useI18n } from '@/lib/i18n';
 
 interface Props {
   inputs: PropertyInputs;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function StickySummary({ inputs, result, visible, onEditClick }: Props) {
+  const { t } = useI18n();
   const parentCont = (inputs.parentHelp && inputs.parentHelpAmount > 0) ? inputs.parentHelpAmount : 0;
   const totalEquity = inputs.downPayment + parentCont;
   const loanAmount = inputs.price - totalEquity;
@@ -20,30 +22,27 @@ export function StickySummary({ inputs, result, visible, onEditClick }: Props) {
         ? 'bg-warning/10 text-warning border-warning/30'
         : 'bg-danger/10 text-danger border-danger/30'
     }`}>
-      {result.verdictLevel === 'safe' ? '✅ Deal' : result.verdictLevel === 'warning' ? '⚠️ גבולי' : '🚫 No Deal'}
+      {result.verdictLevel === 'safe' ? '✅ Deal' : result.verdictLevel === 'warning' ? '⚠️' : '🚫 No Deal'}
     </span>
   ) : null;
 
   return (
     <div
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out ${
-        visible
-          ? 'translate-y-0 opacity-100'
-          : '-translate-y-full opacity-0 pointer-events-none'
+        visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
       }`}
     >
       <div className="mx-auto max-w-7xl px-3 sm:px-6 pt-3">
         <div className="rounded-2xl border border-border/40 bg-card/90 backdrop-blur-md shadow-lg shadow-black/5 px-3 sm:px-5 py-2.5 sm:py-3">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
-            {/* Data items — horizontal scroll on mobile */}
             <div className="flex items-center gap-3 sm:gap-5 overflow-x-auto scrollbar-hide min-w-0 flex-1">
-              <StickyItem label="מחיר" value={formatNIS(inputs.price)} />
+              <StickyItem label={t('sticky_price')} value={formatNIS(inputs.price)} />
               <Divider />
-              <StickyItem label="הון עצמי" value={formatNIS(totalEquity)} />
+              <StickyItem label={t('sticky_equity')} value={formatNIS(totalEquity)} />
               <Divider />
-              <StickyItem label="מימון" value={`${inputs.financingPercent}%`} />
+              <StickyItem label={t('sticky_financing')} value={`${inputs.financingPercent}%`} />
               <Divider />
-              <StickyItem label="משכנתא" value={formatNIS(loanAmount)} />
+              <StickyItem label={t('sticky_mortgage')} value={formatNIS(loanAmount)} />
               {verdictBadge && (
                 <>
                   <Divider />
@@ -51,13 +50,11 @@ export function StickySummary({ inputs, result, visible, onEditClick }: Props) {
                 </>
               )}
             </div>
-
-            {/* Edit button */}
             <button
               onClick={onEditClick}
               className="shrink-0 text-[10px] sm:text-xs font-heading font-medium text-primary hover:text-primary/80 transition-colors px-2 py-1 rounded-lg hover:bg-primary/5 active:scale-95 whitespace-nowrap"
             >
-              ✏️ ערוך
+              {t('sticky_edit')}
             </button>
           </div>
         </div>

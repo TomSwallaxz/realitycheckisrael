@@ -1,18 +1,22 @@
+import { useI18n } from '@/lib/i18n';
+
 interface Props {
   motivations: string[];
   onChange: (m: string[]) => void;
 }
 
-const MOTIVATIONS = [
-  { id: 'family_pressure', label: 'לחץ מהמשפחה', emoji: '👨‍👩‍👧' },
-  { id: 'fomo', label: 'פחד שהמחירים יעלו', emoji: '📈' },
-  { id: 'stability', label: 'רצון ליציבות', emoji: '🏠' },
-  { id: 'investment', label: 'הזדמנות השקעה', emoji: '💰' },
-  { id: 'status', label: 'סטטוס חברתי', emoji: '👀' },
-  { id: 'rent_waste', label: 'הרגשה ש״שכירות זה בזבוז״', emoji: '🗑️' },
-];
-
 export function PsychologySection({ motivations, onChange }: Props) {
+  const { t } = useI18n();
+
+  const MOTIVATIONS = [
+    { id: 'family_pressure', label: t('mot_family'), emoji: '👨‍👩‍👧' },
+    { id: 'fomo', label: t('mot_fomo'), emoji: '📈' },
+    { id: 'stability', label: t('mot_stability'), emoji: '🏠' },
+    { id: 'investment', label: t('mot_investment'), emoji: '💰' },
+    { id: 'status', label: t('mot_status'), emoji: '👀' },
+    { id: 'rent_waste', label: t('mot_rent_waste'), emoji: '🗑️' },
+  ];
+
   const toggle = (id: string) => {
     if (motivations.includes(id)) {
       onChange(motivations.filter(m => m !== id));
@@ -24,10 +28,10 @@ export function PsychologySection({ motivations, onChange }: Props) {
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
       <h2 className="font-heading font-bold text-foreground text-sm mb-1">
-        למה אתה קונה? 🤔
+        {t('why_buying')}
       </h2>
       <p className="text-[11px] sm:text-xs text-muted-foreground mb-3 sm:mb-4">
-        בחר את מה שמניע אותך — בלי לשקר לעצמך
+        {t('why_buying_sub')}
       </p>
 
       <div className="grid grid-cols-2 gap-2">
