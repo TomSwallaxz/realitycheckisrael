@@ -535,6 +535,9 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
       {/* Monthly cost breakdown — full width */}
       <MonthlyCostCard result={result} inputs={inputs} />
 
+      {/* Total mortgage cost over time */}
+      <TotalMortgageCostBlock result={result} />
+
       {/* Key metrics */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         <MetricCard
