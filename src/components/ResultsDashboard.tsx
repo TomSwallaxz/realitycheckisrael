@@ -549,24 +549,33 @@ function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
-          <span className="text-muted-foreground">החזר חודשי</span>
-          <span className="font-mono font-semibold text-foreground">{formatNIS(result.monthlyPayment)}</span>
+          <div className="flex flex-col">
+            <span className="text-muted-foreground">גובה המשכנתא</span>
+            <span className="text-[10px] text-muted-foreground/60">זה הסכום שלקחת מהבנק</span>
+          </div>
+          <span className="font-mono font-semibold text-foreground">{formatNIS(result.loanAmount)}</span>
         </div>
         <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
-          <span className="text-muted-foreground">סה״כ תשלם לבנק ({result.termYears} שנים)</span>
+          <div className="flex flex-col">
+            <span className="text-muted-foreground">סה״כ תשלם לבנק ({result.termYears} שנים)</span>
+            <span className="text-[10px] text-muted-foreground/60">זה הסכום הכולל שתשלם לאורך התקופה</span>
+          </div>
           <span className="font-mono font-bold text-lg sm:text-xl text-foreground">{formatNIS(totalPaid)}</span>
         </div>
         <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
-          <span className="text-muted-foreground">מתוכם ריבית</span>
+          <div className="flex flex-col">
+            <span className="text-muted-foreground">מתוכם ריבית</span>
+            <span className="text-[10px] text-muted-foreground/60">זה החלק שהוא ריבית</span>
+          </div>
           <span className="font-mono font-semibold text-warning">{formatNIS(totalInterest)}</span>
         </div>
+        <div className="flex justify-between items-baseline text-[13px] sm:text-sm pt-2 border-t border-border/20">
+          <span className="text-muted-foreground">החזר חודשי</span>
+          <span className="font-mono font-semibold text-foreground">{formatNIS(result.monthlyPayment)}</span>
+        </div>
       </div>
-
-      <p className="text-[10px] sm:text-[11px] text-muted-foreground/70 mt-2.5 pt-2.5 border-t border-border/20">
-        זה הסכום הכולל שתשלם לאורך כל חיי המשכנתא — כולל ריבית
-      </p>
     </div>
   );
 }
