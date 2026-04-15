@@ -415,19 +415,54 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
   const isInvestment = inputs.propertyType === 'investment';
   const effectiveRent = isInvestment ? inputs.monthlyRent : 0;
   const netFromPocket = result.monthlyPayment - effectiveRent;
-  const burdenPercent = (netFromPocket / totalIncome) * 100;
-  const burdenLevel: 'safe' | 'warning' | 'danger' = burdenPercent <= 30 ? 'safe' : burdenPercent <= 40 ? 'warning' : 'danger';
 
-  const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
-  const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/8', danger: 'bg-danger/8' };
-  const borderMap = { safe: 'border-safe/20', warning: 'border-warning/20', danger: 'border-danger/20' };
+  // Determine level by meaning, not by sign
+  // netFromPocket > 0 = money OUT of pocket; < 0 = property generates income; = 0 = balanced
+  let level: 'safe' | 'warning' | 'danger' | 'neutral';
+  let insight: string;
+
+  if (netFromPocket <= 0) {
+    // Property generates income or breaks even
+    level = 'safe';
+    insight = netFromPocket === 0 ? 'הנכס מכסה את עצמו — איזון מלא' : 'הנכס מייצר לך הכנסה חודשית';
+  } else {
+    const burdenPercent = (netFromPocket / totalIncome) * 100;
+    if (burdenPercent <= 30) {
+      level = 'safe';
+      insight = 'נטל סביר — בטווח הבטוח';
+    } else if (burdenPercent <= 40) {
+      level = 'warning';
+      insight = 'זה הסכום שאתה צריך להוסיף כל חודש מהכיס';
+    } else {
+      level = 'danger';
+      insight = 'זה הסכום שאתה צריך להוסיף כל חודש מהכיס — נטל גבוה';
+    }
+  }
+
+  const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger', neutral: 'text-foreground' };
+  const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/8', danger: 'bg-danger/8', neutral: 'bg-card/60' };
+  const borderMap = { safe: 'border-safe/20', warning: 'border-warning/20', danger: 'border-danger/20', neutral: 'border-border/40' };
 
   const title = isInvestment
     ? 'כמה באמת יוצא לך מהכיס כל חודש'
     : 'ההחזר החודשי בפועל';
 
+  // Display the main number as absolute value with context text
+  const displayAmount = Math.abs(netFromPocket);
+  const displayValue = isInvestment
+    ? (netFromPocket <= 0
+        ? `+${formatNIS(displayAmount)}`
+        : formatNIS(displayAmount))
+    : formatNIS(result.monthlyPayment);
+
+  const burdenDisplay = netFromPocket > 0
+    ? `${((netFromPocket / totalIncome) * 100).toFixed(0)}% מההכנסה`
+    : netFromPocket < 0
+      ? 'תזרים חיובי'
+      : 'איזון';
+
   return (
-    <div className={`col-span-2 rounded-2xl border p-3 sm:p-4 shadow-sm backdrop-blur-sm ${borderMap[burdenLevel]} ${bgMap[burdenLevel]}`}>
+    <div className={`col-span-2 rounded-2xl border p-3 sm:p-4 shadow-sm backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
       <div className="flex items-center gap-1.5 mb-2">
         <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{title}</div>
         <div className="relative">
@@ -453,35 +488,36 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
       </div>
 
       {/* Main number */}
-      <div className={`text-2xl sm:text-3xl font-heading font-extrabold tracking-tight ${colorMap[burdenLevel]}`}>
-        {formatNIS(isInvestment ? netFromPocket : result.monthlyPayment)}
+      <div className={`text-2xl sm:text-3xl font-heading font-extrabold tracking-tight ${colorMap[level]}`}>
+        {displayValue}
       </div>
       <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-        {burdenPercent.toFixed(0)}% מההכנסה
+        {burdenDisplay}
       </div>
 
-      {/* Breakdown */}
-      <div className="mt-2.5 pt-2.5 border-t border-border/30 space-y-1 text-[12px] sm:text-[13px]">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">החזר חודשי למשכנתא</span>
-          <span className="font-mono font-medium text-foreground">{formatNIS(result.monthlyPayment)}</span>
-        </div>
-        {isInvestment && (
+      {/* Insight line */}
+      <div className={`text-[11px] sm:text-xs mt-1 font-heading font-semibold ${colorMap[level]}`}>
+        {insight}
+      </div>
+
+      {/* Breakdown — only for investment */}
+      {isInvestment && (
+        <div className="mt-2.5 pt-2.5 border-t border-border/30 space-y-1 text-[12px] sm:text-[13px]">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">החזר חודשי למשכנתא</span>
+            <span className="font-mono font-medium text-foreground">{formatNIS(result.monthlyPayment)}</span>
+          </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">הכנסה משכירות</span>
             <span className="font-mono font-medium text-safe">-{formatNIS(effectiveRent)}</span>
           </div>
-        )}
-        {isInvestment && (
-          <>
-            <div className="border-t border-border/20 my-1" />
-            <div className="flex justify-between font-semibold">
-              <span className="text-foreground">סה״כ נטו מהכיס</span>
-              <span className={`font-mono font-bold ${colorMap[burdenLevel]}`}>{formatNIS(netFromPocket)}</span>
-            </div>
-          </>
-        )}
-      </div>
+          <div className="border-t border-border/20 my-1" />
+          <div className="flex justify-between font-semibold">
+            <span className="text-foreground">סה״כ נטו מהכיס</span>
+            <span className={`font-mono font-bold ${colorMap[level]}`}>{displayValue}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
