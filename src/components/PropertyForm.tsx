@@ -100,6 +100,27 @@ function FinancingBar({ equityPercent }: { equityPercent: number }) {
 }
 
 export function PropertyForm({ inputs, onChange }: Props) {
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('onboarding_dismissed');
+    }
+    return true;
+  });
+  const priceInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (showOnboarding && priceInputRef.current) {
+      // Small delay to let the page settle
+      const t = setTimeout(() => priceInputRef.current?.focus(), 600);
+      return () => clearTimeout(t);
+    }
+  }, [showOnboarding]);
+
+  const dismissOnboarding = () => {
+    setShowOnboarding(false);
+    sessionStorage.setItem('onboarding_dismissed', '1');
+  };
+
   const update = (key: keyof PropertyInputs, value: number | string) => {
     const newInputs = { ...inputs, [key]: value };
     if (key === "financingPercent") {
@@ -161,7 +182,44 @@ export function PropertyForm({ inputs, onChange }: Props) {
 
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
         <div className="space-y-3">
-          <NumericField label="מחיר הנכס" value={inputs.price} onChange={(v) => update("price", v)} prefix="₪" large />
+          {/* Price field with onboarding */}
+          <div className="relative">
+            {showOnboarding && (
+              <div className="mb-3 animate-in fade-in-0 slide-in-from-top-2 duration-500">
+                <div className="relative bg-primary/10 border border-primary/25 rounded-xl p-3 sm:p-3.5">
+                  <p className="text-xs sm:text-sm text-foreground font-heading font-semibold leading-relaxed text-right">
+                    שלב 1: הזן את מחיר הנכס כדי להתחיל
+                  </p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 text-right">
+                    זה לוקח פחות מ־30 שניות ⏱️
+                  </p>
+                  {/* Arrow pointing down */}
+                  <div className="absolute -bottom-2 right-6 w-4 h-4 bg-primary/10 border-b border-r border-primary/25 rotate-45" />
+                </div>
+              </div>
+            )}
+            <div>
+              <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">מחיר הנכס</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs sm:text-sm">₪</span>
+                <input
+                  ref={priceInputRef}
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="1,800,000 ₪ לדוגמה"
+                  value={formatWithCommas(inputs.price)}
+                  onFocus={() => {}}
+                  onInput={() => { if (showOnboarding) dismissOnboarding(); }}
+                  onChange={(e) => update("price", parseFormattedNumber(e.target.value))}
+                  className={`w-full rounded-xl border bg-secondary/50 text-foreground text-base sm:text-lg font-bold py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all pl-7 sm:pl-8 pr-3 ${
+                    showOnboarding
+                      ? 'border-primary/50 shadow-[0_0_12px_hsl(var(--primary)/0.15)] ring-1 ring-primary/20'
+                      : 'border-border/60'
+                  }`}
+                />
+              </div>
+            </div>
+          </div>
 
           <div>
             <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">אזור</label>
