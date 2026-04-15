@@ -401,11 +401,11 @@ export async function generateDealPDF(result: AnalysisResult, inputs: PropertyIn
         <div class="pdf-section-head">📅 כמה תשלם לאורך זמן</div>
         <div class="pdf-section-body">
           ${renderRow("גובה המשכנתא", formatNIS(mortgageAmount))}
-          ${renderRow("תקופה", `${mortgage.termYears} שנים (${mortgage.termYears * 12} תשלומים)`)}
-          ${renderRow("סה״כ תשלם לבנק", formatNIS(result.monthlyPayment * mortgage.termYears * 12), "primary")}
-          ${renderRow("מתוכם ריבית", formatNIS(result.monthlyPayment * mortgage.termYears * 12 - mortgageAmount), "warning")}
+          ${renderRow("תקופה", `${result.termYears} שנים (${result.termYears * 12} תשלומים)`)}
+          ${renderRow("סה״כ תשלם לבנק", formatNIS(result.monthlyPayment * result.termYears * 12), "primary")}
+          ${renderRow("מתוכם ריבית", formatNIS(result.monthlyPayment * result.termYears * 12 - mortgageAmount), "warning")}
           <div class="pdf-small" style="margin-top: 10px; color: #6b7280;">
-            זהו הסכום הכולל שתשלם לאורך כל חיי המשכנתא, כולל קרן וריבית. החזר חודשי × ${mortgage.termYears * 12} חודשים.
+            זהו הסכום הכולל שתשלם לאורך כל חיי המשכנתא, כולל קרן וריבית. החזר חודשי × ${result.termYears * 12} חודשים.
           </div>
         </div>
       </section>
