@@ -131,16 +131,20 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Content card — floats above hero edge */}
-      <main className="mx-auto max-w-7xl px-3 sm:px-6 pb-8 sm:pb-12 -mt-6 sm:-mt-8 relative z-10">
-        <div className="mb-5 sm:mb-6 text-center">
-          <p className="font-heading font-bold text-foreground text-sm sm:text-base lg:text-lg">
+      {/* CTA Section — separate block between hero and form */}
+      <div className="bg-background py-6 sm:py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-center">
+          <h2 className="font-heading font-extrabold text-foreground text-base sm:text-lg lg:text-xl">
             בדוק תוך 30 שניות אם אתה באמת יכול להרשות לעצמך לקנות דירה
-          </p>
-          <p className="text-muted-foreground text-xs sm:text-sm mt-1">
-            התחל מהשלב הראשון — הזן את מחיר הנכס 👇
+          </h2>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1.5">
+            👇 התחל מהשלב הראשון — הזן את מחיר הנכס
           </p>
         </div>
+      </div>
+
+      {/* Content card */}
+      <main className="mx-auto max-w-7xl px-3 sm:px-6 pb-8 sm:pb-12 relative z-10">
         <div className="content-card p-4 sm:p-6 lg:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
             <div className="lg:col-span-5 space-y-4 sm:space-y-5">
