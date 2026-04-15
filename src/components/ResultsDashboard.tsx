@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AnalysisResult, PropertyInputs, formatNIS } from "@/lib/calculator";
 import { generateDealPDF } from "@/lib/generatePDF";
 
