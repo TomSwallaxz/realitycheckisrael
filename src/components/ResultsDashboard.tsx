@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { AnalysisResult, PropertyInputs, formatNIS } from "@/lib/calculator";
 import { generateDealPDF } from "@/lib/generatePDF";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   result: AnalysisResult;
@@ -8,16 +9,8 @@ interface Props {
   motivations: string[];
 }
 
-const MOTIVATION_RESPONSES: Record<string, string> = {
-  family_pressure: "לחץ מהמשפחה זה לא סיבה לקנות דירה. זו ההחלטה הכלכלית הגדולה ביותר שלך — לא שלהם.",
-  fomo: "״המחירים יעלו״ — אולי. אבל אם העסקה לא עומדת בפני עצמה היום, היא לא תעמוד מחר.",
-  stability: "יציבות זה לגיטימי. אבל יציבות עם חוב כבד זה לא באמת יציבות.",
-  investment: "תשואה טובה על נדל״ן? אולי. אבל תבדוק את המספרים — לא את הסיפורים.",
-  status: "דירה משלך = הצלחה? בדוק שוב. הצלחה זה שקט נפשי, לא משכנתא.",
-  rent_waste: "״שכירות זה בזבוז״ — מיתוס. גם ריבית, מס רכישה, ותחזוקה הם ״בזבוז״.",
-};
-
 function VerdictBanner({ result }: { result: AnalysisResult }) {
+  const { t } = useI18n();
   const bgMap = {
     safe: "bg-safe/8 border-safe/20",
     warning: "bg-warning/8 border-warning/20",
@@ -29,22 +22,34 @@ function VerdictBanner({ result }: { result: AnalysisResult }) {
     danger: "text-danger",
   };
 
+  const verdictText = result.verdictLevel === 'safe' ? t('verdict_safe')
+    : result.verdictLevel === 'warning' ? t('verdict_warning')
+    : t('verdict_danger');
+
+  const riskText = result.riskScore === 'נמוך' ? t('risk_low')
+    : result.riskScore === 'בינוני' ? t('risk_medium')
+    : t('risk_high');
+
+  const stressText = result.stressLevel === 'נמוך' ? t('risk_low')
+    : result.stressLevel === 'בינוני' ? t('risk_medium')
+    : t('risk_high');
+
   return (
     <div className={`rounded-2xl border p-4 sm:p-6 backdrop-blur-sm ${bgMap[result.verdictLevel]}`}>
       <div className={`font-heading font-extrabold text-lg sm:text-xl ${textMap[result.verdictLevel]}`}>
-        {result.verdict}
+        {verdictText}
       </div>
       <div className="flex flex-col sm:flex-row flex-wrap gap-1.5 sm:gap-x-6 sm:gap-y-2 mt-2 sm:mt-3 text-sm">
         <div>
-          <span className="text-muted-foreground">סיכון: </span>
-          <span className={`font-semibold ${textMap[result.verdictLevel]}`}>{result.riskScore}</span>
+          <span className="text-muted-foreground">{t('risk')}: </span>
+          <span className={`font-semibold ${textMap[result.verdictLevel]}`}>{riskText}</span>
         </div>
         <div>
-          <span className="text-muted-foreground">לחץ צפוי: </span>
-          <span className={`font-semibold ${textMap[result.verdictLevel]}`}>{result.stressLevel}</span>
+          <span className="text-muted-foreground">{t('expected_stress')}: </span>
+          <span className={`font-semibold ${textMap[result.verdictLevel]}`}>{stressText}</span>
         </div>
         <div>
-          <span className="text-muted-foreground">כרית ביטחון מינימלית: </span>
+          <span className="text-muted-foreground">{t('min_buffer')}: </span>
           <span className="font-semibold text-foreground">{formatNIS(result.minRequiredBuffer)}</span>
         </div>
       </div>
@@ -73,9 +78,7 @@ function MetricCard({
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
       <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{label}</div>
-      <div
-        className={`text-xl sm:text-2xl font-heading font-extrabold mt-0.5 sm:mt-1 tracking-tight ${colorMap[level || "neutral"]}`}
-      >
+      <div className={`text-xl sm:text-2xl font-heading font-extrabold mt-0.5 sm:mt-1 tracking-tight ${colorMap[level || "neutral"]}`}>
         {value}
       </div>
       {sub && <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">{sub}</div>}
@@ -84,8 +87,8 @@ function MetricCard({
 }
 
 function ScenarioCard({ scenario }: { scenario: AnalysisResult["scenarios"][0] }) {
+  const { t } = useI18n();
   const level = scenario.survives ? (scenario.monthlyCashFlow >= 0 ? "safe" : "warning") : "danger";
-
   const borderMap = { safe: "border-safe/20", warning: "border-warning/20", danger: "border-danger/20" };
   const bgMap = { safe: "bg-safe/5", warning: "bg-warning/5", danger: "bg-danger/5" };
   const textMap = { safe: "text-safe", warning: "text-warning", danger: "text-danger" };
@@ -101,20 +104,20 @@ function ScenarioCard({ scenario }: { scenario: AnalysisResult["scenarios"][0] }
 
       <div className="space-y-1.5 sm:space-y-2 text-[13px] sm:text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">החזר חודשי</span>
+          <span className="text-muted-foreground">{t('monthly_payment_label')}</span>
           <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyPayment)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">שכ״ד אפקטיבי</span>
+          <span className="text-muted-foreground">{t('effective_rent')}</span>
           <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyRent)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">הוצאות</span>
+          <span className="text-muted-foreground">{t('expenses')}</span>
           <span className="text-foreground font-medium font-mono">{formatNIS(scenario.monthlyExpenses)}</span>
         </div>
         <div className="border-t border-border/30 my-1" />
         <div className="flex justify-between font-semibold">
-          <span className="text-muted-foreground">תזרים חודשי</span>
+          <span className="text-muted-foreground">{t('monthly_cashflow')}</span>
           <span className={`font-mono ${textMap[level]}`}>{formatNIS(scenario.monthlyCashFlow)}</span>
         </div>
       </div>
@@ -130,38 +133,46 @@ function ScenarioCard({ scenario }: { scenario: AnalysisResult["scenarios"][0] }
       >
         {scenario.survives
           ? scenario.monthlyCashFlow >= 0
-            ? "✓ תזרים חיובי"
-            : `⚠ שורד ~${scenario.monthsBeforeBroke} חודשים על כרית הביטחון`
+            ? t('positive_flow')
+            : `⚠ ${t('survives_months')} ~${scenario.monthsBeforeBroke} ${t('months_on_buffer')}`
           : scenario.monthsBeforeBroke === 0
-            ? "✗ נגמר הכסף מיד"
-            : `✗ נשבר אחרי ${scenario.monthsBeforeBroke} חודשים`}
+            ? t('broke_immediately')
+            : `${t('breaks_after')} ${scenario.monthsBeforeBroke} ${t('months')}`}
       </div>
     </div>
   );
 }
 
 function ApprovalScoreSection({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
+  const { t } = useI18n();
   const { approvalScore } = result;
   const colorMap = { safe: "text-safe", warning: "text-warning", danger: "text-danger" };
   const bgMap = { safe: "bg-safe", warning: "bg-warning", danger: "bg-danger" };
   const bgLightMap = { safe: "bg-safe/10", warning: "bg-warning/10", danger: "bg-danger/10" };
   const borderMap = { safe: "border-safe/20", warning: "border-warning/20", danger: "border-danger/20" };
 
+  const labelText = approvalScore.level === 'safe' ? t('approval_high')
+    : approvalScore.level === 'warning' ? t('approval_borderline')
+    : t('approval_low');
+
+  const insightText = approvalScore.level === 'safe' ? t('approval_safe_insight')
+    : approvalScore.level === 'warning' ? t('approval_warn_insight')
+    : t('approval_danger_insight');
+
   return (
     <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur-sm ${borderMap[approvalScore.level]} ${bgLightMap[approvalScore.level]}`}>
       <h3 className="font-heading font-bold text-sm text-foreground mb-3 flex items-center gap-2">
         <span>🏦</span>
-        <span>סיכויי אישור משכנתא</span>
+        <span>{t('approval_title')}</span>
       </h3>
 
-      {/* Score bar */}
       <div className="mb-3">
         <div className="flex items-baseline justify-between mb-1.5">
           <span className={`text-2xl sm:text-3xl font-heading font-extrabold ${colorMap[approvalScore.level]}`}>
             {approvalScore.score}/100
           </span>
           <span className={`text-sm font-heading font-bold ${colorMap[approvalScore.level]}`}>
-            {approvalScore.label}
+            {labelText}
           </span>
         </div>
         <div className="w-full h-2.5 rounded-full bg-secondary/50 overflow-hidden">
@@ -172,25 +183,22 @@ function ApprovalScoreSection({ result, inputs }: { result: AnalysisResult; inpu
         </div>
       </div>
 
-      {/* Insight */}
-      <p className="text-[13px] sm:text-sm text-foreground/80 mb-3">{approvalScore.insight}</p>
+      <p className="text-[13px] sm:text-sm text-foreground/80 mb-3">{insightText}</p>
 
-      {/* Dual borrower improvement */}
       {inputs.borrowerMode === 'dual' && approvalScore.improvement > 0 && (
         <div className="rounded-xl bg-safe/10 border border-safe/20 px-3 py-2 text-[13px] sm:text-sm text-safe font-heading font-semibold mb-3">
-          👥 הוספת לווה נוסף שיפרה את הציון ב-{approvalScore.improvement}+ נקודות
+          👥 {t('dual_improved')}{approvalScore.improvement}+ {t('points')}
         </div>
       )}
 
-      {/* Tips */}
       {approvalScore.tips.length > 0 && (
         <div>
-          <h4 className="text-[11px] sm:text-xs text-muted-foreground font-heading font-semibold mb-2">💡 איך לשפר את הסיכוי:</h4>
+          <h4 className="text-[11px] sm:text-xs text-muted-foreground font-heading font-semibold mb-2">{t('improve_tips')}</h4>
           <div className="space-y-1.5">
             {approvalScore.tips.map((tip, i) => (
               <div key={i} className="flex items-center justify-between text-[13px] sm:text-sm bg-background/30 rounded-lg px-3 py-2 border border-border/20">
                 <span className="text-foreground">{tip.action}</span>
-                <span className="text-safe font-heading font-bold text-xs">+{tip.points} נק׳</span>
+                <span className="text-safe font-heading font-bold text-xs">+{tip.points}</span>
               </div>
             ))}
           </div>
@@ -201,6 +209,7 @@ function ApprovalScoreSection({ result, inputs }: { result: AnalysisResult; inpu
 }
 
 function BorrowerComparisonSection({ result }: { result: AnalysisResult }) {
+  const { t } = useI18n();
   const comparison = result.borrowerComparison;
   if (!comparison) return null;
 
@@ -210,42 +219,39 @@ function BorrowerComparisonSection({ result }: { result: AnalysisResult }) {
     <div className="rounded-2xl border border-primary/20 bg-primary/5 backdrop-blur-sm p-4 sm:p-5">
       <h3 className="font-heading font-bold text-sm text-foreground mb-3 flex items-center gap-2">
         <span>👥</span>
-        <span>השפעת לווה נוסף</span>
+        <span>{t('borrower_impact')}</span>
       </h3>
 
       <div className="grid grid-cols-2 gap-3 mb-3">
-        {/* Single */}
         <div className="rounded-xl border border-border/30 bg-background/40 p-3">
-          <div className="text-[11px] text-muted-foreground font-heading mb-1">👤 לווה יחיד</div>
+          <div className="text-[11px] text-muted-foreground font-heading mb-1">{t('single_label')}</div>
           <div className="text-lg font-heading font-bold text-foreground">{formatNIS(comparison.single.totalIncome)}</div>
           <div className={`text-xs font-heading font-semibold mt-1 ${colorMap[comparison.single.riskLevel]}`}>
-            נטל: {comparison.single.burdenPercent.toFixed(0)}%
+            {t('burden')}: {comparison.single.burdenPercent.toFixed(0)}%
           </div>
           <div className="text-[11px] text-muted-foreground mt-0.5">
-            נשאר: {formatNIS(comparison.single.monthlyRemaining)}
+            {t('remaining')}: {formatNIS(comparison.single.monthlyRemaining)}
           </div>
         </div>
-        {/* Dual */}
         <div className="rounded-xl border border-safe/30 bg-safe/5 p-3">
-          <div className="text-[11px] text-muted-foreground font-heading mb-1">👥 שני לווים</div>
+          <div className="text-[11px] text-muted-foreground font-heading mb-1">{t('dual_label')}</div>
           <div className="text-lg font-heading font-bold text-foreground">{formatNIS(comparison.dual.totalIncome)}</div>
           <div className={`text-xs font-heading font-semibold mt-1 ${colorMap[comparison.dual.riskLevel]}`}>
-            נטל: {comparison.dual.burdenPercent.toFixed(0)}%
+            {t('burden')}: {comparison.dual.burdenPercent.toFixed(0)}%
           </div>
           <div className="text-[11px] text-muted-foreground mt-0.5">
-            נשאר: {formatNIS(comparison.dual.monthlyRemaining)}
+            {t('remaining')}: {formatNIS(comparison.dual.monthlyRemaining)}
           </div>
         </div>
       </div>
 
-      {/* Summary insight */}
       <div className="rounded-xl bg-safe/10 border border-safe/20 px-3 py-2.5 text-[13px] sm:text-sm text-foreground">
         <span className="text-safe font-bold">✓</span> {comparison.insight}
       </div>
 
       {comparison.savedRiskPoints > 0 && (
         <div className="mt-2 text-[11px] sm:text-xs text-safe font-heading font-semibold">
-          📉 הפחתת סיכון: -{comparison.savedRiskPoints} נקודות סיכון
+          {t('risk_reduction')} -{comparison.savedRiskPoints} {t('risk_points')}
         </div>
       )}
     </div>
@@ -253,16 +259,16 @@ function BorrowerComparisonSection({ result }: { result: AnalysisResult }) {
 }
 
 function CostBreakdownSection({ result }: { result: AnalysisResult }) {
+  const { t } = useI18n();
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
-      <h3 className="font-heading font-bold text-sm text-foreground mb-1">העלות האמיתית — לא רק המשכנתא</h3>
-      <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">הון עצמי + מס רכישה + עלויות נלוות</p>
+      <h3 className="font-heading font-bold text-sm text-foreground mb-1">{t('real_cost_title')}</h3>
+      <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">{t('real_cost_sub')}</p>
       
       <div className="text-xl sm:text-2xl font-heading font-bold text-foreground font-mono mb-3">
         {formatNIS(result.totalRealCost)}
       </div>
 
-      {/* Detailed breakdown */}
       <div className="space-y-1.5 border-t border-border/30 pt-3">
         {result.costBreakdown.map((item, i) => {
           const isIndented = item.label.startsWith('  ');
@@ -281,30 +287,26 @@ function CostBreakdownSection({ result }: { result: AnalysisResult }) {
 }
 
 function ImprovementTipsSection({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
+  const { t } = useI18n();
   const tips = result.approvalScore.tips;
   const hasWarnings = result.warningBanners.length > 0;
   const hasDangerScenarios = result.scenarios.some(s => !s.survives);
   
   if (tips.length === 0 && !hasWarnings && !hasDangerScenarios) return null;
 
-  // Build actionable recommendations
   const recommendations: { icon: string; text: string; severity: 'safe' | 'warning' | 'danger' }[] = [];
 
   const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const burdenPercent = (result.monthlyPayment / totalIncome) * 100;
 
   if (inputs.borrowerMode === 'single') {
-    recommendations.push({
-      icon: '👥',
-      text: 'הוספת לווה נוסף (בן/בת זוג או ערב) תשפר משמעותית את סיכויי האישור ותקטין את רמת הסיכון.',
-      severity: 'safe',
-    });
+    recommendations.push({ icon: '👥', text: t('rec_add_coborrower'), severity: 'safe' });
   }
 
   if (burdenPercent > 35) {
     recommendations.push({
       icon: '📉',
-      text: `נטל ההחזר שלך עומד על ${burdenPercent.toFixed(0)}% מההכנסה. שקול להגדיל הון עצמי או להקטין את סכום ההלוואה.`,
+      text: `${t('rec_high_burden')} (${burdenPercent.toFixed(0)}%)`,
       severity: burdenPercent > 40 ? 'danger' : 'warning',
     });
   }
@@ -314,36 +316,21 @@ function ImprovementTipsSection({ result, inputs }: { result: AnalysisResult; in
   if (equityPercent < 25) {
     recommendations.push({
       icon: '💰',
-      text: `ההון העצמי שלך עומד על ${equityPercent.toFixed(0)}% ממחיר הנכס. הגדלה ל-25%+ תשפר את תנאי המשכנתא ותפחית ריבית.`,
+      text: `${t('rec_low_equity')} (${equityPercent.toFixed(0)}%)`,
       severity: equityPercent < 15 ? 'danger' : 'warning',
     });
   }
 
   if (inputs.cashBuffer < result.monthlyPayment * 6) {
-    recommendations.push({
-      icon: '🛡️',
-      text: `כרית הביטחון שלך (${formatNIS(inputs.cashBuffer)}) נמוכה מ-6 חודשי החזר. מומלץ לשמור לפחות ${formatNIS(result.monthlyPayment * 6)}.`,
-      severity: 'danger',
-    });
+    recommendations.push({ icon: '🛡️', text: t('rec_low_buffer'), severity: 'danger' });
   }
 
   if (inputs.fixedMonthlyExpenses > totalIncome * 0.4) {
-    recommendations.push({
-      icon: '📋',
-      text: `ההוצאות הקבועות שלך (${formatNIS(inputs.fixedMonthlyExpenses)}) מהוות ${((inputs.fixedMonthlyExpenses / totalIncome) * 100).toFixed(0)}% מההכנסה — שקול לצמצם לפני לקיחת משכנתא.`,
-      severity: 'warning',
-    });
+    recommendations.push({ icon: '📋', text: t('rec_high_expenses'), severity: 'warning' });
   }
 
   if (hasDangerScenarios) {
-    const dangerScenario = result.scenarios.find(s => !s.survives);
-    if (dangerScenario) {
-      recommendations.push({
-        icon: '⚡',
-        text: `בתרחיש "${dangerScenario.name}" אתה לא שורד. ודא שיש לך תוכנית גיבוי.`,
-        severity: 'danger',
-      });
-    }
+    recommendations.push({ icon: '⚡', text: t('rec_danger_scenario'), severity: 'danger' });
   }
 
   if (recommendations.length === 0) return null;
@@ -354,12 +341,9 @@ function ImprovementTipsSection({ result, inputs }: { result: AnalysisResult; in
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
       <h3 className="font-heading font-bold text-sm text-foreground mb-1 flex items-center gap-2">
-        <span>🎯</span>
-        <span>המלצות לשיפור העסקה</span>
+        <span>{t('tips_title')}</span>
       </h3>
-      <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">
-        מה אפשר לשנות כדי לשפר את הסיכוי לאישור ולהקטין סיכון
-      </p>
+      <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">{t('tips_sub')}</p>
 
       <div className="space-y-2">
         {recommendations.map((rec, i) => (
@@ -375,6 +359,7 @@ function ImprovementTipsSection({ result, inputs }: { result: AnalysisResult; in
 }
 
 function DownloadPDFButton({ result, inputs, motivations }: Props) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async () => {
@@ -396,12 +381,12 @@ function DownloadPDFButton({ result, inputs, motivations }: Props) {
       {loading ? (
         <>
           <span className="w-4 h-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
-          <span>מכין דוח...</span>
+          <span>{t('preparing')}</span>
         </>
       ) : (
         <>
           <span>📄</span>
-          <span>הורד דוח PDF</span>
+          <span>{t('download_pdf')}</span>
         </>
       )}
     </button>
@@ -409,6 +394,7 @@ function DownloadPDFButton({ result, inputs, motivations }: Props) {
 }
 
 function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
+  const { t } = useI18n();
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
@@ -416,50 +402,32 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
   const effectiveRent = isInvestment ? inputs.monthlyRent : 0;
   const netFromPocket = result.monthlyPayment - effectiveRent;
 
-  // Determine level by meaning, not by sign
-  // netFromPocket > 0 = money OUT of pocket; < 0 = property generates income; = 0 = balanced
   let level: 'safe' | 'warning' | 'danger' | 'neutral';
   let insight: string;
 
   if (netFromPocket <= 0) {
-    // Property generates income or breaks even
     level = 'safe';
-    insight = netFromPocket === 0 ? 'הנכס מכסה את עצמו — איזון מלא' : 'הנכס מייצר לך הכנסה חודשית';
+    insight = netFromPocket === 0 ? t('property_balanced') : t('property_generates_income');
   } else {
-    const burdenPercent = (netFromPocket / totalIncome) * 100;
-    if (burdenPercent <= 30) {
-      level = 'safe';
-      insight = 'נטל סביר — בטווח הבטוח';
-    } else if (burdenPercent <= 40) {
-      level = 'warning';
-      insight = 'זה הסכום שאתה צריך להוסיף כל חודש מהכיס';
-    } else {
-      level = 'danger';
-      insight = 'זה הסכום שאתה צריך להוסיף כל חודש מהכיס — נטל גבוה';
-    }
+    const burdenPct = (netFromPocket / totalIncome) * 100;
+    if (burdenPct <= 30) { level = 'safe'; insight = t('burden_safe'); }
+    else if (burdenPct <= 40) { level = 'warning'; insight = t('burden_warning'); }
+    else { level = 'danger'; insight = t('burden_danger'); }
   }
 
   const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger', neutral: 'text-foreground' };
   const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/8', danger: 'bg-danger/8', neutral: 'bg-card/60' };
   const borderMap = { safe: 'border-safe/20', warning: 'border-warning/20', danger: 'border-danger/20', neutral: 'border-border/40' };
 
-  const title = isInvestment
-    ? 'כמה באמת יוצא לך מהכיס כל חודש'
-    : 'ההחזר החודשי בפועל';
-
-  // Display the main number as absolute value with context text
+  const title = isInvestment ? t('net_monthly_investment') : t('net_monthly_primary');
   const displayAmount = Math.abs(netFromPocket);
   const displayValue = isInvestment
-    ? (netFromPocket <= 0
-        ? `+${formatNIS(displayAmount)}`
-        : formatNIS(displayAmount))
+    ? (netFromPocket <= 0 ? `+${formatNIS(displayAmount)}` : formatNIS(displayAmount))
     : formatNIS(result.monthlyPayment);
 
   const burdenDisplay = netFromPocket > 0
-    ? `${((netFromPocket / totalIncome) * 100).toFixed(0)}% מההכנסה`
-    : netFromPocket < 0
-      ? 'תזרים חיובי'
-      : 'איזון';
+    ? `${((netFromPocket / totalIncome) * 100).toFixed(0)}% ${t('of_income')}`
+    : netFromPocket < 0 ? t('positive_cashflow') : t('balance');
 
   return (
     <div className={`col-span-2 rounded-2xl border p-3 sm:p-4 shadow-sm backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
@@ -469,7 +437,7 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
           <button
             onClick={() => setShowTooltip(!showTooltip)}
             className="w-4 h-4 rounded-full bg-muted/50 text-muted-foreground text-[10px] flex items-center justify-center hover:bg-muted transition-colors"
-            aria-label="איך זה מחושב?"
+            aria-label="?"
           >
             ?
           </button>
@@ -479,41 +447,31 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
               className="absolute z-50 bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 sm:w-64 rounded-xl border border-border bg-popover p-3 shadow-lg text-[11px] sm:text-xs text-popover-foreground"
             >
               <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-border" />
-              {isInvestment
-                ? 'הסכום מבוסס על ההחזר החודשי למשכנתא, בניכוי הכנסות משכירות. לא כולל הוצאות קבועות אישיות.'
-                : 'הסכום מבוסס על ההחזר החודשי למשכנתא בלבד. לא כולל הוצאות קבועות אישיות.'}
+              {isInvestment ? t('tooltip_investment') : t('tooltip_primary')}
             </div>
           )}
         </div>
       </div>
 
-      {/* Main number */}
       <div className={`text-2xl sm:text-3xl font-heading font-extrabold tracking-tight ${colorMap[level]}`}>
         {displayValue}
       </div>
-      <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-        {burdenDisplay}
-      </div>
+      <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{burdenDisplay}</div>
+      <div className={`text-[11px] sm:text-xs mt-1 font-heading font-semibold ${colorMap[level]}`}>{insight}</div>
 
-      {/* Insight line */}
-      <div className={`text-[11px] sm:text-xs mt-1 font-heading font-semibold ${colorMap[level]}`}>
-        {insight}
-      </div>
-
-      {/* Breakdown — only for investment */}
       {isInvestment && (
         <div className="mt-2.5 pt-2.5 border-t border-border/30 space-y-1 text-[12px] sm:text-[13px]">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">החזר חודשי למשכנתא</span>
+            <span className="text-muted-foreground">{t('mortgage_payment')}</span>
             <span className="font-mono font-medium text-foreground">{formatNIS(result.monthlyPayment)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">הכנסה משכירות</span>
+            <span className="text-muted-foreground">{t('rental_income')}</span>
             <span className="font-mono font-medium text-safe">-{formatNIS(effectiveRent)}</span>
           </div>
           <div className="border-t border-border/20 my-1" />
           <div className="flex justify-between font-semibold">
-            <span className="text-foreground">סה״כ נטו מהכיס</span>
+            <span className="text-foreground">{t('net_from_pocket')}</span>
             <span className={`font-mono font-bold ${colorMap[level]}`}>{displayValue}</span>
           </div>
         </div>
@@ -523,6 +481,7 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
 }
 
 function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
+  const { t } = useI18n();
   const [showTip, setShowTip] = useState(false);
   const totalMonths = result.termYears * 12;
   const totalPaid = result.monthlyPayment * totalMonths;
@@ -531,19 +490,19 @@ function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
       <div className="flex items-center gap-1.5 mb-3">
-        <h3 className="font-heading font-bold text-sm text-foreground">כמה המשכנתא באמת עולה לך לאורך זמן</h3>
+        <h3 className="font-heading font-bold text-sm text-foreground">{t('total_mortgage_title')}</h3>
         <div className="relative">
           <button
             onClick={() => setShowTip(!showTip)}
             className="w-4 h-4 rounded-full bg-muted/50 text-muted-foreground text-[10px] flex items-center justify-center hover:bg-muted transition-colors"
-            aria-label="איך זה מחושב?"
+            aria-label="?"
           >
             ?
           </button>
           {showTip && (
             <div className="absolute z-50 bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 sm:w-64 rounded-xl border border-border bg-popover p-3 shadow-lg text-[11px] sm:text-xs text-popover-foreground">
               <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-border" />
-              החזר חודשי × {totalMonths} חודשים ({result.termYears} שנים)
+              {t('monthly_payment')} × {totalMonths} ({result.termYears} {t('years')})
             </div>
           )}
         </div>
@@ -552,27 +511,27 @@ function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
       <div className="space-y-2.5">
         <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
           <div className="flex flex-col">
-            <span className="text-muted-foreground">גובה המשכנתא</span>
-            <span className="text-[10px] text-muted-foreground/60">זה הסכום שלקחת מהבנק</span>
+            <span className="text-muted-foreground">{t('mortgage_amount')}</span>
+            <span className="text-[10px] text-muted-foreground/60">{t('mortgage_amount_sub')}</span>
           </div>
           <span className="font-mono font-semibold text-foreground">{formatNIS(result.loanAmount)}</span>
         </div>
         <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
           <div className="flex flex-col">
-            <span className="text-muted-foreground">סה״כ תשלם לבנק ({result.termYears} שנים)</span>
-            <span className="text-[10px] text-muted-foreground/60">זה הסכום הכולל שתשלם לאורך התקופה</span>
+            <span className="text-muted-foreground">{t('total_to_bank')} ({result.termYears} {t('years')})</span>
+            <span className="text-[10px] text-muted-foreground/60">{t('total_to_bank_sub')}</span>
           </div>
           <span className="font-mono font-bold text-lg sm:text-xl text-foreground">{formatNIS(totalPaid)}</span>
         </div>
         <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
           <div className="flex flex-col">
-            <span className="text-muted-foreground">מתוכם ריבית</span>
-            <span className="text-[10px] text-muted-foreground/60">זה החלק שהוא ריבית</span>
+            <span className="text-muted-foreground">{t('interest_paid')}</span>
+            <span className="text-[10px] text-muted-foreground/60">{t('interest_paid_sub')}</span>
           </div>
           <span className="font-mono font-semibold text-warning">{formatNIS(totalInterest)}</span>
         </div>
         <div className="flex justify-between items-baseline text-[13px] sm:text-sm pt-2 border-t border-border/20">
-          <span className="text-muted-foreground">החזר חודשי</span>
+          <span className="text-muted-foreground">{t('monthly_payment')}</span>
           <span className="font-mono font-semibold text-foreground">{formatNIS(result.monthlyPayment)}</span>
         </div>
       </div>
@@ -580,7 +539,17 @@ function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
   );
 }
 
+const MOTIVATION_RESPONSES_KEYS: Record<string, string> = {
+  family_pressure: 'resp_family',
+  fomo: 'resp_fomo',
+  stability: 'resp_stability',
+  investment: 'resp_investment',
+  status: 'resp_status',
+  rent_waste: 'resp_rent_waste',
+};
+
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
+  const { t } = useI18n();
   const yieldLevel = result.annualYield >= 5 ? "safe" : result.annualYield >= 3 ? "warning" : "danger";
   const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const burdenPercent = (result.monthlyPayment / totalIncome) * 100;
@@ -589,76 +558,63 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
   return (
     <div className="space-y-4 sm:space-y-5">
       <VerdictBanner result={result} />
-
-      {/* Monthly cost breakdown — full width */}
       <MonthlyCostCard result={result} inputs={inputs} />
-
-      {/* Total mortgage cost over time */}
       <TotalMortgageCostBlock result={result} />
 
-      {/* Key metrics */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         <MetricCard
-          label="החזר חודשי"
+          label={t('monthly_payment')}
           value={formatNIS(result.monthlyPayment)}
-          sub={`${burdenPercent.toFixed(0)}% מההכנסה`}
+          sub={`${burdenPercent.toFixed(0)}% ${t('of_income')}`}
           level={burdenLevel}
         />
         {inputs.propertyType === "investment" && (
-          <MetricCard label="תשואה שנתית" value={`${result.annualYield.toFixed(1)}%`} sub="ברוטו" level={yieldLevel} />
+          <MetricCard label={t('annual_yield')} value={`${result.annualYield.toFixed(1)}%`} sub={t('gross')} level={yieldLevel} />
         )}
         <MetricCard
-          label="מס רכישה"
+          label={t('purchase_tax')}
           value={formatNIS(result.purchaseTax)}
-          sub="כסף שנעלם ביום 1"
+          sub={t('money_gone_day1')}
           level={result.purchaseTax > 50000 ? "danger" : "neutral"}
         />
       </div>
 
-      {/* Approval score */}
       <ApprovalScoreSection result={result} inputs={inputs} />
-
-      {/* Borrower comparison (only when dual) */}
       {result.borrowerComparison && <BorrowerComparisonSection result={result} />}
 
-      {/* Parent help impact */}
       {inputs.parentHelp && inputs.parentHelpAmount > 0 && (
         <div className="rounded-2xl border border-warning/20 bg-warning/5 backdrop-blur-sm p-4 sm:p-5">
           <h3 className="font-heading font-bold text-sm text-foreground mb-2 flex items-center gap-2">
             <span>🤝</span>
-            <span>השפעת עזרה מההורים</span>
+            <span>{t('parent_impact')}</span>
           </h3>
           <div className="space-y-1.5 text-[13px] sm:text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">הון עצמי אישי</span>
+              <span className="text-muted-foreground">{t('personal_equity')}</span>
               <span className="font-mono font-medium text-foreground">{formatNIS(inputs.downPayment)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">עזרה מההורים</span>
+              <span className="text-muted-foreground">{t('parent_help')}</span>
               <span className="font-mono font-medium text-warning">{formatNIS(inputs.parentHelpAmount)}</span>
             </div>
             <div className="border-t border-border/30 my-1" />
             <div className="flex justify-between font-semibold">
-              <span className="text-foreground">סה״כ הון עצמי זמין</span>
+              <span className="text-foreground">{t('total_equity')}</span>
               <span className="font-mono font-bold text-foreground">{formatNIS(inputs.downPayment + inputs.parentHelpAmount)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">אחוז מימון בפועל</span>
+              <span className="text-muted-foreground">{t('actual_financing')}</span>
               <span className="font-mono font-medium text-foreground">{inputs.financingPercent}%</span>
             </div>
           </div>
-          <p className="text-[11px] sm:text-xs text-muted-foreground mt-2.5">
-            💡 עזרה מההורים מקטינה את סכום ההלוואה, מורידה את אחוז המימון, ומשפרת את סיכויי אישור המשכנתא.
-          </p>
+          <p className="text-[11px] sm:text-xs text-muted-foreground mt-2.5">{t('parent_help_insight')}</p>
         </div>
       )}
 
-      {/* Real cost breakdown */}
       <CostBreakdownSection result={result} />
 
-      {/* Mortgage breakdown */}
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
-        <h3 className="font-heading font-bold text-sm text-foreground mb-2 sm:mb-3">פירוט המשכנתא</h3>
+        <h3 className="font-heading font-bold text-sm text-foreground mb-2 sm:mb-3">{t('mortgage_detail')}</h3>
         <div className="space-y-2.5 sm:space-y-3">
           {result.mortgageBreakdown.map((track) => (
             <div key={track.label} className="flex items-start justify-between text-[13px] sm:text-sm gap-2">
@@ -667,9 +623,9 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
                 <div className="text-[11px] sm:text-xs text-muted-foreground">{track.desc}</div>
               </div>
               <div className="text-left flex-shrink-0">
-                <span className="text-foreground font-medium font-mono">{formatNIS(track.monthly)}/חודש</span>
+                <span className="text-foreground font-medium font-mono">{formatNIS(track.monthly)}{t('per_month')}</span>
                 <div className="text-[11px] sm:text-xs text-muted-foreground font-mono">
-                  {formatNIS(track.amount)} על {track.rate}%
+                  {formatNIS(track.amount)} {t('on_rate')} {track.rate}%
                 </div>
               </div>
             </div>
@@ -677,7 +633,6 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         </div>
       </div>
 
-      {/* Warning banners */}
       {result.warningBanners.map((banner, i) => (
         <div
           key={i}
@@ -687,13 +642,11 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         </div>
       ))}
 
-      {/* Improvement tips / recommendations */}
       <ImprovementTipsSection result={result} inputs={inputs} />
 
-      {/* Scenarios — always stacked */}
       <div>
-        <h3 className="font-heading font-bold text-sm text-foreground mb-1">תרחישי לחץ — מה הטווח האמיתי?</h3>
-        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">מהאופטימי ועד הגרוע — כדי שתבין מה באמת אפשרי</p>
+        <h3 className="font-heading font-bold text-sm text-foreground mb-1">{t('scenarios_title')}</h3>
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2.5 sm:mb-3">{t('scenarios_sub')}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           {result.scenarios.map((s) => (
             <ScenarioCard key={s.name} scenario={s} />
@@ -701,24 +654,21 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         </div>
       </div>
 
-      {/* Psychology insights */}
       {(result.psychologyInsights.length > 0 || motivations.length > 0) && (
         <div className="rounded-2xl border border-warning/20 bg-warning/5 backdrop-blur-sm p-4 sm:p-6">
-          <h3 className="font-heading font-bold text-sm text-warning mb-2.5 sm:mb-3">🧠 מה באמת מניע אותך?</h3>
+          <h3 className="font-heading font-bold text-sm text-warning mb-2.5 sm:mb-3">{t('psychology_title')}</h3>
 
           {motivations.length > 0 && (
             <div className="space-y-2.5 sm:space-y-3 mb-3 sm:mb-4">
-              {motivations.map(
-                (m) =>
-                  MOTIVATION_RESPONSES[m] && (
-                    <div
-                      key={m}
-                      className="text-[13px] sm:text-sm text-foreground bg-background/40 rounded-xl p-3 border border-border/30"
-                    >
-                      👉 {MOTIVATION_RESPONSES[m]}
-                    </div>
-                  ),
-              )}
+              {motivations.map((m) => {
+                const key = MOTIVATION_RESPONSES_KEYS[m];
+                if (!key) return null;
+                return (
+                  <div key={m} className="text-[13px] sm:text-sm text-foreground bg-background/40 rounded-xl p-3 border border-border/30">
+                    👉 {t(key as any)}
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -728,7 +678,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
               warning: "border-warning/20 bg-warning/5",
               danger: "border-danger/20 bg-danger/5",
             };
-            const textMap = {
+            const textColorMap = {
               info: "text-primary",
               warning: "text-warning",
               danger: "text-danger",
@@ -736,7 +686,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
 
             return (
               <div key={i} className={`rounded-xl p-3 border mb-2 ${severityMap[insight.severity]}`}>
-                <div className={`text-[11px] sm:text-xs font-heading font-bold mb-1 ${textMap[insight.severity]}`}>
+                <div className={`text-[11px] sm:text-xs font-heading font-bold mb-1 ${textColorMap[insight.severity]}`}>
                   {insight.trigger}
                 </div>
                 <div className="text-[13px] sm:text-sm text-foreground">{insight.message}</div>
@@ -746,12 +696,10 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
         </div>
       )}
 
-      {/* Download PDF */}
       <DownloadPDFButton result={result} inputs={inputs} motivations={motivations} />
 
-      {/* Inline disclaimer */}
       <div className="text-center text-[11px] text-muted-foreground/60 pt-2 border-t border-border/20">
-        ⚠️ הערכה בלבד — לא התחייבות הבנק
+        {t('inline_disclaimer')}
       </div>
     </div>
   );

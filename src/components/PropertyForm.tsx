@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { BorrowerMode, PropertyInputs, REGIONS } from "@/lib/calculator";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   inputs: PropertyInputs;
@@ -75,7 +76,7 @@ function SummaryItem({ label, value, sub, prominent }: { label: string; value: s
   );
 }
 
-function FinancingBar({ equityPercent }: { equityPercent: number }) {
+function FinancingBar({ equityPercent, mortgageLabel, equityLabel }: { equityPercent: number; mortgageLabel: string; equityLabel: string }) {
   const eq = Math.max(0, Math.min(100, equityPercent));
   const fin = 100 - eq;
 
@@ -83,12 +84,12 @@ function FinancingBar({ equityPercent }: { equityPercent: number }) {
     <div className="w-full">
       <div className="flex justify-between items-baseline mb-2">
         <div className="text-left">
-          <span className="text-[11px] sm:text-xs text-muted-foreground font-heading">משכנתא</span>
+          <span className="text-[11px] sm:text-xs text-muted-foreground font-heading">{mortgageLabel}</span>
           <span className="text-sm sm:text-base font-heading font-bold text-primary mr-1.5">{fin}%</span>
         </div>
         <div className="text-right">
           <span className="text-sm sm:text-base font-heading font-bold text-safe ml-1.5">{eq}%</span>
-          <span className="text-[11px] sm:text-xs text-muted-foreground font-heading">הון עצמי</span>
+          <span className="text-[11px] sm:text-xs text-muted-foreground font-heading">{equityLabel}</span>
         </div>
       </div>
       <div className="flex h-4 sm:h-5 gap-1 rounded-full overflow-hidden">
@@ -99,7 +100,19 @@ function FinancingBar({ equityPercent }: { equityPercent: number }) {
   );
 }
 
+// Map Hebrew region names to translation keys
+const REGION_KEYS: Record<string, string> = {
+  'מרכז (תל אביב, גוש דן)': 'region_center',
+  'ירושלים': 'region_jerusalem',
+  'חיפה והצפון': 'region_haifa',
+  'באר שבע והדרום': 'region_beer_sheva',
+  'השרון': 'region_sharon',
+  'שפלה': 'region_shfela',
+  'אחר': 'region_other',
+};
+
 export function PropertyForm({ inputs, onChange }: Props) {
+  const { t } = useI18n();
   const [showOnboarding, setShowOnboarding] = useState(() => {
     if (typeof window !== 'undefined') {
       return !sessionStorage.getItem('onboarding_dismissed');
@@ -110,9 +123,8 @@ export function PropertyForm({ inputs, onChange }: Props) {
 
   useEffect(() => {
     if (showOnboarding && priceInputRef.current) {
-      // Small delay to let the page settle
-      const t = setTimeout(() => priceInputRef.current?.focus(), 600);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => priceInputRef.current?.focus(), 600);
+      return () => clearTimeout(timer);
     }
   }, [showOnboarding]);
 
@@ -152,32 +164,32 @@ export function PropertyForm({ inputs, onChange }: Props) {
     <div className="space-y-4 w-full max-w-full overflow-x-hidden">
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
         <div className="border-b border-border/30 mb-3 pb-1">
-          <SummaryItem label="מחיר הנכס" value={`₪${formatWithCommas(inputs.price)}`} prominent />
+          <SummaryItem label={t('summary_price')} value={`₪${formatWithCommas(inputs.price)}`} prominent />
         </div>
 
         <div className="grid grid-cols-2 gap-2 mb-4">
           <div className="text-center py-2">
             <div className="text-muted-foreground font-heading text-[10px] sm:text-[11px] mb-0.5">
-              {parentCont > 0 ? 'הון עצמי זמין' : 'הון עצמי'}
+              {parentCont > 0 ? t('equity_available') : t('equity')}
             </div>
             <div className="font-heading font-bold text-foreground text-sm sm:text-lg tracking-tight whitespace-nowrap" style={{ fontVariantNumeric: 'tabular-nums' }}>
               ₪{formatWithCommas(totalEquity)}
             </div>
             {parentCont > 0 && (
               <div className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 space-y-0">
-                <div>אישי: ₪{formatWithCommas(inputs.downPayment)}</div>
-                <div>הורים: ₪{formatWithCommas(parentCont)}</div>
+                <div>{t('personal')}: ₪{formatWithCommas(inputs.downPayment)}</div>
+                <div>{t('parents')}: ₪{formatWithCommas(parentCont)}</div>
               </div>
             )}
           </div>
           <SummaryItem
-            label="אחוז מימון"
+            label={t('financing_percent')}
             value={`${inputs.financingPercent}%`}
             sub={`₪${formatWithCommas(loanAmount)}`}
           />
         </div>
 
-        <FinancingBar equityPercent={equityPercent} />
+        <FinancingBar equityPercent={equityPercent} mortgageLabel={t('mortgage_label')} equityLabel={t('financing_bar_equity')} />
       </div>
 
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
@@ -187,26 +199,25 @@ export function PropertyForm({ inputs, onChange }: Props) {
             {showOnboarding && (
               <div className="mb-3 animate-in fade-in-0 slide-in-from-top-2 duration-500">
                 <div className="relative bg-primary/10 border border-primary/25 rounded-xl p-3 sm:p-3.5">
-                  <p className="text-xs sm:text-sm text-foreground font-heading font-semibold leading-relaxed text-right">
-                    שלב 1: הזן את מחיר הנכס כדי להתחיל
+                  <p className="text-xs sm:text-sm text-foreground font-heading font-semibold leading-relaxed">
+                    {t('onboarding_step1')}
                   </p>
-                  <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 text-right">
-                    זה לוקח פחות מ־30 שניות ⏱️
+                  <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
+                    {t('onboarding_hint')}
                   </p>
-                  {/* Arrow pointing down */}
                   <div className="absolute -bottom-2 right-6 w-4 h-4 bg-primary/10 border-b border-r border-primary/25 rotate-45" />
                 </div>
               </div>
             )}
             <div>
-              <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">מחיר הנכס</label>
+              <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">{t('property_price')}</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs sm:text-sm">₪</span>
                 <input
                   ref={priceInputRef}
                   type="text"
                   inputMode="numeric"
-                  placeholder="1,800,000 ₪ לדוגמה"
+                  placeholder={t('price_placeholder')}
                   value={formatWithCommas(inputs.price)}
                   onFocus={() => {}}
                   onInput={() => { if (showOnboarding) dismissOnboarding(); }}
@@ -222,7 +233,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
           </div>
 
           <div>
-            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">אזור</label>
+            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">{t('region')}</label>
             <select
               value={inputs.region}
               onChange={(e) => update("region", e.target.value)}
@@ -230,14 +241,14 @@ export function PropertyForm({ inputs, onChange }: Props) {
             >
               {REGIONS.map((r) => (
                 <option key={r} value={r}>
-                  {r}
+                  {REGION_KEYS[r] ? t(REGION_KEYS[r] as any) : r}
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">סוג נכס</label>
+            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading mb-1.5">{t('property_type')}</label>
             <div className="flex gap-2">
               {(["investment", "primary"] as const).map((type) => (
                 <button
@@ -250,7 +261,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
                       : "bg-secondary/50 text-secondary-foreground hover:bg-accent border border-border/40"
                   }`}
                 >
-                  {type === "investment" ? "השקעה" : "מגורים"}
+                  {type === "investment" ? t('investment') : t('primary')}
                 </button>
               ))}
             </div>
@@ -258,7 +269,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
 
           {inputs.propertyType === "investment" && (
             <NumericField
-              label="שכר דירה צפוי (חודשי)"
+              label={t('monthly_rent')}
               value={inputs.monthlyRent}
               onChange={(v) => update("monthlyRent", v)}
               prefix="₪"
@@ -266,7 +277,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
           )}
 
           <div className="flex items-center gap-3">
-            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">דירה ראשונה?</label>
+            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">{t('first_apartment')}</label>
             <button
               type="button"
               onClick={() => onChange({ ...inputs, isFirstApartment: !inputs.isFirstApartment })}
@@ -276,16 +287,16 @@ export function PropertyForm({ inputs, onChange }: Props) {
                   : "bg-secondary/50 text-secondary-foreground border border-border/40"
               }`}
             >
-              {inputs.isFirstApartment ? "כן" : "לא"}
+              {inputs.isFirstApartment ? t('yes') : t('no')}
             </button>
           </div>
         </div>
 
-        <h2 className="font-heading font-bold text-foreground text-sm mt-5 sm:mt-6 mb-3 sm:mb-4">נתונים פיננסיים</h2>
+        <h2 className="font-heading font-bold text-foreground text-sm mt-5 sm:mt-6 mb-3 sm:mb-4">{t('financial_data')}</h2>
 
         <div className="space-y-3">
           <NumericField
-            label="הון עצמי"
+            label={t('equity')}
             value={inputs.downPayment}
             onChange={(v) => update("downPayment", v)}
             prefix="₪"
@@ -293,7 +304,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
           />
 
           <div className="flex items-center gap-3 mt-2">
-            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">עזרה מההורים?</label>
+            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">{t('parent_help_q')}</label>
             <button
               type="button"
               onClick={() => onChange({ ...inputs, parentHelp: !inputs.parentHelp })}
@@ -303,12 +314,12 @@ export function PropertyForm({ inputs, onChange }: Props) {
                   : "bg-secondary/50 text-secondary-foreground border border-border/40"
               }`}
             >
-              {inputs.parentHelp ? "כן" : "לא"}
+              {inputs.parentHelp ? t('yes') : t('no')}
             </button>
           </div>
           {inputs.parentHelp && (
             <NumericField
-              label="סכום העזרה"
+              label={t('parent_help_amount')}
               value={inputs.parentHelpAmount}
               onChange={(v) => update("parentHelpAmount", v)}
               prefix="₪"
@@ -316,14 +327,14 @@ export function PropertyForm({ inputs, onChange }: Props) {
           )}
 
           <NumericField
-            label="אחוז מימון"
+            label={t('financing_percent')}
             value={inputs.financingPercent}
             onChange={(v) => update("financingPercent", v)}
             suffix="%"
-            hint={inputs.financingPercent > 75 ? "⚠️ מעל 75% — הבנק כנראה לא יאשר" : undefined}
+            hint={inputs.financingPercent > 75 ? t('financing_warn') : undefined}
           />
           <div className="flex items-center justify-between gap-3">
-            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">מבנה לווים</label>
+            <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">{t('borrower_structure')}</label>
             <div className="flex gap-1.5 rounded-xl bg-secondary/30 p-1">
               <button
                 type="button"
@@ -335,7 +346,7 @@ export function PropertyForm({ inputs, onChange }: Props) {
                     : "bg-transparent text-secondary-foreground border border-transparent"
                 }`}
               >
-                👤 לווה יחיד
+                {t('single_borrower')}
               </button>
               <button
                 type="button"
@@ -347,13 +358,13 @@ export function PropertyForm({ inputs, onChange }: Props) {
                     : "bg-transparent text-secondary-foreground border border-transparent"
                 }`}
               >
-                👥 שני לווים (זוג / ערב)
+                {t('dual_borrower')}
               </button>
             </div>
           </div>
 
           <NumericField
-            label={isDualBorrower ? "הכנסה חודשית — לווה 1" : "הכנסה חודשית נטו"}
+            label={isDualBorrower ? t('monthly_income_b1') : t('monthly_income')}
             value={inputs.monthlyIncome}
             onChange={(v) => update("monthlyIncome", v)}
             prefix="₪"
@@ -361,27 +372,27 @@ export function PropertyForm({ inputs, onChange }: Props) {
           />
           {isDualBorrower && (
             <NumericField
-              label="הכנסה חודשית — לווה 2"
+              label={t('monthly_income_b2')}
               value={inputs.secondBorrowerIncome}
               onChange={(v) => update("secondBorrowerIncome", v)}
               prefix="₪"
               large
-              hint="בן/בת זוג או ערב"
+              hint={t('b2_hint')}
             />
           )}
           <NumericField
-            label="הוצאות חודשיות קבועות"
+            label={t('fixed_expenses')}
             value={inputs.fixedMonthlyExpenses}
             onChange={(v) => update("fixedMonthlyExpenses", v)}
             prefix="₪"
-            hint="רכב, אוכל, ביטוחים, הלוואות, ילדים, וכו׳"
+            hint={t('expenses_hint')}
           />
           <NumericField
-            label="כרית ביטחון אחרי הרכישה"
+            label={t('cash_buffer')}
             value={inputs.cashBuffer}
             onChange={(v) => update("cashBuffer", v)}
             prefix="₪"
-            hint="כמה כסף נשאר לך אחרי כל העלויות"
+            hint={t('cash_buffer_hint')}
           />
         </div>
       </div>
