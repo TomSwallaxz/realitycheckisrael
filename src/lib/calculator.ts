@@ -88,6 +88,8 @@ export interface AnalysisResult {
   warningBanners: string[];
   borrowerComparison?: BorrowerComparison;
   approvalScore: ApprovalScore;
+  termYears: number;
+  loanAmount: number;
 }
 
 export const REGIONS = [
@@ -444,6 +446,8 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     borrowerComparison,
     costBreakdown,
     approvalScore: calcApprovalScore(inputs, monthlyPayment, totalIncome, monthlyExpenses),
+    termYears: mortgage.termYears,
+    loanAmount,
   };
 
   const psychologyInsights = generatePsychologyInsights(inputs, partialResult as any);
