@@ -522,6 +522,55 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
   );
 }
 
+function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
+  const [showTip, setShowTip] = useState(false);
+  const totalMonths = result.termYears * 12;
+  const totalPaid = result.monthlyPayment * totalMonths;
+  const totalInterest = totalPaid - result.loanAmount;
+
+  return (
+    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
+      <div className="flex items-center gap-1.5 mb-3">
+        <h3 className="font-heading font-bold text-sm text-foreground">כמה המשכנתא באמת עולה לך לאורך זמן</h3>
+        <div className="relative">
+          <button
+            onClick={() => setShowTip(!showTip)}
+            className="w-4 h-4 rounded-full bg-muted/50 text-muted-foreground text-[10px] flex items-center justify-center hover:bg-muted transition-colors"
+            aria-label="איך זה מחושב?"
+          >
+            ?
+          </button>
+          {showTip && (
+            <div className="absolute z-50 bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 sm:w-64 rounded-xl border border-border bg-popover p-3 shadow-lg text-[11px] sm:text-xs text-popover-foreground">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-border" />
+              החזר חודשי × {totalMonths} חודשים ({result.termYears} שנים)
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
+          <span className="text-muted-foreground">החזר חודשי</span>
+          <span className="font-mono font-semibold text-foreground">{formatNIS(result.monthlyPayment)}</span>
+        </div>
+        <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
+          <span className="text-muted-foreground">סה״כ תשלם לבנק ({result.termYears} שנים)</span>
+          <span className="font-mono font-bold text-lg sm:text-xl text-foreground">{formatNIS(totalPaid)}</span>
+        </div>
+        <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
+          <span className="text-muted-foreground">מתוכם ריבית</span>
+          <span className="font-mono font-semibold text-warning">{formatNIS(totalInterest)}</span>
+        </div>
+      </div>
+
+      <p className="text-[10px] sm:text-[11px] text-muted-foreground/70 mt-2.5 pt-2.5 border-t border-border/20">
+        זה הסכום הכולל שתשלם לאורך כל חיי המשכנתא — כולל ריבית
+      </p>
+    </div>
+  );
+}
+
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const yieldLevel = result.annualYield >= 5 ? "safe" : result.annualYield >= 3 ? "warning" : "danger";
   const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
