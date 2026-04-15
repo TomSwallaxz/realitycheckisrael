@@ -358,38 +358,110 @@ function ImprovementTipsSection({ result, inputs }: { result: AnalysisResult; in
   );
 }
 
-function DownloadPDFButton({ result, inputs, motivations }: Props) {
+function BankReportCTA({ result, inputs, motivations }: Props) {
   const { t } = useI18n();
+  const [step, setStep] = useState<'cta' | 'email' | 'sent'>('cta');
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
-  const handleDownload = async () => {
+  const handleSendEmail = async () => {
+    if (!email || !email.includes('@')) return;
     setLoading(true);
+    // Simulate email send (no backend yet)
+    await new Promise(r => setTimeout(r, 1200));
+    setLoading(false);
+    setStep('sent');
+    // Auto-download the PDF as well
+    await generateDealPDF(result, inputs, motivations);
+  };
+
+  const handleDirectDownload = async () => {
+    setDownloading(true);
     try {
-      await new Promise(r => setTimeout(r, 300));
       await generateDealPDF(result, inputs, motivations);
     } finally {
-      setLoading(false);
+      setDownloading(false);
     }
   };
 
+  if (step === 'sent') {
+    return (
+      <div className="rounded-2xl border border-safe/30 bg-safe/8 p-4 sm:p-5 text-center">
+        <div className="text-2xl mb-2">✅</div>
+        <p className="font-heading font-bold text-sm text-safe">{t('bank_report_success')}</p>
+      </div>
+    );
+  }
+
   return (
-    <button
-      onClick={handleDownload}
-      disabled={loading}
-      className="w-full py-3.5 rounded-xl border border-border/50 bg-card/80 hover:bg-card text-foreground font-heading font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 disabled:opacity-60"
-    >
-      {loading ? (
-        <>
-          <span className="w-4 h-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
-          <span>{t('preparing')}</span>
-        </>
-      ) : (
-        <>
-          <span>📄</span>
-          <span>{t('download_pdf')}</span>
-        </>
+    <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 p-4 sm:p-6 shadow-sm">
+      <h3 className="font-heading font-extrabold text-base sm:text-lg text-foreground mb-3">
+        🏦 {t('bank_report_title')}
+      </h3>
+
+      <ul className="space-y-1.5 mb-4 text-[13px] sm:text-sm text-foreground/80">
+        <li className="flex items-start gap-2"><span className="text-primary mt-0.5">✓</span> {t('bank_report_bullet1')}</li>
+        <li className="flex items-start gap-2"><span className="text-primary mt-0.5">✓</span> {t('bank_report_bullet2')}</li>
+        <li className="flex items-start gap-2"><span className="text-primary mt-0.5">✓</span> {t('bank_report_bullet3')}</li>
+        <li className="flex items-start gap-2"><span className="text-primary mt-0.5">✓</span> {t('bank_report_bullet4')}</li>
+      </ul>
+
+      {step === 'cta' && (
+        <div className="space-y-2.5">
+          <button
+            onClick={() => setStep('email')}
+            className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-sm tracking-wide hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
+          >
+            📩 {t('bank_report_cta')}
+          </button>
+          <button
+            onClick={handleDirectDownload}
+            disabled={downloading}
+            className="w-full py-2.5 rounded-xl border border-border/50 bg-card/80 hover:bg-card text-foreground font-heading font-medium text-xs tracking-wide transition-all flex items-center justify-center gap-1.5 disabled:opacity-60"
+          >
+            {downloading ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
+                <span>{t('preparing')}</span>
+              </>
+            ) : (
+              <>
+                <span>📄</span>
+                <span>{t('bank_report_download_too')}</span>
+              </>
+            )}
+          </button>
+        </div>
       )}
-    </button>
+
+      {step === 'email' && (
+        <div className="space-y-2.5">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t('bank_report_email_placeholder')}
+            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+            dir="ltr"
+          />
+          <button
+            onClick={handleSendEmail}
+            disabled={loading || !email.includes('@')}
+            className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-sm tracking-wide hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                <span>{t('preparing')}</span>
+              </>
+            ) : (
+              <>📩 {t('bank_report_send')}</>
+            )}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
