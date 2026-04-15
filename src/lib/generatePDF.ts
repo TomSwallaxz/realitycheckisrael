@@ -263,7 +263,7 @@ export async function generateDealPDF(result: AnalysisResult, inputs: PropertyIn
     <div class="pdf-report" dir="rtl" lang="he">
       <div class="pdf-header">
         <div class="pdf-brand">Deal or No Deal</div>
-        <div class="pdf-subtitle">בדיקת כדאיות רכישת נכס</div>
+        <div class="pdf-subtitle">דוח הכנה לבנק — בדיקת כדאיות רכישת נכס</div>
         <div class="pdf-date">${escapeHtml(date)}</div>
       </div>
 
