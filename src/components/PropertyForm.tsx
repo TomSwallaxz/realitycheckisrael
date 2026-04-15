@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { BorrowerMode, PropertyInputs, REGIONS } from "@/lib/calculator";
 
 interface Props {
