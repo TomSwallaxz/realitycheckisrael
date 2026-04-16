@@ -472,7 +472,9 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
   const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const isInvestment = inputs.propertyType === 'investment';
   const effectiveRent = isInvestment ? inputs.monthlyRent : 0;
-  const netFromPocket = result.monthlyPayment - effectiveRent;
+  const fixedExpenses = Math.max(0, inputs.fixedMonthlyExpenses || 0);
+  // Net out of pocket = mortgage + fixed expenses - rent (for investment view)
+  const netFromPocket = result.monthlyPayment + (isInvestment ? fixedExpenses : 0) - effectiveRent;
   // Positive surplus = property generates money (netFromPocket < 0)
   const cashflowSurplus = -netFromPocket;
 
