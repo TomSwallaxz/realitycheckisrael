@@ -1,16 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
-import { MortgageStructure, Strategy, DEFAULT_RATES } from '@/lib/calculator';
-import { Info, ChevronDown, X } from 'lucide-react';
+import { MortgageStructure, Strategy, DEFAULT_RATES, formatNIS } from '@/lib/calculator';
+import { Info, ChevronDown, X, Sparkles } from 'lucide-react';
 import { useI18n, TranslationKey } from '@/lib/i18n';
 
 interface Props {
   mortgage: MortgageStructure;
   strategy: Strategy;
+  loanAmount?: number;
   onMortgageChange: (m: MortgageStructure) => void;
   onStrategyChange: (s: Strategy) => void;
 }
 
-export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrategyChange }: Props) {
+export function MortgageConfig({ mortgage, strategy, loanAmount = 0, onMortgageChange, onStrategyChange }: Props) {
   const { t } = useI18n();
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
   const [openPopover, setOpenPopover] = useState<string | null>(null);
