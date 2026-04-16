@@ -186,6 +186,23 @@ const translations = {
   per_month: { he: '/חודש', en: '/mo' },
   on_rate: { he: 'על', en: 'at' },
 
+  // Decision-block (How your mortgage is really built)
+  mortgage_built_title: { he: 'איך המשכנתא שלך באמת בנויה', en: 'How your mortgage is really built' },
+  track_meaning_prime: { he: 'רגיש לעליית ריבית — ההחזר שלך יכול לעלות מהר', en: 'Sensitive to rate hikes — your payment can rise fast' },
+  track_meaning_fixed: { he: 'יציבות מלאה — אתה יודע בדיוק כמה תשלם', en: 'Full stability — you know exactly what you\'ll pay' },
+  track_meaning_variable: { he: 'עלול להתייקר בעתיד — חוסר ודאות', en: 'May become more expensive — uncertainty ahead' },
+  risk_label: { he: 'סיכון', en: 'Risk' },
+  future_impact_prime: { he: 'אם הריבית עולה ב-1% → תשלם כ-{amount} יותר בחודש', en: 'If rates rise 1% → you\'ll pay ~{amount} more per month' },
+  future_impact_fixed: { he: 'גם אם הריבית בשוק תעלה — ההחזר שלך לא ישתנה', en: 'Even if market rates rise — your payment stays the same' },
+  future_impact_variable: { he: 'בעדכון הבא: עלייה של 1% → תשלם כ-{amount} יותר בחודש', en: 'At next reset: 1% rise → ~{amount} more per month' },
+  what_it_means: { he: 'מה זה אומר עליך', en: 'What this means for you' },
+  meaning_prime_heavy: { he: 'המשכנתא שלך רגישה מאוד לשינויים בשוק — ההחזר יכול לזוז משמעותית', en: 'Your mortgage is very sensitive to market shifts — payments can swing significantly' },
+  meaning_fixed_heavy: { he: 'המשכנתא שלך יציבה אבל יקרה יותר — אתה משלם פרמיה על שקט נפשי', en: 'Your mortgage is stable but pricier — you pay a premium for peace of mind' },
+  meaning_variable_heavy: { he: 'יש לך סיכון עתידי משמעותי שצריך לקחת בחשבון', en: 'You carry significant future risk that needs to be accounted for' },
+  meaning_balanced: { he: 'התמהיל שלך מאוזן יחסית — שילוב סביר בין יציבות לגמישות', en: 'Your mix is fairly balanced — a reasonable blend of stability and flexibility' },
+  improve_mix_cta: { he: 'שפר את התמהיל שלך', en: 'Improve your mix' },
+  coming_soon: { he: 'בקרוב', en: 'Coming soon' },
+
   // Scenarios
   scenarios_title: { he: 'תרחישי לחץ — מה הטווח האמיתי?', en: 'Stress Scenarios — What\'s the Real Range?' },
   scenarios_sub: { he: 'מהאופטימי ועד הגרוע — כדי שתבין מה באמת אפשרי', en: 'From optimistic to worst — so you understand what\'s really possible' },
