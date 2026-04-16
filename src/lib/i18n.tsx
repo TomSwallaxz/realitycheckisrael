@@ -150,6 +150,20 @@ const translations = {
   cf_explain_borderline: { he: 'אתה על הקו — שינוי קטן יכול להפוך את התמונה', en: 'You\'re on the line — a small change can flip this' },
   cf_result_net: { he: 'תוצאה נטו', en: 'Net Result' },
 
+  // Two-card cashflow split
+  asset_card_title: { he: 'האם הנכס מממן את עצמו?', en: 'Does the property pay for itself?' },
+  asset_net_label: { he: 'תזרים הנכס נטו', en: 'Property Net Cash Flow' },
+  asset_verdict_positive: { he: 'הנכס הזה מייצר תזרים חיובי 👍', en: 'This property generates positive cash flow 👍' },
+  asset_verdict_negative: { he: 'הנכס הזה לא מממן את עצמו ⚠️', en: 'This property does not pay for itself ⚠️' },
+  asset_verdict_balanced: { he: 'הנכס מכסה את עצמו בדיוק', en: 'The property exactly covers itself' },
+  life_card_title: { he: 'מה נשאר לך באמת כל חודש?', en: 'What\'s actually left every month?' },
+  life_balance_label: { he: 'יתרה חודשית סופית', en: 'Final Monthly Balance' },
+  life_verdict_positive: { he: 'נשאר לך כסף בסוף החודש 👍', en: 'You have money left at month end 👍' },
+  life_verdict_negative: { he: 'אתה לא מסיים את החודש בפלוס ⚠️', en: 'You don\'t finish the month in the green ⚠️' },
+  life_verdict_borderline: { he: 'גבולי — כל הוצאה לא צפויה תכאיב', en: 'Borderline — any surprise expense will hurt' },
+  work_income: { he: 'הכנסה מעבודה', en: 'Work Income' },
+  asset_cashflow_row: { he: 'תזרים הנכס', en: 'Property Cash Flow' },
+
   // Total mortgage cost
   total_mortgage_title: { he: 'כמה המשכנתא באמת עולה לך לאורך זמן', en: 'How much the mortgage really costs over time' },
   mortgage_amount: { he: 'גובה המשכנתא', en: 'Mortgage Amount' },
