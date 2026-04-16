@@ -1,16 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
-import { MortgageStructure, Strategy, DEFAULT_RATES } from '@/lib/calculator';
-import { Info, ChevronDown, X } from 'lucide-react';
+import { MortgageStructure, Strategy, DEFAULT_RATES, formatNIS } from '@/lib/calculator';
+import { Info, ChevronDown, X, Sparkles } from 'lucide-react';
 import { useI18n, TranslationKey } from '@/lib/i18n';
 
 interface Props {
   mortgage: MortgageStructure;
   strategy: Strategy;
+  loanAmount?: number;
   onMortgageChange: (m: MortgageStructure) => void;
   onStrategyChange: (s: Strategy) => void;
 }
 
-export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrategyChange }: Props) {
+export function MortgageConfig({ mortgage, strategy, loanAmount = 0, onMortgageChange, onStrategyChange }: Props) {
   const { t } = useI18n();
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
   const [openPopover, setOpenPopover] = useState<string | null>(null);
@@ -102,7 +103,7 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
       <h2 className="font-heading font-bold text-foreground text-sm mb-3 sm:mb-4">
-        {t('mortgage_structure')}
+        {t('mortgage_built_title')}
       </h2>
 
       {/* Strategy selector */}
@@ -272,6 +273,121 @@ export function MortgageConfig({ mortgage, strategy, onMortgageChange, onStrateg
           className="w-full rounded-xl border border-border/60 bg-secondary/50 text-foreground text-sm py-2.5 sm:py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
         />
       </div>
+
+      {/* Decision-making insights */}
+      <DecisionInsights mortgage={mortgage} loanAmount={loanAmount} />
+    </div>
+  );
+}
+
+function DecisionInsights({ mortgage, loanAmount }: { mortgage: MortgageStructure; loanAmount: number }) {
+  const { t } = useI18n();
+
+  // Approx monthly impact of +1% rate on a track portion (simple interest approximation per month)
+  const impactFor = (percent: number) => {
+    const trackLoan = (loanAmount * percent) / 100;
+    return Math.round((trackLoan * 0.01) / 12);
+  };
+
+  const tracks = [
+    {
+      key: 'prime',
+      label: t('rate_prime'),
+      percent: mortgage.primePercent,
+      meaning: t('track_meaning_prime'),
+      risk: 'high' as const,
+      impact: t('future_impact_prime').replace('{amount}', formatNIS(impactFor(mortgage.primePercent))),
+      dot: 'bg-primary',
+    },
+    {
+      key: 'fixed',
+      label: t('rate_fixed'),
+      percent: mortgage.fixedPercent,
+      meaning: t('track_meaning_fixed'),
+      risk: 'low' as const,
+      impact: t('future_impact_fixed'),
+      dot: 'bg-safe',
+    },
+    {
+      key: 'variable',
+      label: t('rate_variable'),
+      percent: mortgage.variablePercent,
+      meaning: t('track_meaning_variable'),
+      risk: 'medium' as const,
+      impact: t('future_impact_variable').replace('{amount}', formatNIS(impactFor(mortgage.variablePercent))),
+      dot: 'bg-warning',
+    },
+  ].filter(tr => tr.percent > 0);
+
+  const riskStyle: Record<'low' | 'medium' | 'high', string> = {
+    low: 'bg-safe/15 text-safe border-safe/30',
+    medium: 'bg-warning/15 text-warning border-warning/30',
+    high: 'bg-danger/15 text-danger border-danger/30',
+  };
+  const riskLabel: Record<'low' | 'medium' | 'high', TranslationKey> = {
+    low: 'risk_low',
+    medium: 'risk_medium',
+    high: 'risk_high',
+  };
+
+  // Summary logic
+  let summaryKey: TranslationKey = 'meaning_balanced';
+  if (mortgage.primePercent >= 50) summaryKey = 'meaning_prime_heavy';
+  else if (mortgage.fixedPercent >= 60) summaryKey = 'meaning_fixed_heavy';
+  else if (mortgage.variablePercent >= 40) summaryKey = 'meaning_variable_heavy';
+
+  return (
+    <div className="mt-5 pt-5 border-t border-border/40 space-y-3">
+      <div className="space-y-2">
+        {tracks.map(tr => (
+          <div
+            key={tr.key}
+            className="rounded-xl border border-border/40 bg-secondary/20 p-3 transition-all"
+          >
+            <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${tr.dot}`} />
+                <span className="text-xs sm:text-sm font-heading font-semibold text-foreground">
+                  {tr.label} · {tr.percent}%
+                </span>
+              </div>
+              <span className={`text-[10px] sm:text-[11px] font-heading font-semibold px-2 py-0.5 rounded-full border ${riskStyle[tr.risk]}`}>
+                {t('risk_label')}: {t(riskLabel[tr.risk])}
+              </span>
+            </div>
+            <p className="text-[11px] sm:text-xs text-foreground/80 leading-relaxed mb-1">
+              {tr.meaning}
+            </p>
+            {loanAmount > 0 && (
+              <p className="text-[10px] sm:text-[11px] text-muted-foreground leading-relaxed">
+                {tr.impact}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* What it means for you */}
+      <div className="rounded-xl bg-primary/5 border border-primary/20 px-3 py-2.5">
+        <p className="text-[10px] sm:text-[11px] font-heading font-bold text-primary mb-0.5 uppercase tracking-wide">
+          {t('what_it_means')}
+        </p>
+        <p className="text-[11px] sm:text-xs text-foreground/85 leading-relaxed">
+          {t(summaryKey)}
+        </p>
+      </div>
+
+      {/* CTA */}
+      <button
+        type="button"
+        disabled
+        title={t('coming_soon')}
+        className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-border/60 bg-secondary/30 text-xs sm:text-sm font-heading font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all cursor-not-allowed opacity-80"
+      >
+        <Sparkles size={14} />
+        <span>{t('improve_mix_cta')}</span>
+        <span className="text-[9px] opacity-60">({t('coming_soon')})</span>
+      </button>
     </div>
   );
 }
