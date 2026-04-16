@@ -465,127 +465,113 @@ function BankReportCTA({ result, inputs, motivations }: Props) {
   );
 }
 
-function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
+type CFLevel = 'safe' | 'warning' | 'danger';
+const cfColor = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' } as const;
+const cfBg = { safe: 'bg-safe/8', warning: 'bg-warning/10', danger: 'bg-danger/8' } as const;
+const cfBorder = { safe: 'border-safe/30', warning: 'border-warning/30', danger: 'border-danger/30' } as const;
+const cfHeaderBg = { safe: 'bg-safe/15', warning: 'bg-warning/20', danger: 'bg-danger/15' } as const;
+
+function CashflowCard({
+  title, verdict, level, amount, amountLabel, rows,
+}: {
+  title: string;
+  verdict: string;
+  level: CFLevel;
+  amount: number;
+  amountLabel: string;
+  rows: { icon: string; label: string; value: number; tone: 'pos' | 'neg' | 'neutral' }[];
+}) {
+  const display = amount > 0 ? `+${formatNIS(amount)}` : amount === 0 ? formatNIS(0) : `-${formatNIS(Math.abs(amount))}`;
+  return (
+    <div className={`rounded-2xl border overflow-hidden shadow-sm backdrop-blur-sm ${cfBorder[level]} ${cfBg[level]}`}>
+      <div className={`px-3 sm:px-4 py-2 ${cfHeaderBg[level]}`}>
+        <div className="text-[10px] sm:text-[11px] text-muted-foreground font-heading uppercase tracking-wide">{title}</div>
+        <div className={`text-xs sm:text-sm font-heading font-bold mt-0.5 ${cfColor[level]}`}>{verdict}</div>
+      </div>
+      <div className="p-3 sm:p-4">
+        <div className={`text-3xl sm:text-4xl font-heading font-extrabold tracking-tight leading-tight ${cfColor[level]}`}>
+          {display}
+        </div>
+        <div className="text-[11px] sm:text-xs text-muted-foreground mt-1">{amountLabel}</div>
+
+        <div className="mt-3 pt-3 border-t border-border/30 space-y-1.5 text-[12px] sm:text-[13px]">
+          {rows.map((r, i) => {
+            const toneClass = r.tone === 'pos' ? 'text-safe' : r.tone === 'neg' ? 'text-danger' : 'text-foreground';
+            const sign = r.value > 0 ? '+' : r.value < 0 ? '-' : '';
+            return (
+              <div key={i} className="flex justify-between items-center gap-2">
+                <span className="text-muted-foreground flex items-center gap-1.5 min-w-0">
+                  <span aria-hidden>{r.icon}</span><span className="truncate">{r.label}</span>
+                </span>
+                <span className={`font-mono font-semibold whitespace-nowrap ${toneClass}`}>
+                  {sign}{formatNIS(Math.abs(r.value))}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CashflowSection({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
   const { t } = useI18n();
-  const [showTooltip, setShowTooltip] = useState(false);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-  const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const isInvestment = inputs.propertyType === 'investment';
-  const effectiveRent = isInvestment ? inputs.monthlyRent : 0;
+  const totalIncome = inputs.borrowerMode === 'dual'
+    ? inputs.monthlyIncome + inputs.secondBorrowerIncome
+    : inputs.monthlyIncome;
   const fixedExpenses = Math.max(0, inputs.fixedMonthlyExpenses || 0);
-  // Net out of pocket = mortgage + fixed expenses - rent (for investment view)
-  const netFromPocket = result.monthlyPayment + (isInvestment ? fixedExpenses : 0) - effectiveRent;
-  // Positive surplus = property generates money (netFromPocket < 0)
-  const cashflowSurplus = -netFromPocket;
+  const rent = isInvestment ? inputs.monthlyRent : 0;
+  const mortgage = result.monthlyPayment;
 
-  let level: 'safe' | 'warning' | 'danger';
-  let verdict: string;
-  let explain: string;
+  // Card 1: Property self-financing (rent - mortgage). Investment only.
+  const assetNet = rent - mortgage;
+  const assetThreshold = Math.max(300, rent * 0.05);
+  let assetLevel: CFLevel;
+  let assetVerdict: string;
+  if (assetNet > assetThreshold) { assetLevel = 'safe'; assetVerdict = t('asset_verdict_positive'); }
+  else if (Math.abs(assetNet) <= assetThreshold) { assetLevel = 'warning'; assetVerdict = t('asset_verdict_balanced'); }
+  else { assetLevel = 'danger'; assetVerdict = t('asset_verdict_negative'); }
 
-  if (isInvestment) {
-    const borderlineThreshold = Math.max(300, effectiveRent * 0.05);
-    if (cashflowSurplus > borderlineThreshold) {
-      level = 'safe';
-      verdict = t('cf_verdict_positive');
-      explain = t('cf_explain_positive');
-    } else if (Math.abs(cashflowSurplus) <= borderlineThreshold) {
-      level = 'warning';
-      verdict = netFromPocket === 0 ? t('cf_verdict_balanced') : t('cf_verdict_borderline');
-      explain = t('cf_explain_borderline');
-    } else {
-      const burdenPct = (netFromPocket / totalIncome) * 100;
-      level = burdenPct > 35 ? 'danger' : 'warning';
-      verdict = t('cf_verdict_negative');
-      explain = t('cf_explain_negative');
-    }
-  } else {
-    const burdenPct = (result.monthlyPayment / totalIncome) * 100;
-    if (burdenPct <= 30) level = 'safe';
-    else if (burdenPct <= 40) level = 'warning';
-    else level = 'danger';
-    verdict = level === 'safe' ? t('burden_safe') : level === 'warning' ? t('burden_warning') : t('burden_danger');
-    explain = '';
-  }
-
-  const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
-  const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/10', danger: 'bg-danger/8' };
-  const borderMap = { safe: 'border-safe/30', warning: 'border-warning/30', danger: 'border-danger/30' };
-  const headerBgMap = { safe: 'bg-safe/15', warning: 'bg-warning/20', danger: 'bg-danger/15' };
-
-  const title = isInvestment ? t('net_monthly_investment') : t('net_monthly_primary');
-  const displayValue = isInvestment
-    ? (cashflowSurplus > 0 ? `+${formatNIS(cashflowSurplus)}` : netFromPocket === 0 ? formatNIS(0) : `-${formatNIS(Math.abs(cashflowSurplus))}`)
-    : formatNIS(result.monthlyPayment);
+  // Card 2: Life balance = work income + asset cashflow (or -mortgage for primary) - fixed expenses
+  const lifeBalance = totalIncome + (isInvestment ? assetNet : -mortgage) - fixedExpenses;
+  const lifeBorderline = Math.max(500, totalIncome * 0.05);
+  let lifeLevel: CFLevel;
+  let lifeVerdict: string;
+  if (lifeBalance > lifeBorderline) { lifeLevel = 'safe'; lifeVerdict = t('life_verdict_positive'); }
+  else if (lifeBalance >= -lifeBorderline) { lifeLevel = 'warning'; lifeVerdict = t('life_verdict_borderline'); }
+  else { lifeLevel = 'danger'; lifeVerdict = t('life_verdict_negative'); }
 
   return (
-    <div className={`col-span-2 rounded-2xl border overflow-hidden shadow-sm backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
-      {/* Dynamic verdict header */}
-      <div className={`px-3 sm:px-4 py-2 ${headerBgMap[level]} flex items-center justify-between gap-2`}>
-        <div className={`text-xs sm:text-sm font-heading font-bold ${colorMap[level]}`}>{verdict}</div>
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setShowTooltip(!showTooltip)}
-            className="w-4 h-4 rounded-full bg-background/60 text-muted-foreground text-[10px] flex items-center justify-center hover:bg-background transition-colors"
-            aria-label="?"
-          >?</button>
-          {showTooltip && (
-            <div
-              ref={tooltipRef}
-              className="absolute z-50 top-full mt-2 end-0 w-56 sm:w-64 rounded-xl border border-border bg-popover p-3 shadow-lg text-[11px] sm:text-xs text-popover-foreground"
-            >
-              {isInvestment ? t('tooltip_investment') : t('tooltip_primary')}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="p-3 sm:p-4">
-        <div className="text-[11px] sm:text-xs text-muted-foreground font-heading mb-1">{title}</div>
-
-        {/* Big central number */}
-        <div className={`text-3xl sm:text-4xl font-heading font-extrabold tracking-tight ${colorMap[level]} leading-tight`}>
-          {displayValue}
-        </div>
-        <div className="text-[11px] sm:text-xs text-muted-foreground mt-1">{t('cf_net_label')}</div>
-
-        {isInvestment && (
-          <>
-            <div className="mt-3 pt-3 border-t border-border/30 space-y-1.5 text-[12px] sm:text-[13px]">
-              <div className="flex justify-between items-center gap-2">
-                <span className="text-muted-foreground flex items-center gap-1.5 min-w-0">
-                  <span aria-hidden>🏠</span><span className="truncate">{t('rental_income')}</span>
-                </span>
-                <span className="font-mono font-semibold text-safe whitespace-nowrap">+{formatNIS(effectiveRent)}</span>
-              </div>
-              <div className="flex justify-between items-center gap-2">
-                <span className="text-muted-foreground flex items-center gap-1.5 min-w-0">
-                  <span aria-hidden>🏦</span><span className="truncate">{t('mortgage_payment')}</span>
-                </span>
-                <span className="font-mono font-semibold text-danger whitespace-nowrap">-{formatNIS(result.monthlyPayment)}</span>
-              </div>
-              {fixedExpenses > 0 && (
-                <div className="flex justify-between items-center gap-2">
-                  <span className="text-muted-foreground flex items-center gap-1.5 min-w-0">
-                    <span aria-hidden>💳</span><span className="truncate">{t('fixed_expenses')}</span>
-                  </span>
-                  <span className="font-mono font-semibold text-danger whitespace-nowrap">-{formatNIS(fixedExpenses)}</span>
-                </div>
-              )}
-              <div className="border-t border-border/30 my-1.5" />
-              <div className="flex justify-between items-center gap-2">
-                <span className={`font-heading font-bold ${colorMap[level]}`}>{t('cf_result_net')}</span>
-                <span className={`font-mono font-extrabold text-base ${colorMap[level]} whitespace-nowrap`}>{displayValue}</span>
-              </div>
-            </div>
-
-            {explain && (
-              <div className={`mt-3 text-[11px] sm:text-xs font-heading font-semibold ${colorMap[level]}`}>
-                {explain}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+    <div className="col-span-2 space-y-3 sm:space-y-4">
+      {isInvestment && (
+        <CashflowCard
+          title={t('asset_card_title')}
+          verdict={assetVerdict}
+          level={assetLevel}
+          amount={assetNet}
+          amountLabel={t('asset_net_label')}
+          rows={[
+            { icon: '🏠', label: t('rental_income'), value: rent, tone: 'pos' },
+            { icon: '🏦', label: t('mortgage_payment'), value: -mortgage, tone: 'neg' },
+          ]}
+        />
+      )}
+      <CashflowCard
+        title={t('life_card_title')}
+        verdict={lifeVerdict}
+        level={lifeLevel}
+        amount={lifeBalance}
+        amountLabel={t('life_balance_label')}
+        rows={[
+          { icon: '💼', label: t('work_income'), value: totalIncome, tone: 'pos' },
+          ...(isInvestment
+            ? [{ icon: '🏠', label: t('asset_cashflow_row'), value: assetNet, tone: (assetNet >= 0 ? 'pos' : 'neg') as 'pos' | 'neg' }]
+            : [{ icon: '🏦', label: t('mortgage_payment'), value: -mortgage, tone: 'neg' as const }]),
+          { icon: '💳', label: t('fixed_expenses'), value: -fixedExpenses, tone: 'neg' },
+        ]}
+      />
     </div>
   );
 }
