@@ -140,6 +140,15 @@ const translations = {
   mortgage_payment: { he: 'החזר חודשי למשכנתא', en: 'Monthly Mortgage Payment' },
   rental_income: { he: 'הכנסה משכירות', en: 'Rental Income' },
   net_from_pocket: { he: 'סה״כ נטו מהכיס', en: 'Net Total from Pocket' },
+  cf_verdict_positive: { he: 'כסף נשאר לך כל חודש 👍', en: 'Money stays in your pocket every month 👍' },
+  cf_verdict_negative: { he: 'אתה מפסיד כסף כל חודש ⚠️', en: 'You lose money every month ⚠️' },
+  cf_verdict_borderline: { he: 'גבולי — זה יכול להתהפך', en: 'Borderline — this could flip' },
+  cf_verdict_balanced: { he: 'איזון מלא — אפס מהכיס', en: 'Full balance — zero from pocket' },
+  cf_net_label: { he: 'תזרים חודשי נטו', en: 'Net Monthly Cash Flow' },
+  cf_explain_positive: { he: 'הנכס מייצר לך הכנסה חודשית', en: 'The property generates monthly income for you' },
+  cf_explain_negative: { he: 'הנכס דורש ממך להשלים כסף כל חודש', en: 'The property requires you to top up cash every month' },
+  cf_explain_borderline: { he: 'אתה על הקו — שינוי קטן יכול להפוך את התמונה', en: 'You\'re on the line — a small change can flip this' },
+  cf_result_net: { he: 'תוצאה נטו', en: 'Net Result' },
 
   // Total mortgage cost
   total_mortgage_title: { he: 'כמה המשכנתא באמת עולה לך לאורך זמן', en: 'How much the mortgage really costs over time' },

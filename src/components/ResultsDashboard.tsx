@@ -473,81 +473,109 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
   const isInvestment = inputs.propertyType === 'investment';
   const effectiveRent = isInvestment ? inputs.monthlyRent : 0;
   const netFromPocket = result.monthlyPayment - effectiveRent;
+  // Positive surplus = property generates money (netFromPocket < 0)
+  const cashflowSurplus = -netFromPocket;
 
-  let level: 'safe' | 'warning' | 'danger' | 'neutral';
-  let insight: string;
+  let level: 'safe' | 'warning' | 'danger';
+  let verdict: string;
+  let explain: string;
 
-  if (netFromPocket <= 0) {
-    level = 'safe';
-    insight = netFromPocket === 0 ? t('property_balanced') : t('property_generates_income');
+  if (isInvestment) {
+    const borderlineThreshold = Math.max(300, effectiveRent * 0.05);
+    if (cashflowSurplus > borderlineThreshold) {
+      level = 'safe';
+      verdict = t('cf_verdict_positive');
+      explain = t('cf_explain_positive');
+    } else if (Math.abs(cashflowSurplus) <= borderlineThreshold) {
+      level = 'warning';
+      verdict = netFromPocket === 0 ? t('cf_verdict_balanced') : t('cf_verdict_borderline');
+      explain = t('cf_explain_borderline');
+    } else {
+      const burdenPct = (netFromPocket / totalIncome) * 100;
+      level = burdenPct > 35 ? 'danger' : 'warning';
+      verdict = t('cf_verdict_negative');
+      explain = t('cf_explain_negative');
+    }
   } else {
-    const burdenPct = (netFromPocket / totalIncome) * 100;
-    if (burdenPct <= 30) { level = 'safe'; insight = t('burden_safe'); }
-    else if (burdenPct <= 40) { level = 'warning'; insight = t('burden_warning'); }
-    else { level = 'danger'; insight = t('burden_danger'); }
+    const burdenPct = (result.monthlyPayment / totalIncome) * 100;
+    if (burdenPct <= 30) level = 'safe';
+    else if (burdenPct <= 40) level = 'warning';
+    else level = 'danger';
+    verdict = level === 'safe' ? t('burden_safe') : level === 'warning' ? t('burden_warning') : t('burden_danger');
+    explain = '';
   }
 
-  const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger', neutral: 'text-foreground' };
-  const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/8', danger: 'bg-danger/8', neutral: 'bg-card/60' };
-  const borderMap = { safe: 'border-safe/20', warning: 'border-warning/20', danger: 'border-danger/20', neutral: 'border-border/40' };
+  const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' };
+  const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/10', danger: 'bg-danger/8' };
+  const borderMap = { safe: 'border-safe/30', warning: 'border-warning/30', danger: 'border-danger/30' };
+  const headerBgMap = { safe: 'bg-safe/15', warning: 'bg-warning/20', danger: 'bg-danger/15' };
 
   const title = isInvestment ? t('net_monthly_investment') : t('net_monthly_primary');
-  const displayAmount = Math.abs(netFromPocket);
   const displayValue = isInvestment
-    ? (netFromPocket <= 0 ? `+${formatNIS(displayAmount)}` : formatNIS(displayAmount))
+    ? (cashflowSurplus > 0 ? `+${formatNIS(cashflowSurplus)}` : netFromPocket === 0 ? formatNIS(0) : `-${formatNIS(Math.abs(cashflowSurplus))}`)
     : formatNIS(result.monthlyPayment);
 
-  const burdenDisplay = netFromPocket > 0
-    ? `${((netFromPocket / totalIncome) * 100).toFixed(0)}% ${t('of_income')}`
-    : netFromPocket < 0 ? t('positive_cashflow') : t('balance');
-
   return (
-    <div className={`col-span-2 rounded-2xl border p-3 sm:p-4 shadow-sm backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
-      <div className="flex items-center gap-1.5 mb-2">
-        <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{title}</div>
-        <div className="relative">
+    <div className={`col-span-2 rounded-2xl border overflow-hidden shadow-sm backdrop-blur-sm ${borderMap[level]} ${bgMap[level]}`}>
+      {/* Dynamic verdict header */}
+      <div className={`px-3 sm:px-4 py-2 ${headerBgMap[level]} flex items-center justify-between gap-2`}>
+        <div className={`text-xs sm:text-sm font-heading font-bold ${colorMap[level]}`}>{verdict}</div>
+        <div className="relative shrink-0">
           <button
             onClick={() => setShowTooltip(!showTooltip)}
-            className="w-4 h-4 rounded-full bg-muted/50 text-muted-foreground text-[10px] flex items-center justify-center hover:bg-muted transition-colors"
+            className="w-4 h-4 rounded-full bg-background/60 text-muted-foreground text-[10px] flex items-center justify-center hover:bg-background transition-colors"
             aria-label="?"
-          >
-            ?
-          </button>
+          >?</button>
           {showTooltip && (
             <div
               ref={tooltipRef}
-              className="absolute z-50 bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 sm:w-64 rounded-xl border border-border bg-popover p-3 shadow-lg text-[11px] sm:text-xs text-popover-foreground"
+              className="absolute z-50 top-full mt-2 end-0 w-56 sm:w-64 rounded-xl border border-border bg-popover p-3 shadow-lg text-[11px] sm:text-xs text-popover-foreground"
             >
-              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-border" />
               {isInvestment ? t('tooltip_investment') : t('tooltip_primary')}
             </div>
           )}
         </div>
       </div>
 
-      <div className={`text-2xl sm:text-3xl font-heading font-extrabold tracking-tight ${colorMap[level]}`}>
-        {displayValue}
-      </div>
-      <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{burdenDisplay}</div>
-      <div className={`text-[11px] sm:text-xs mt-1 font-heading font-semibold ${colorMap[level]}`}>{insight}</div>
+      <div className="p-3 sm:p-4">
+        <div className="text-[11px] sm:text-xs text-muted-foreground font-heading mb-1">{title}</div>
 
-      {isInvestment && (
-        <div className="mt-2.5 pt-2.5 border-t border-border/30 space-y-1 text-[12px] sm:text-[13px]">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">{t('mortgage_payment')}</span>
-            <span className="font-mono font-medium text-foreground">{formatNIS(result.monthlyPayment)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">{t('rental_income')}</span>
-            <span className="font-mono font-medium text-safe">-{formatNIS(effectiveRent)}</span>
-          </div>
-          <div className="border-t border-border/20 my-1" />
-          <div className="flex justify-between font-semibold">
-            <span className="text-foreground">{t('net_from_pocket')}</span>
-            <span className={`font-mono font-bold ${colorMap[level]}`}>{displayValue}</span>
-          </div>
+        {/* Big central number */}
+        <div className={`text-3xl sm:text-4xl font-heading font-extrabold tracking-tight ${colorMap[level]} leading-tight`}>
+          {displayValue}
         </div>
-      )}
+        <div className="text-[11px] sm:text-xs text-muted-foreground mt-1">{t('cf_net_label')}</div>
+
+        {isInvestment && (
+          <>
+            <div className="mt-3 pt-3 border-t border-border/30 space-y-1.5 text-[12px] sm:text-[13px]">
+              <div className="flex justify-between items-center gap-2">
+                <span className="text-muted-foreground flex items-center gap-1.5 min-w-0">
+                  <span aria-hidden>🏠</span><span className="truncate">{t('rental_income')}</span>
+                </span>
+                <span className="font-mono font-semibold text-safe whitespace-nowrap">+{formatNIS(effectiveRent)}</span>
+              </div>
+              <div className="flex justify-between items-center gap-2">
+                <span className="text-muted-foreground flex items-center gap-1.5 min-w-0">
+                  <span aria-hidden>🏦</span><span className="truncate">{t('mortgage_payment')}</span>
+                </span>
+                <span className="font-mono font-semibold text-danger whitespace-nowrap">-{formatNIS(result.monthlyPayment)}</span>
+              </div>
+              <div className="border-t border-border/30 my-1.5" />
+              <div className="flex justify-between items-center gap-2">
+                <span className={`font-heading font-bold ${colorMap[level]}`}>{t('cf_result_net')}</span>
+                <span className={`font-mono font-extrabold text-base ${colorMap[level]} whitespace-nowrap`}>{displayValue}</span>
+              </div>
+            </div>
+
+            {explain && (
+              <div className={`mt-3 text-[11px] sm:text-xs font-heading font-semibold ${colorMap[level]}`}>
+                {explain}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
