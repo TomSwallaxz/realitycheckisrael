@@ -654,7 +654,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
   return (
     <div className="space-y-4 sm:space-y-5">
       <VerdictBanner result={result} />
-      <MonthlyCostCard result={result} inputs={inputs} />
+      <CashflowSection result={result} inputs={inputs} />
       <TotalMortgageCostBlock result={result} />
 
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
