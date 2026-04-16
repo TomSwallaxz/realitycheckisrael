@@ -103,7 +103,7 @@ export function MortgageConfig({ mortgage, strategy, loanAmount = 0, onMortgageC
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
       <h2 className="font-heading font-bold text-foreground text-sm mb-3 sm:mb-4">
-        {t('mortgage_structure')}
+        {t('mortgage_built_title')}
       </h2>
 
       {/* Strategy selector */}
