@@ -154,6 +154,7 @@ const Index = () => {
               <MortgageConfig
                 mortgage={mortgage}
                 strategy={strategy}
+                loanAmount={Math.max(0, inputs.price - inputs.downPayment - (inputs.parentHelp ? inputs.parentHelpAmount : 0))}
                 onMortgageChange={setMortgage}
                 onStrategyChange={handleStrategyChange}
               />
