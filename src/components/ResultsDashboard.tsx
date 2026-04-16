@@ -472,7 +472,9 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
   const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const isInvestment = inputs.propertyType === 'investment';
   const effectiveRent = isInvestment ? inputs.monthlyRent : 0;
-  const netFromPocket = result.monthlyPayment - effectiveRent;
+  const fixedExpenses = Math.max(0, inputs.fixedMonthlyExpenses || 0);
+  // Net out of pocket = mortgage + fixed expenses - rent (for investment view)
+  const netFromPocket = result.monthlyPayment + (isInvestment ? fixedExpenses : 0) - effectiveRent;
   // Positive surplus = property generates money (netFromPocket < 0)
   const cashflowSurplus = -netFromPocket;
 
@@ -561,6 +563,14 @@ function MonthlyCostCard({ result, inputs }: { result: AnalysisResult; inputs: P
                 </span>
                 <span className="font-mono font-semibold text-danger whitespace-nowrap">-{formatNIS(result.monthlyPayment)}</span>
               </div>
+              {fixedExpenses > 0 && (
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-muted-foreground flex items-center gap-1.5 min-w-0">
+                    <span aria-hidden>💳</span><span className="truncate">{t('fixed_expenses')}</span>
+                  </span>
+                  <span className="font-mono font-semibold text-danger whitespace-nowrap">-{formatNIS(fixedExpenses)}</span>
+                </div>
+              )}
               <div className="border-t border-border/30 my-1.5" />
               <div className="flex justify-between items-center gap-2">
                 <span className={`font-heading font-bold ${colorMap[level]}`}>{t('cf_result_net')}</span>
