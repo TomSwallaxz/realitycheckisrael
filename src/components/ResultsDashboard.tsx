@@ -644,6 +644,64 @@ const MOTIVATION_RESPONSES_KEYS: Record<string, string> = {
   rent_waste: 'resp_rent_waste',
 };
 
+
+function AppreciationBlock({ price }: { price: number }) {
+  const { t } = useI18n();
+  const scenarios = [
+    { key: 'pessimistic', label: t('appr_pessimistic'), rate: 0, accent: 'text-muted-foreground', border: 'border-border/40', bg: 'bg-card/60' },
+    { key: 'realistic', label: t('appr_realistic'), rate: 0.03, accent: 'text-primary', border: 'border-primary/30', bg: 'bg-primary/5' },
+    { key: 'optimistic', label: t('appr_optimistic'), rate: 0.05, accent: 'text-safe', border: 'border-safe/30', bg: 'bg-safe/8' },
+  ];
+  const fv = (rate: number, years: number) => Math.round(price * Math.pow(1 + rate, years));
+
+  return (
+    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
+      <h3 className="font-heading font-bold text-sm text-foreground mb-3 flex items-center gap-2">
+        <span aria-hidden>📈</span>
+        <span>{t('appr_title')}</span>
+      </h3>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+        {scenarios.map(s => {
+          const v5 = fv(s.rate, 5);
+          const v10 = fv(s.rate, 10);
+          const gain = v10 - price;
+          return (
+            <div key={s.key} className={`rounded-xl border ${s.border} ${s.bg} p-3`}>
+              <div className="flex items-baseline justify-between mb-2">
+                <span className={`text-xs font-heading font-bold ${s.accent}`}>{s.label}</span>
+                <span className="text-[11px] text-muted-foreground font-mono">{(s.rate * 100).toFixed(0)}% {t('appr_per_year')}</span>
+              </div>
+              <div className="space-y-1.5 text-[12px] sm:text-[13px]">
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground truncate">{t('appr_value_5y')}</span>
+                  <span className="font-mono font-semibold text-foreground whitespace-nowrap">{formatNIS(v5)}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground truncate">{t('appr_value_10y')}</span>
+                  <span className="font-mono font-semibold text-foreground whitespace-nowrap">{formatNIS(v10)}</span>
+                </div>
+                <div className="border-t border-border/30 my-1" />
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground truncate">{t('appr_potential_gain')}</span>
+                  <span className={`font-mono font-extrabold whitespace-nowrap ${gain > 0 ? s.accent : 'text-foreground'}`}>
+                    {gain > 0 ? `+${formatNIS(gain)}` : formatNIS(0)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="mt-3 text-[11px] sm:text-xs text-muted-foreground/80 leading-relaxed flex items-start gap-1.5">
+        <span aria-hidden>⚠️</span>
+        <span>{t('appr_disclaimer')}</span>
+      </p>
+    </div>
+  );
+}
+
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const { t } = useI18n();
   const yieldLevel = result.annualYield >= 5 ? "safe" : result.annualYield >= 3 ? "warning" : "danger";
