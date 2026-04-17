@@ -150,6 +150,17 @@ const translations = {
   cf_explain_borderline: { he: 'אתה על הקו — שינוי קטן יכול להפוך את התמונה', en: 'You\'re on the line — a small change can flip this' },
   cf_result_net: { he: 'תוצאה נטו', en: 'Net Result' },
 
+  // Appreciation block
+  appr_title: { he: 'מה יקרה אם הנכס יעלה בערך?', en: 'What if the property appreciates?' },
+  appr_pessimistic: { he: 'פסימי', en: 'Pessimistic' },
+  appr_realistic: { he: 'ריאלי', en: 'Realistic' },
+  appr_optimistic: { he: 'אופטימי', en: 'Optimistic' },
+  appr_value_5y: { he: 'שווי בעוד 5 שנים', en: 'Value in 5 years' },
+  appr_value_10y: { he: 'שווי בעוד 10 שנים', en: 'Value in 10 years' },
+  appr_potential_gain: { he: 'רווח פוטנציאלי (10 שנים)', en: 'Potential gain (10 years)' },
+  appr_per_year: { he: 'לשנה', en: 'per year' },
+  appr_disclaimer: { he: 'עליית ערך אינה מובטחת ואינה מפצה על תזרים שלילי', en: 'Appreciation is not guaranteed and does not compensate for negative cash flow' },
+
   // Two-card cashflow split
   asset_card_title: { he: 'האם הנכס מממן את עצמו?', en: 'Does the property pay for itself?' },
   asset_net_label: { he: 'תזרים הנכס נטו', en: 'Property Net Cash Flow' },
