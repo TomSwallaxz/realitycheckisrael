@@ -656,6 +656,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
       <VerdictBanner result={result} />
       <CashflowSection result={result} inputs={inputs} />
       <TotalMortgageCostBlock result={result} />
+      <AppreciationBlock price={inputs.price} />
 
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         <MetricCard
