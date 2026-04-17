@@ -702,6 +702,64 @@ function AppreciationBlock({ price }: { price: number }) {
   );
 }
 
+
+function DecisionLine({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
+  const { t } = useI18n();
+  const isInvestment = inputs.propertyType === 'investment';
+  const totalIncome = inputs.borrowerMode === 'dual'
+    ? inputs.monthlyIncome + inputs.secondBorrowerIncome
+    : inputs.monthlyIncome;
+  const fixedExpenses = Math.max(0, inputs.fixedMonthlyExpenses || 0);
+  const rent = isInvestment ? inputs.monthlyRent : 0;
+  const mortgage = result.monthlyPayment;
+  const assetNet = rent - mortgage;
+  const lifeBalance = totalIncome + (isInvestment ? assetNet : -mortgage) - fixedExpenses;
+
+  const lifeBorderline = Math.max(500, totalIncome * 0.05);
+  const assetThreshold = Math.max(300, rent * 0.05);
+
+  let level: CFLevel;
+  let title: string;
+  let sub: string;
+
+  if (isInvestment) {
+    const assetBad = assetNet < -assetThreshold;
+    const lifeBad = lifeBalance < -lifeBorderline;
+    const assetGood = assetNet > assetThreshold;
+    const lifeGood = lifeBalance > lifeBorderline;
+
+    if (assetBad || lifeBad) {
+      level = 'danger'; title = t('decision_no_deal'); sub = t('decision_no_deal_sub');
+    } else if (assetGood && lifeGood) {
+      level = 'safe'; title = t('decision_deal'); sub = t('decision_deal_sub');
+    } else {
+      level = 'warning'; title = t('decision_borderline'); sub = t('decision_borderline_sub');
+    }
+  } else {
+    if (lifeBalance < -lifeBorderline) {
+      level = 'danger'; title = t('decision_no_deal'); sub = t('decision_no_deal_primary_sub');
+    } else if (lifeBalance > lifeBorderline) {
+      level = 'safe'; title = t('decision_deal'); sub = t('decision_deal_primary_sub');
+    } else {
+      level = 'warning'; title = t('decision_borderline'); sub = t('decision_borderline_sub');
+    }
+  }
+
+  return (
+    <div className={`rounded-2xl border-2 ${cfBorder[level]} ${cfBg[level]} p-5 sm:p-7 text-center shadow-md`}>
+      <div className="text-[10px] sm:text-xs text-muted-foreground font-heading uppercase tracking-widest mb-2">
+        {t('decision_label')}
+      </div>
+      <div className={`font-heading font-extrabold tracking-tight leading-none ${cfColor[level]} text-4xl sm:text-5xl lg:text-6xl`}>
+        {title}
+      </div>
+      <div className={`mt-3 sm:mt-4 text-sm sm:text-base font-heading font-semibold ${cfColor[level]}`}>
+        {sub}
+      </div>
+    </div>
+  );
+}
+
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const { t } = useI18n();
   const yieldLevel = result.annualYield >= 5 ? "safe" : result.annualYield >= 3 ? "warning" : "danger";
@@ -850,6 +908,8 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           })}
         </div>
       )}
+
+      <DecisionLine result={result} inputs={inputs} />
 
       <BankReportCTA result={result} inputs={inputs} motivations={motivations} />
 
