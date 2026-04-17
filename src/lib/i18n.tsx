@@ -150,6 +150,17 @@ const translations = {
   cf_explain_borderline: { he: 'אתה על הקו — שינוי קטן יכול להפוך את התמונה', en: 'You\'re on the line — a small change can flip this' },
   cf_result_net: { he: 'תוצאה נטו', en: 'Net Result' },
 
+  // Decision line
+  decision_label: { he: 'ההכרעה הסופית', en: 'Final Decision' },
+  decision_deal: { he: 'Deal', en: 'Deal' },
+  decision_no_deal: { he: 'No Deal', en: 'No Deal' },
+  decision_borderline: { he: 'גבולי', en: 'Borderline' },
+  decision_deal_sub: { he: 'הנכס מממן את עצמו ומשאיר לך רווח', en: 'The property pays for itself and leaves you a profit' },
+  decision_no_deal_sub: { he: 'העסקה הזאת תכניס אותך למינוס כל חודש', en: 'This deal will put you in the red every month' },
+  decision_borderline_sub: { he: 'שינוי קטן יכול להפוך את זה להפסד', en: 'A small change can flip this into a loss' },
+  decision_no_deal_primary_sub: { he: 'התשלום החודשי גבוה מדי ביחס להכנסה שלך', en: 'The monthly payment is too high relative to your income' },
+  decision_deal_primary_sub: { he: 'אתה יכול להרשות לעצמך את הדירה הזו', en: 'You can comfortably afford this home' },
+
   // Appreciation block
   appr_title: { he: 'מה יקרה אם הנכס יעלה בערך?', en: 'What if the property appreciates?' },
   appr_pessimistic: { he: 'פסימי', en: 'Pessimistic' },
