@@ -22,6 +22,19 @@ export interface PropertyInputs {
   parentHelpAmount: number;
   borrowerMode: BorrowerMode;
   secondBorrowerIncome: number;
+  altRent?: number;
+}
+
+/** Split a single mortgage monthly payment into interest and principal for the FIRST month */
+export function calcFirstMonthSplit(
+  loanAmount: number,
+  monthlyPayment: number,
+  weightedAnnualRatePct: number
+): { interest: number; principal: number } {
+  const monthlyRate = weightedAnnualRatePct / 100 / 12;
+  const interest = loanAmount * monthlyRate;
+  const principal = Math.max(0, monthlyPayment - interest);
+  return { interest, principal };
 }
 
 export interface MortgageStructure {

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { AnalysisResult, PropertyInputs, formatNIS } from "@/lib/calculator";
+import { AnalysisResult, PropertyInputs, formatNIS, calcFirstMonthSplit } from "@/lib/calculator";
 import { generateDealPDF } from "@/lib/generatePDF";
 import { useI18n } from "@/lib/i18n";
 
@@ -515,65 +515,144 @@ function CashflowCard({
   );
 }
 
-function CashflowSection({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
+function YieldCard({ title, sub, value, level }: { title: string; sub: string; value: string; level: CFLevel | 'neutral' }) {
+  const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger', neutral: 'text-foreground' } as const;
+  const borderMap = { safe: 'border-safe/30', warning: 'border-warning/30', danger: 'border-danger/30', neutral: 'border-border/40' } as const;
+  const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/10', danger: 'bg-danger/8', neutral: 'bg-card/60' } as const;
+  return (
+    <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur-sm shadow-sm ${borderMap[level]} ${bgMap[level]}`}>
+      <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{title}</div>
+      <div className={`text-3xl sm:text-4xl font-heading font-extrabold mt-1 tracking-tight ${colorMap[level]}`}>{value}</div>
+      <div className="text-[11px] sm:text-xs text-muted-foreground mt-1.5">{sub}</div>
+    </div>
+  );
+}
+
+function InvestmentResults({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
   const { t } = useI18n();
-  const isInvestment = inputs.propertyType === 'investment';
-  const totalIncome = inputs.borrowerMode === 'dual'
-    ? inputs.monthlyIncome + inputs.secondBorrowerIncome
-    : inputs.monthlyIncome;
-  const fixedExpenses = Math.max(0, inputs.fixedMonthlyExpenses || 0);
-  const rent = isInvestment ? inputs.monthlyRent : 0;
-  const mortgage = result.monthlyPayment;
+  const rent = Math.max(0, inputs.monthlyRent || 0);
+  const price = Math.max(1, inputs.price || 0);
+  // Property-only expenses (maintenance + repairs, monthly): mirrors calcPropertyExpenses
+  const propertyExpensesMonthly = price * 0.01 / 12 + price * 0.005 / 12;
 
-  // Card 1: Property self-financing (rent - mortgage). Investment only.
-  const assetNet = rent - mortgage;
-  const assetThreshold = Math.max(300, rent * 0.05);
-  let assetLevel: CFLevel;
-  let assetVerdict: string;
-  if (assetNet > assetThreshold) { assetLevel = 'safe'; assetVerdict = t('asset_verdict_positive'); }
-  else if (Math.abs(assetNet) <= assetThreshold) { assetLevel = 'warning'; assetVerdict = t('asset_verdict_balanced'); }
-  else { assetLevel = 'danger'; assetVerdict = t('asset_verdict_negative'); }
+  const grossYield = (rent * 12 / price) * 100;
+  const netYield = ((rent - propertyExpensesMonthly) * 12 / price) * 100;
+  const propCashflow = rent - result.monthlyPayment - propertyExpensesMonthly;
 
-  // Card 2: Life balance = work income + asset cashflow (or -mortgage for primary) - fixed expenses
-  const lifeBalance = totalIncome + (isInvestment ? assetNet : -mortgage) - fixedExpenses;
-  const lifeBorderline = Math.max(500, totalIncome * 0.05);
-  let lifeLevel: CFLevel;
-  let lifeVerdict: string;
-  if (lifeBalance > lifeBorderline) { lifeLevel = 'safe'; lifeVerdict = t('life_verdict_positive'); }
-  else if (lifeBalance >= -lifeBorderline) { lifeLevel = 'warning'; lifeVerdict = t('life_verdict_borderline'); }
-  else { lifeLevel = 'danger'; lifeVerdict = t('life_verdict_negative'); }
+  const grossLevel: CFLevel | 'neutral' = grossYield >= 5 ? 'safe' : grossYield >= 3 ? 'warning' : 'danger';
+  const netLevel: CFLevel | 'neutral' = netYield >= 4 ? 'safe' : netYield >= 2 ? 'warning' : 'danger';
+  const cfLevel: CFLevel = propCashflow > 200 ? 'safe' : propCashflow >= -200 ? 'warning' : 'danger';
+  const cfDisplay = propCashflow > 0 ? `+${formatNIS(propCashflow)}` : propCashflow === 0 ? formatNIS(0) : `-${formatNIS(Math.abs(propCashflow))}`;
+  const cfVerdict = cfLevel === 'safe' ? t('prop_cf_positive') : cfLevel === 'danger' ? t('prop_cf_negative') : t('asset_verdict_balanced');
 
   return (
     <div className="col-span-2 space-y-3 sm:space-y-4">
-      {isInvestment && (
-        <CashflowCard
-          title={t('asset_card_title')}
-          verdict={assetVerdict}
-          level={assetLevel}
-          amount={assetNet}
-          amountLabel={t('asset_net_label')}
-          rows={[
-            { icon: '🏠', label: t('rental_income'), value: rent, tone: 'pos' },
-            { icon: '🏦', label: t('mortgage_payment'), value: -mortgage, tone: 'neg' },
-          ]}
-        />
-      )}
-      <CashflowCard
-        title={t('life_card_title')}
-        verdict={lifeVerdict}
-        level={lifeLevel}
-        amount={lifeBalance}
-        amountLabel={t('life_balance_label')}
-        rows={[
-          { icon: '💼', label: t('work_income'), value: totalIncome, tone: 'pos' },
-          ...(isInvestment
-            ? [{ icon: '🏠', label: t('asset_cashflow_row'), value: assetNet, tone: (assetNet >= 0 ? 'pos' : 'neg') as 'pos' | 'neg' }]
-            : [{ icon: '🏦', label: t('mortgage_payment'), value: -mortgage, tone: 'neg' as const }]),
-          { icon: '💳', label: t('fixed_expenses'), value: -fixedExpenses, tone: 'neg' },
-        ]}
-      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <YieldCard title={t('yield_gross_title')} sub={t('yield_gross_sub')} value={`${grossYield.toFixed(1)}%`} level={grossLevel} />
+        <YieldCard title={t('yield_net_title')} sub={t('yield_net_sub')} value={`${netYield.toFixed(1)}%`} level={netLevel} />
+      </div>
+      <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur-sm shadow-sm ${cfBorder[cfLevel]} ${cfBg[cfLevel]}`}>
+        <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{t('prop_cashflow_title')}</div>
+        <div className={`text-3xl sm:text-4xl font-heading font-extrabold mt-1 tracking-tight ${cfColor[cfLevel]}`}>{cfDisplay}</div>
+        <div className={`text-xs sm:text-sm font-heading font-bold mt-1 ${cfColor[cfLevel]}`}>{cfVerdict}</div>
+        <div className="mt-3 pt-3 border-t border-border/30 space-y-1.5 text-[12px] sm:text-[13px]">
+          <Row icon="🏠" label={t('rental_income')} value={rent} tone="pos" />
+          <Row icon="🏦" label={t('mortgage_payment')} value={-result.monthlyPayment} tone="neg" />
+          <Row icon="🔧" label={t('expenses')} value={-propertyExpensesMonthly} tone="neg" />
+        </div>
+        <div className="text-[11px] sm:text-xs text-muted-foreground mt-2">{t('prop_cashflow_sub')}</div>
+      </div>
     </div>
   );
+}
+
+function Row({ icon, label, value, tone }: { icon: string; label: string; value: number; tone: 'pos' | 'neg' | 'neutral' }) {
+  const toneClass = tone === 'pos' ? 'text-safe' : tone === 'neg' ? 'text-danger' : 'text-foreground';
+  const sign = value > 0 ? '+' : value < 0 ? '-' : '';
+  return (
+    <div className="flex justify-between items-center gap-2">
+      <span className="text-muted-foreground flex items-center gap-1.5 min-w-0">
+        <span aria-hidden>{icon}</span><span className="truncate">{label}</span>
+      </span>
+      <span className={`font-mono font-semibold whitespace-nowrap ${toneClass}`}>
+        {sign}{formatNIS(Math.abs(value))}
+      </span>
+    </div>
+  );
+}
+
+function PrimaryResults({ result, inputs, mortgage }: { result: AnalysisResult; inputs: PropertyInputs; mortgage: number }) {
+  const { t } = useI18n();
+  const altRent = Math.max(0, inputs.altRent ?? 0);
+  const fixedExpenses = Math.max(0, inputs.fixedMonthlyExpenses || 0);
+
+  // Card A: Real cost of living = mortgage + fixed expenses - alt rent
+  const livingCost = mortgage + fixedExpenses - altRent;
+  const hasAlt = altRent > 0;
+  const livingLevel: CFLevel = !hasAlt ? 'warning' : livingCost > 1500 ? 'danger' : livingCost > 0 ? 'warning' : 'safe';
+  const livingDisplay = livingCost > 0 ? `+${formatNIS(livingCost)}` : livingCost === 0 ? formatNIS(0) : `-${formatNIS(Math.abs(livingCost))}`;
+  const livingMsg = !hasAlt
+    ? t('alt_rent_missing')
+    : livingCost > 0 ? t('living_cost_positive_msg') : t('living_cost_negative_msg');
+
+  // Card B: Burn vs build — first-month split using weighted avg rate
+  const loanAmount = result.loanAmount;
+  // Compute weighted avg annual rate from mortgageBreakdown
+  const weightedRate = loanAmount > 0
+    ? result.mortgageBreakdown.reduce((acc, t) => acc + t.amount * t.rate, 0) / loanAmount
+    : 0;
+  const split = calcFirstMonthSplit(loanAmount, mortgage, weightedRate);
+  const burned = split.interest + fixedExpenses;
+  const built = split.principal;
+
+  return (
+    <div className="col-span-2 space-y-3 sm:space-y-4">
+      {/* Living cost card */}
+      <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur-sm shadow-sm ${cfBorder[livingLevel]} ${cfBg[livingLevel]}`}>
+        <div className="text-[10px] sm:text-[11px] text-muted-foreground font-heading uppercase tracking-wide">{t('living_cost_title')}</div>
+        <div className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">{t('living_cost_sub')}</div>
+        {hasAlt ? (
+          <>
+            <div className={`text-3xl sm:text-4xl font-heading font-extrabold mt-2 tracking-tight ${cfColor[livingLevel]}`}>{livingDisplay}</div>
+            <div className={`text-xs sm:text-sm font-heading font-bold mt-1 ${cfColor[livingLevel]}`}>{livingMsg}</div>
+          </>
+        ) : (
+          <div className="mt-3 text-[13px] sm:text-sm text-muted-foreground italic">{livingMsg}</div>
+        )}
+        <div className="mt-3 pt-3 border-t border-border/30 space-y-1.5 text-[12px] sm:text-[13px]">
+          <Row icon="🏦" label={t('mortgage_payment')} value={mortgage} tone="neg" />
+          <Row icon="💳" label={t('fixed_expenses')} value={fixedExpenses} tone="neg" />
+          {hasAlt && <Row icon="🏠" label={t('alt_rent')} value={-altRent} tone="pos" />}
+        </div>
+      </div>
+
+      {/* Burn vs build card */}
+      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
+        <h3 className="font-heading font-bold text-sm text-foreground">{t('burn_vs_build_title')}</h3>
+        <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 mb-3">{t('burn_vs_build_sub')}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl border border-danger/25 bg-danger/8 p-3">
+            <div className="text-[11px] text-muted-foreground font-heading">🔥 {t('burned_label')}</div>
+            <div className="text-xl sm:text-2xl font-heading font-extrabold text-danger mt-1 font-mono">{formatNIS(burned)}</div>
+            <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">{t('burned_hint')}</div>
+          </div>
+          <div className="rounded-xl border border-safe/25 bg-safe/8 p-3">
+            <div className="text-[11px] text-muted-foreground font-heading">🧱 {t('built_label')}</div>
+            <div className="text-xl sm:text-2xl font-heading font-extrabold text-safe mt-1 font-mono">{formatNIS(built)}</div>
+            <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-1">{t('built_hint')}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CashflowSection({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
+  const isInvestment = inputs.propertyType === 'investment';
+  if (isInvestment) {
+    return <InvestmentResults result={result} inputs={inputs} />;
+  }
+  return <PrimaryResults result={result} inputs={inputs} mortgage={result.monthlyPayment} />;
 }
 
 function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
@@ -762,7 +841,6 @@ function DecisionLine({ result, inputs }: { result: AnalysisResult; inputs: Prop
 
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const { t } = useI18n();
-  const yieldLevel = result.annualYield >= 5 ? "safe" : result.annualYield >= 3 ? "warning" : "danger";
   const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const burdenPercent = (result.monthlyPayment / totalIncome) * 100;
   const burdenLevel = burdenPercent <= 30 ? "safe" : burdenPercent <= 40 ? "warning" : "danger";
@@ -781,9 +859,6 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           sub={`${burdenPercent.toFixed(0)}% ${t('of_income')}`}
           level={burdenLevel}
         />
-        {inputs.propertyType === "investment" && (
-          <MetricCard label={t('annual_yield')} value={`${result.annualYield.toFixed(1)}%`} sub={t('gross')} level={yieldLevel} />
-        )}
         <MetricCard
           label={t('purchase_tax')}
           value={formatNIS(result.purchaseTax)}

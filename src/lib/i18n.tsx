@@ -401,6 +401,31 @@ const translations = {
   approval_safe_insight: { he: 'הפרופיל הפיננסי שלך חזק — סיכוי גבוה לאישור המשכנתא.', en: 'Your financial profile is strong — high chance of mortgage approval.' },
   approval_warn_insight: { he: 'במצב הנוכחי הסיכוי לאישור גבולי.', en: 'In the current state, approval chances are borderline.' },
   approval_danger_insight: { he: 'הסיכוי לאישור נמוך. מומלץ לשפר את ההון העצמי או להקטין את סכום ההלוואה.', en: 'Approval chance is low. Consider increasing equity or reducing the loan amount.' },
+
+  // Investment-mode result cards
+  yield_gross_title: { he: 'תשואה שנתית ברוטו', en: 'Annual Gross Yield' },
+  yield_gross_sub: { he: 'שכ״ד שנתי ביחס למחיר הנכס', en: 'Annual rent as % of property price' },
+  yield_net_title: { he: 'תשואה שנתית נטו', en: 'Annual Net Yield' },
+  yield_net_sub: { he: 'אחרי הוצאות הנכס בלבד (לא כולל משכנתא ולא הוצאות חיים)', en: 'After property expenses only (excludes mortgage & life expenses)' },
+  prop_cashflow_title: { he: 'תזרים חודשי מהנכס', en: 'Monthly Property Cash Flow' },
+  prop_cashflow_sub: { he: 'שכר דירה - משכנתא - הוצאות הנכס', en: 'Rent - mortgage - property expenses' },
+  prop_cf_positive: { he: 'הנכס מייצר תזרים חיובי', en: 'The property generates positive cash flow' },
+  prop_cf_negative: { he: 'הנכס לא מממן את עצמו', en: 'The property does not pay for itself' },
+
+  // Primary-mode result cards
+  living_cost_title: { he: 'עלות מגורים אמיתית', en: 'Real Cost of Living Here' },
+  living_cost_sub: { he: 'משכנתא + הוצאות קבועות - שכירות חלופית', en: 'Mortgage + fixed expenses - alternative rent' },
+  living_cost_positive_msg: { he: 'יקר יותר מלשכור דירה דומה באזור', en: 'More expensive than renting a similar place nearby' },
+  living_cost_negative_msg: { he: 'זול יותר מלשכור דירה דומה באזור', en: 'Cheaper than renting a similar place nearby' },
+  alt_rent: { he: 'שכירות חלופית באזור (חודשית)', en: 'Alternative Local Rent (monthly)' },
+  alt_rent_hint: { he: 'כמה תעלה לך שכירות של דירה דומה באותו אזור', en: 'How much rent for a similar place in the area would cost' },
+  alt_rent_missing: { he: 'הזן שכירות חלופית כדי לראות את ההשוואה', en: 'Enter alternative rent to see the comparison' },
+  burn_vs_build_title: { he: 'כמה אתה שורף vs כמה אתה צובר', en: 'How much you burn vs how much you build' },
+  burn_vs_build_sub: { he: 'פיצול ההחזר החודשי לחלק שנשרף וחלק שנצבר כהון', en: 'Splitting your payment into burned cost and equity built' },
+  burned_label: { he: 'נשרף החודש', en: 'Burned this month' },
+  burned_hint: { he: 'ריבית למשכנתא + הוצאות קבועות', en: 'Mortgage interest + fixed expenses' },
+  built_label: { he: 'נצבר לך בנכס', en: 'Built into your property' },
+  built_hint: { he: 'תשלום הקרן — הופך לבעלות שלך', en: 'Principal payment — becomes your equity' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

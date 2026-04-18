@@ -276,6 +276,16 @@ export function PropertyForm({ inputs, onChange }: Props) {
             />
           )}
 
+          {inputs.propertyType === "primary" && (
+            <NumericField
+              label={t('alt_rent')}
+              value={inputs.altRent ?? 0}
+              onChange={(v) => onChange({ ...inputs, altRent: v })}
+              prefix="₪"
+              hint={t('alt_rent_hint')}
+            />
+          )}
+
           <div className="flex items-center gap-3">
             <label className="block text-[11px] sm:text-xs text-muted-foreground font-heading">{t('first_apartment')}</label>
             <button
