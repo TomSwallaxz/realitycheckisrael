@@ -28,6 +28,7 @@ const Index = () => {
     parentHelpAmount: 0,
     borrowerMode: 'single',
     secondBorrowerIncome: 0,
+    altRent: 5500,
   });
 
   const [mortgage, setMortgage] = useState<MortgageStructure>({
