@@ -841,7 +841,6 @@ function DecisionLine({ result, inputs }: { result: AnalysisResult; inputs: Prop
 
 export function ResultsDashboard({ result, inputs, motivations }: Props) {
   const { t } = useI18n();
-  const yieldLevel = result.annualYield >= 5 ? "safe" : result.annualYield >= 3 ? "warning" : "danger";
   const totalIncome = inputs.borrowerMode === 'dual' ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
   const burdenPercent = (result.monthlyPayment / totalIncome) * 100;
   const burdenLevel = burdenPercent <= 30 ? "safe" : burdenPercent <= 40 ? "warning" : "danger";
