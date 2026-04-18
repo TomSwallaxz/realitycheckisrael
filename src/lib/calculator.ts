@@ -300,8 +300,8 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
   const monthlyExpenses = propertyExpenses + inputs.fixedMonthlyExpenses;
   const effectiveRent = inputs.propertyType === 'primary' ? 0 : inputs.monthlyRent;
   const netCashFlow = effectiveRent + totalIncome - monthlyPayment - monthlyExpenses;
-  const annualYield = inputs.propertyType === 'primary' ? 0 :
-    ((inputs.monthlyRent * 12 - propertyExpenses * 12) / inputs.price) * 100;
+  const annualYield = inputs.propertyType === 'primary' || inputs.price <= 0 ? 0 :
+    (inputs.monthlyRent * 12 / inputs.price) * 100;
 
   const purchaseTax = calcPurchaseTax(inputs.price, inputs.isFirstApartment);
   const lawyerFee = Math.max(5000, inputs.price * 0.005);
