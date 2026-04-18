@@ -860,9 +860,6 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
           sub={`${burdenPercent.toFixed(0)}% ${t('of_income')}`}
           level={burdenLevel}
         />
-        {inputs.propertyType === "investment" && (
-          <MetricCard label={t('annual_yield')} value={`${result.annualYield.toFixed(1)}%`} sub={t('gross')} level={yieldLevel} />
-        )}
         <MetricCard
           label={t('purchase_tax')}
           value={formatNIS(result.purchaseTax)}
