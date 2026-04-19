@@ -545,22 +545,37 @@ function InvestmentResults({ result, inputs }: { result: AnalysisResult; inputs:
   const cfDisplay = propCashflow > 0 ? `+${formatNIS(propCashflow)}` : propCashflow === 0 ? formatNIS(0) : `-${formatNIS(Math.abs(propCashflow))}`;
   const cfVerdict = cfLevel === 'safe' ? t('prop_cf_positive') : cfLevel === 'danger' ? t('prop_cf_negative') : t('asset_verdict_balanced');
 
+  const fmtSigned = (v: number) => (v > 0 ? `+${formatNIS(v)}` : v < 0 ? `-${formatNIS(Math.abs(v))}` : formatNIS(0));
+
   return (
     <div className="col-span-2 space-y-3 sm:space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <YieldCard title={t('yield_gross_title')} sub={t('yield_gross_sub')} value={`${grossYield.toFixed(1)}%`} level={grossLevel} />
-        <YieldCard title={t('yield_net_title')} sub={t('yield_net_sub')} value={`${netYield.toFixed(1)}%`} level={netLevel} />
-      </div>
-      <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur-sm shadow-sm ${cfBorder[cfLevel]} ${cfBg[cfLevel]}`}>
-        <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{t('prop_cashflow_title')}</div>
-        <div className={`text-3xl sm:text-4xl font-heading font-extrabold mt-1 tracking-tight ${cfColor[cfLevel]}`}>{cfDisplay}</div>
-        <div className={`text-xs sm:text-sm font-heading font-bold mt-1 ${cfColor[cfLevel]}`}>{cfVerdict}</div>
-        <div className="mt-3 pt-3 border-t border-border/30 space-y-1.5 text-[12px] sm:text-[13px]">
-          <Row icon="🏠" label={t('rental_income')} value={rent} tone="pos" />
-          <Row icon="🏦" label={t('mortgage_payment')} value={-result.monthlyPayment} tone="neg" />
-          <Row icon="🔧" label={t('expenses')} value={-propertyExpensesMonthly} tone="neg" />
+      {/* MAIN: Property monthly cashflow */}
+      <div className={`rounded-2xl border p-5 sm:p-6 backdrop-blur-sm shadow-sm ${cfBorder[cfLevel]} ${cfBg[cfLevel]}`}>
+        <div className="text-[11px] sm:text-xs text-muted-foreground font-heading uppercase tracking-wide">{t('prop_cashflow_title')}</div>
+        <div className={`text-4xl sm:text-5xl font-heading font-extrabold mt-1.5 tracking-tight leading-none ${cfColor[cfLevel]}`}>
+          {cfDisplay}
         </div>
-        <div className="text-[11px] sm:text-xs text-muted-foreground mt-2">{t('prop_cashflow_sub')}</div>
+        <div className={`text-sm font-heading font-bold mt-2 ${cfColor[cfLevel]}`}>{cfVerdict}</div>
+
+        {/* Minimal one-line breakdown */}
+        <div className="mt-3 pt-3 border-t border-border/30 flex flex-wrap gap-x-4 gap-y-1 text-[12px] sm:text-[13px] font-mono">
+          <span className="text-safe">{fmtSigned(rent)} {t('rental_income')}</span>
+          <span className="text-danger">{fmtSigned(-result.monthlyPayment)} {t('mortgage_payment')}</span>
+          <span className="text-danger">{fmtSigned(-propertyExpensesMonthly)} {t('expenses')}</span>
+        </div>
+      </div>
+
+      {/* Secondary: net yield only */}
+      <div className={`rounded-2xl border p-3 sm:p-4 backdrop-blur-sm shadow-sm ${cfBorder[netLevel as CFLevel] ?? 'border-border/40'} ${cfBg[netLevel as CFLevel] ?? 'bg-card/60'}`}>
+        <div className="flex items-baseline justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{t('yield_net_title')}</div>
+            <div className="text-[10px] sm:text-[11px] text-muted-foreground/80 mt-0.5">{t('yield_net_sub')}</div>
+          </div>
+          <div className={`text-2xl sm:text-3xl font-heading font-extrabold tracking-tight ${cfColor[netLevel as CFLevel] ?? 'text-foreground'}`}>
+            {netYield.toFixed(1)}%
+          </div>
+        </div>
       </div>
     </div>
   );
