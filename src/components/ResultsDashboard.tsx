@@ -490,7 +490,7 @@ function InvestmentResults({ result, inputs }: { result: AnalysisResult; inputs:
 
   return (
     <div className="col-span-2 space-y-3 sm:space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <YieldCard title={t('yield_gross_title')} sub={t('yield_gross_sub')} value={`${grossYield.toFixed(1)}%`} level={grossLevel} />
         <YieldCard title={t('yield_net_title')} sub={t('yield_net_sub')} value={`${netYield.toFixed(1)}%`} level={netLevel} />
       </div>
