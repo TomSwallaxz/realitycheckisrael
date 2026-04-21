@@ -277,19 +277,13 @@ const translations = {
   tips_title: { he: '🎯 המלצות לשיפור העסקה', en: '🎯 Recommendations to Improve the Deal' },
   tips_sub: { he: 'מה אפשר לשנות כדי לשפר את הסיכוי לאישור ולהקטין סיכון', en: 'What you can change to improve approval chances and reduce risk' },
 
-  // PDF / Bank Report CTA
+  // PDF / Report CTA
   download_pdf: { he: 'הורד דוח PDF', en: 'Download PDF Report' },
   preparing: { he: 'מכין דוח...', en: 'Preparing report...' },
-  bank_report_title: { he: 'רוצה ניתוח מלא לפני שאתה הולך לבנק?', en: 'Want a full analysis before going to the bank?' },
-  bank_report_bullet1: { he: 'איך לשפר את הסיכוי שלך לקבל משכנתא', en: 'How to improve your mortgage approval chances' },
-  bank_report_bullet2: { he: 'איפה אתה חלש פיננסית', en: 'Where you\'re financially weak' },
-  bank_report_bullet3: { he: 'תרחיש אופטימי מול פסימי', en: 'Optimistic vs. pessimistic scenario' },
-  bank_report_bullet4: { he: 'כמה באמת תשלם לאורך זמן', en: 'How much you\'ll really pay over time' },
-  bank_report_cta: { he: 'שלח לי את הדוח המלא למייל', en: 'Send me the full report by email' },
-  bank_report_email_placeholder: { he: 'הכנס את המייל שלך', en: 'Enter your email' },
-  bank_report_send: { he: 'שלח את הדוח', en: 'Send Report' },
-  bank_report_success: { he: 'הדוח נשלח אליך — תשתמש בו כשאתה מדבר עם הבנק', en: 'Report sent — use it when talking to the bank' },
-  bank_report_download_too: { he: 'או הורד ישירות', en: 'or download directly' },
+  download_report: { he: 'הורד את הדוח', en: 'Download Report' },
+  share_link: { he: 'שתף את הלינק', en: 'Share Link' },
+  link_copied: { he: 'הקישור הועתק', en: 'Link copied to clipboard' },
+  link_copy_failed: { he: 'שכפול הקישור נכשל', en: 'Failed to copy link' },
 
   // Footer
   disclaimer_title: { he: '⚠️ חשוב לדעת', en: '⚠️ Important Notice' },
