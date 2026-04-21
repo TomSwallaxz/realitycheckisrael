@@ -463,10 +463,10 @@ function YieldCard({ title, sub, value, level }: { title: string; sub: string; v
   const borderMap = { safe: 'border-safe/30', warning: 'border-warning/30', danger: 'border-danger/30', neutral: 'border-border/40' } as const;
   const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/10', danger: 'bg-danger/8', neutral: 'bg-card/60' } as const;
   return (
-    <div className={`rounded-2xl border p-4 sm:p-5 backdrop-blur-sm shadow-sm ${borderMap[level]} ${bgMap[level]}`}>
+    <div className={`rounded-2xl border p-3 sm:p-4 backdrop-blur-sm shadow-sm text-center ${borderMap[level]} ${bgMap[level]}`}>
       <div className="text-[11px] sm:text-xs text-muted-foreground font-heading">{title}</div>
       <div className={`text-3xl sm:text-4xl font-heading font-extrabold mt-1 tracking-tight ${colorMap[level]}`}>{value}</div>
-      <div className="text-[11px] sm:text-xs text-muted-foreground mt-1.5">{sub}</div>
+      <div className="text-[11px] sm:text-xs text-muted-foreground mt-1">{sub}</div>
     </div>
   );
 }
