@@ -1,13 +1,15 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
-import { AnalysisResult, PropertyInputs, formatNIS, calcFirstMonthSplit } from "@/lib/calculator";
+import { AnalysisResult, PropertyInputs, MortgageStructure, formatNIS, calcFirstMonthSplit } from "@/lib/calculator";
 import { generateDealPDF } from "@/lib/generatePDF";
 import { useI18n } from "@/lib/i18n";
+import { buildShareUrl } from "@/lib/shareState";
 
 interface Props {
   result: AnalysisResult;
   inputs: PropertyInputs;
   motivations: string[];
+  mortgage?: MortgageStructure;
 }
 
 function VerdictBanner({ result }: { result: AnalysisResult }) {
@@ -463,7 +465,7 @@ function ImprovementTipsSection({ result, inputs }: { result: AnalysisResult; in
   );
 }
 
-function BankReportCTA({ result, inputs, motivations }: Props) {
+function BankReportCTA({ result, inputs, motivations, mortgage }: Props) {
   const { t } = useI18n();
   const [downloading, setDownloading] = useState(false);
 
@@ -477,7 +479,9 @@ function BankReportCTA({ result, inputs, motivations }: Props) {
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const url = mortgage
+      ? buildShareUrl(inputs, mortgage)
+      : window.location.href;
     try {
       await navigator.clipboard.writeText(url);
       toast.success(t("link_copied"));
@@ -1026,7 +1030,7 @@ function DecisionLine({ result, inputs }: { result: AnalysisResult; inputs: Prop
   );
 }
 
-export function ResultsDashboard({ result, inputs, motivations }: Props) {
+export function ResultsDashboard({ result, inputs, motivations, mortgage }: Props) {
   const { t } = useI18n();
   const totalIncome =
     inputs.borrowerMode === "dual" ? inputs.monthlyIncome + inputs.secondBorrowerIncome : inputs.monthlyIncome;
@@ -1183,7 +1187,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
 
       <DecisionLine result={result} inputs={inputs} />
 
-      <BankReportCTA result={result} inputs={inputs} motivations={motivations} />
+      <BankReportCTA result={result} inputs={inputs} motivations={motivations} mortgage={mortgage} />
 
       <div className="text-center text-[11px] text-muted-foreground/60 pt-2 border-t border-border/20">
         {t("inline_disclaimer")}
