@@ -22,9 +22,10 @@ export function GitHubButton() {
           <button
             onClick={handleClick}
             aria-label={t("contribute_github")}
-            className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-border/60 bg-card/50 text-foreground hover:bg-accent hover:text-accent-foreground hover:border-accent/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border/60 bg-card/50 text-foreground font-heading font-medium text-sm hover:bg-accent hover:text-accent-foreground hover:border-accent/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <Github className="w-4 h-4" />
+            <span className="hidden sm:inline">{t("contribute_github")}</span>
           </button>
         </TooltipTrigger>
         <TooltipContent side="bottom" sideOffset={6}>
