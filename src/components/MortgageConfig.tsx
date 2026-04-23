@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MortgageStructure, Strategy, DEFAULT_RATES, formatNIS } from '@/lib/calculator';
+import { MortgageStructure, Strategy, DEFAULT_RATES, formatNIS, CustomTrack, TrackType } from '@/lib/calculator';
 import { Info, ChevronDown, X, Sparkles } from 'lucide-react';
 import { useI18n, TranslationKey } from '@/lib/i18n';
 
@@ -13,6 +13,32 @@ interface Props {
 
 export function MortgageConfig({ mortgage, strategy, loanAmount = 0, onMortgageChange, onStrategyChange }: Props) {
   const { t } = useI18n();
+  const mode = mortgage.mode ?? 'simple';
+  const tracks: CustomTrack[] = mortgage.customTracks ?? [];
+
+  const setMode = (m: 'simple' | 'advanced') => {
+    let nextTracks = tracks;
+    if (m === 'advanced' && tracks.length === 0 && loanAmount > 0) {
+      nextTracks = [
+        { id: 'p', type: 'prime', amount: Math.round(loanAmount * (mortgage.primePercent / 100)), rate: mortgage.primeRate, termYears: mortgage.termYears },
+        { id: 'f', type: 'fixed', amount: Math.round(loanAmount * (mortgage.fixedPercent / 100)), rate: mortgage.fixedRate, termYears: mortgage.termYears },
+        { id: 'v', type: 'variable', amount: Math.round(loanAmount * (mortgage.variablePercent / 100)), rate: mortgage.variableRate, termYears: mortgage.termYears },
+      ].filter(tr => tr.amount > 0);
+    }
+    onMortgageChange({ ...mortgage, mode: m, customTracks: nextTracks });
+  };
+
+  const updateTrack = (id: string, patch: Partial<CustomTrack>) => {
+    onMortgageChange({ ...mortgage, customTracks: tracks.map(tr => tr.id === id ? { ...tr, ...patch } : tr) });
+  };
+  const removeTrack = (id: string) => {
+    onMortgageChange({ ...mortgage, customTracks: tracks.filter(tr => tr.id !== id) });
+  };
+  const addTrack = () => {
+    const newTrack: CustomTrack = { id: `t${Date.now()}`, type: 'fixed', amount: 0, rate: DEFAULT_RATES.fixedRate, termYears: mortgage.termYears };
+    onMortgageChange({ ...mortgage, customTracks: [...tracks, newTrack] });
+  };
+
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
   const [openPopover, setOpenPopover] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
