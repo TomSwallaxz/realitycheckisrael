@@ -424,6 +424,46 @@ const translations = {
   burned_hint: { he: 'ריבית למשכנתא + הוצאות קבועות', en: 'Mortgage interest + fixed expenses' },
   built_label: { he: 'נצבר לך בנכס', en: 'Built into your property' },
   built_hint: { he: 'תשלום הקרן — הופך לבעלות שלך', en: 'Principal payment — becomes your equity' },
+
+  // Editable cost inputs (NEW)
+  costs_section_title: { he: 'עלויות עסקה (ניתן לערוך)', en: 'Transaction Costs (editable)' },
+  costs_section_sub: { he: 'התאם למספרים האמיתיים של העסקה שלך', en: 'Match real numbers of your deal' },
+  broker_fee_pct: { he: 'דמי תיווך', en: 'Broker Fee' },
+  lawyer_fee_pct: { he: 'שכ״ט עו״ד', en: 'Lawyer Fee' },
+  appraiser_fee_label: { he: 'שמאי', en: 'Appraiser' },
+  renovation_cost: { he: 'שיפוץ / ריהוט', en: 'Renovation / Furniture' },
+  extra_costs: { he: 'עלויות נוספות', en: 'Other Costs' },
+  housing_maintenance: { he: 'תחזוקה / ועד / ביטוח (חודשי)', en: 'Maintenance / HOA / Insurance (monthly)' },
+  rent_maintenance: { he: 'ועד בית בשכירות (חודשי)', en: 'HOA in Rental (monthly)' },
+  housing_maintenance_hint: { he: 'הערכה חודשית של ועד בית, ביטוח דירה ותחזוקה צפויה', en: 'Monthly estimate of HOA, insurance and routine upkeep' },
+
+  // Mortgage advanced mode
+  mortgage_mode: { he: 'מצב הגדרה', en: 'Mode' },
+  mortgage_mode_simple: { he: 'פשוט', en: 'Simple' },
+  mortgage_mode_advanced: { he: 'מתקדם', en: 'Advanced' },
+  advanced_tracks_title: { he: 'מסלולים מותאמים אישית', en: 'Custom Tracks' },
+  advanced_tracks_sub: { he: 'הגדר כל מסלול בנפרד: סכום, ריבית ותקופה', en: 'Define each track: amount, rate and term' },
+  add_track: { he: '+ הוסף מסלול', en: '+ Add track' },
+  remove_track: { he: 'הסר', en: 'Remove' },
+  track_amount: { he: 'סכום', en: 'Amount' },
+  track_rate: { he: 'ריבית', en: 'Rate' },
+  track_years: { he: 'שנים', en: 'Years' },
+  track_type: { he: 'סוג', en: 'Type' },
+  advanced_total: { he: 'סך מסלולים', en: 'Tracks total' },
+  advanced_loan_match: { he: 'גובה ההלוואה', en: 'Loan amount' },
+  advanced_mismatch: { he: '⚠️ סכום המסלולים שונה מההלוואה — תקן לפני ניתוח', en: '⚠️ Tracks total differs from loan — fix before analysis' },
+
+  // Risk assessment (NEW)
+  risk_breakdown_title: { he: 'הערכת סיכון מפורטת', en: 'Detailed Risk Assessment' },
+  risk_indicator_repayment: { he: 'יחס החזר', en: 'Repayment Ratio' },
+  risk_indicator_buffer: { he: 'כרית ביטחון', en: 'Safety Buffer' },
+  risk_indicator_entry: { he: 'עומס עלות כניסה', en: 'Entry Cost Load' },
+  risk_final_verdict: { he: 'הכרעה סופית', en: 'Final Verdict' },
+  risk_why_title: { he: 'למה התקבלה התוצאה הזו?', en: 'Why this result?' },
+  risk_why_show: { he: 'הצג הסבר', en: 'Show explanation' },
+  risk_why_hide: { he: 'הסתר', en: 'Hide' },
+  risk_factors: { he: 'גורמים שהשפיעו', en: 'Factors that influenced' },
+  risk_improvements: { he: 'מה אפשר לשפר', en: 'How to improve' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
