@@ -799,6 +799,7 @@ export function ResultsDashboard({ result, inputs, motivations }: Props) {
   return (
     <div className="space-y-4 sm:space-y-5">
       <VerdictBanner result={result} />
+      <RiskBreakdown result={result} />
       <CashflowSection result={result} inputs={inputs} />
       <TotalMortgageCostBlock result={result} />
       <AppreciationBlock price={inputs.price} />
