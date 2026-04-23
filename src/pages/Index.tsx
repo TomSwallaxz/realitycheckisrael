@@ -116,10 +116,14 @@ const Index = () => {
         <div className="absolute inset-0 hero-overlay" />
 
         {/* Top controls */}
-        <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
-          <ThemeToggle />
-          <LanguageToggle />
-          <GitHubButton />
+        <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <GitHubButton />
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageToggle />
+          </div>
         </div>
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 pt-14 sm:pt-20 lg:pt-24 pb-14 sm:pb-20 lg:pb-24">
