@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { AnalysisResult, PropertyInputs, MortgageStructure, formatNIS, calcFirstMonthSplit } from "@/lib/calculator";
 import { generateDealPDF } from "@/lib/generatePDF";
 import { useI18n } from "@/lib/i18n";
-import { buildShareUrl } from "@/lib/shareState";
+import { PUBLIC_SHARE_URL } from "@/lib/config";
 
 interface Props {
   result: AnalysisResult;
@@ -479,11 +479,8 @@ function BankReportCTA({ result, inputs, motivations, mortgage }: Props) {
   };
 
   const handleShare = async () => {
-    const url = mortgage
-      ? buildShareUrl(inputs, mortgage)
-      : window.location.href;
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(PUBLIC_SHARE_URL);
       toast.success(t("link_copied"));
     } catch {
       toast.error(t("link_copy_failed"));

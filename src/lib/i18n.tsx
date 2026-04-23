@@ -282,7 +282,7 @@ const translations = {
   preparing: { he: 'מכין דוח...', en: 'Preparing report...' },
   download_report: { he: 'הורד את הדוח', en: 'Download Report' },
   share_link: { he: 'שתף את הלינק', en: 'Share Link' },
-  link_copied: { he: 'הקישור הועתק — הוא כולל את החישוב הנוכחי', en: 'Link copied — includes your current calculation' },
+  link_copied: { he: 'הקישור הועתק', en: 'Link copied to clipboard' },
   link_copy_failed: { he: 'שכפול הקישור נכשל', en: 'Failed to copy link' },
 
   // GitHub CTA
