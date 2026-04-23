@@ -6,6 +6,7 @@ import { ResultsDashboard } from '@/components/ResultsDashboard';
 import { PsychologySection } from '@/components/PsychologySection';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LanguageToggle } from '@/components/LanguageToggle';
+import { GitHubButton } from '@/components/GitHubButton';
 import { StickySummary } from '@/components/StickySummary';
 import { useI18n } from '@/lib/i18n';
 import heroBg from '@/assets/hero-cityscape.jpg';
@@ -118,6 +119,7 @@ const Index = () => {
         <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
           <ThemeToggle />
           <LanguageToggle />
+          <GitHubButton />
         </div>
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 pt-14 sm:pt-20 lg:pt-24 pb-14 sm:pb-20 lg:pb-24">
