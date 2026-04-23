@@ -285,6 +285,10 @@ const translations = {
   link_copied: { he: 'הקישור הועתק', en: 'Link copied to clipboard' },
   link_copy_failed: { he: 'שכפול הקישור נכשל', en: 'Failed to copy link' },
 
+  // GitHub CTA
+  contribute_github: { he: 'תרום לקוד ב-GitHub', en: 'Contribute on GitHub' },
+  github_cta_sub: { he: 'רוצה לשפר את הכלי? אפשר לתרום לקוד ישירות ב-GitHub.', en: 'Want to improve this tool? Contribute directly on GitHub.' },
+
   // Footer
   disclaimer_title: { he: '⚠️ חשוב לדעת', en: '⚠️ Important Notice' },
   disclaimer_1: { he: 'המידע המוצג כאן הוא להערכה בלבד, ומבוסס על נתונים והנחות כלליות. החישובים אינם מהווים ייעוץ פיננסי, המלצה או התחייבות לקבלת משכנתא.', en: 'The information presented here is for estimation only, based on general data and assumptions. Calculations do not constitute financial advice, recommendation, or mortgage commitment.' },
