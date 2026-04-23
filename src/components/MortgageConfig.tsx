@@ -23,7 +23,7 @@ export function MortgageConfig({ mortgage, strategy, loanAmount = 0, onMortgageC
         { id: 'p', type: 'prime' as TrackType, amount: Math.round(loanAmount * (mortgage.primePercent / 100)), rate: mortgage.primeRate, termYears: mortgage.termYears },
         { id: 'f', type: 'fixed' as TrackType, amount: Math.round(loanAmount * (mortgage.fixedPercent / 100)), rate: mortgage.fixedRate, termYears: mortgage.termYears },
         { id: 'v', type: 'variable' as TrackType, amount: Math.round(loanAmount * (mortgage.variablePercent / 100)), rate: mortgage.variableRate, termYears: mortgage.termYears },
-      ].filter(tr => tr.amount > 0);
+      ] as CustomTrack[]).filter(tr => tr.amount > 0);
     }
     onMortgageChange({ ...mortgage, mode: m, customTracks: nextTracks });
   };
