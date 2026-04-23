@@ -108,6 +108,24 @@ export interface ApprovalScore {
   insight: string;
 }
 
+export type RiskLevel = 'safe' | 'warning' | 'danger';
+
+export interface RiskIndicator {
+  key: 'repayment' | 'buffer' | 'entry';
+  level: RiskLevel;
+  value: number;        // primary measured value (% or ratio)
+  label: string;        // human label e.g. "Safe", "Borderline", "Risky"
+  detail: string;       // short numeric detail
+}
+
+export interface RiskAssessment {
+  indicators: RiskIndicator[];
+  finalLevel: RiskLevel;
+  finalLabel: string;
+  reasons: { text: string; impact: 'positive' | 'negative' | 'neutral' }[];
+  improvements: string[];
+}
+
 export interface AnalysisResult {
   monthlyPayment: number;
   netCashFlow: number;
@@ -128,6 +146,9 @@ export interface AnalysisResult {
   approvalScore: ApprovalScore;
   termYears: number;
   loanAmount: number;
+  riskAssessment: RiskAssessment;
+  weightedAnnualRate: number;
+  monthlyHousingMaintenance: number;
 }
 
 export const REGIONS = [
