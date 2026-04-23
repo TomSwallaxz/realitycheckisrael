@@ -1,13 +1,15 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
-import { AnalysisResult, PropertyInputs, formatNIS, calcFirstMonthSplit } from "@/lib/calculator";
+import { AnalysisResult, PropertyInputs, MortgageStructure, formatNIS, calcFirstMonthSplit } from "@/lib/calculator";
 import { generateDealPDF } from "@/lib/generatePDF";
 import { useI18n } from "@/lib/i18n";
+import { buildShareUrl } from "@/lib/shareState";
 
 interface Props {
   result: AnalysisResult;
   inputs: PropertyInputs;
   motivations: string[];
+  mortgage?: MortgageStructure;
 }
 
 function VerdictBanner({ result }: { result: AnalysisResult }) {
