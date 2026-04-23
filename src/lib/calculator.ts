@@ -7,6 +7,18 @@ export const DEFAULT_RATES = {
 
 export type BorrowerMode = 'single' | 'dual';
 
+export type MortgageMode = 'simple' | 'advanced';
+
+export type TrackType = 'prime' | 'fixed' | 'variable';
+
+export interface CustomTrack {
+  id: string;
+  type: TrackType;
+  amount: number;
+  rate: number;
+  termYears: number;
+}
+
 export interface PropertyInputs {
   price: number;
   monthlyRent: number;
@@ -23,6 +35,16 @@ export interface PropertyInputs {
   borrowerMode: BorrowerMode;
   secondBorrowerIncome: number;
   altRent?: number;
+  // ----- Editable transaction costs (NEW) -----
+  brokerFeePercent?: number;     // default 2
+  lawyerFeePercent?: number;     // default 0.5
+  lawyerFeeFixed?: number;       // optional override (₪)
+  appraiserFee?: number;         // default 3000
+  renovationCost?: number;       // default 0
+  extraCosts?: number;           // default 0
+  // ----- Recurring housing costs (for fair rent vs mortgage compare) -----
+  monthlyHousingMaintenance?: number; // owner: vaad bayit + insurance + maintenance reserve
+  altRentMaintenance?: number;        // renter: vaad bayit + recurring costs
 }
 
 /** Split a single mortgage monthly payment into interest and principal for the FIRST month */
@@ -45,6 +67,9 @@ export interface MortgageStructure {
   fixedRate: number;
   variableRate: number;
   termYears: number;
+  // Advanced mode
+  mode?: MortgageMode;
+  customTracks?: CustomTrack[];
 }
 
 export interface ScenarioResult {
