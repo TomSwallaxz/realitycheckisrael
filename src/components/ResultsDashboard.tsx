@@ -506,7 +506,7 @@ function BankReportCTA({ result, inputs, motivations }: Props) {
         onClick={handleShare}
         className="flex-1 py-4 rounded-xl border border-border bg-card text-foreground font-heading font-semibold text-sm tracking-wide hover:bg-accent hover:text-accent-foreground active:scale-[0.98] transition-all flex items-center justify-center gap-2"
       >
-        {t("https://realitycheckisrael.lovable.app")}
+        {t("share_link")}
       </button>
     </div>
   );
