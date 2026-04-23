@@ -326,7 +326,111 @@ export function MortgageConfig({ mortgage, strategy, loanAmount = 0, onMortgageC
       </div>
 
       {/* Decision-making insights */}
+      </>
+      )}
+
       <DecisionInsights mortgage={mortgage} loanAmount={loanAmount} />
+    </div>
+  );
+}
+
+function AdvancedTracksEditor({
+  tracks, loanAmount, onAdd, onUpdate, onRemove,
+}: {
+  tracks: CustomTrack[];
+  loanAmount: number;
+  onAdd: () => void;
+  onUpdate: (id: string, patch: Partial<CustomTrack>) => void;
+  onRemove: (id: string) => void;
+}) {
+  const { t } = useI18n();
+  const total = tracks.reduce((s, tr) => s + (tr.amount || 0), 0);
+  const mismatch = Math.abs(total - loanAmount) > 1000;
+  const typeOptions: { value: TrackType; label: string }[] = [
+    { value: 'prime', label: t('rate_prime') },
+    { value: 'fixed', label: t('rate_fixed') },
+    { value: 'variable', label: t('rate_variable') },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h3 className="text-sm font-heading font-bold text-foreground">{t('advanced_tracks_title')}</h3>
+        <p className="text-[11px] text-muted-foreground mt-0.5">{t('advanced_tracks_sub')}</p>
+      </div>
+
+      {tracks.map((tr, i) => (
+        <div key={tr.id} className="rounded-xl border border-border/40 bg-secondary/20 p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-heading font-semibold text-muted-foreground">#{i + 1}</span>
+            <button
+              type="button"
+              onClick={() => onRemove(tr.id)}
+              className="text-[11px] text-danger hover:underline"
+            >{t('remove_track')}</button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="block">
+              <span className="block text-[10px] text-muted-foreground mb-1">{t('track_type')}</span>
+              <select
+                value={tr.type}
+                onChange={e => onUpdate(tr.id, { type: e.target.value as TrackType })}
+                className="w-full rounded-lg border border-border/60 bg-card text-foreground text-xs py-2 px-2"
+              >
+                {typeOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="block text-[10px] text-muted-foreground mb-1">{t('track_amount')} (₪)</span>
+              <input
+                type="number"
+                value={tr.amount}
+                onChange={e => onUpdate(tr.id, { amount: Number(e.target.value) })}
+                className="w-full rounded-lg border border-border/60 bg-card text-foreground text-xs py-2 px-2"
+              />
+            </label>
+            <label className="block">
+              <span className="block text-[10px] text-muted-foreground mb-1">{t('track_rate')} (%)</span>
+              <input
+                type="number"
+                step="0.1"
+                value={tr.rate}
+                onChange={e => onUpdate(tr.id, { rate: Number(e.target.value) })}
+                className="w-full rounded-lg border border-border/60 bg-card text-foreground text-xs py-2 px-2"
+              />
+            </label>
+            <label className="block">
+              <span className="block text-[10px] text-muted-foreground mb-1">{t('track_years')}</span>
+              <input
+                type="number"
+                value={tr.termYears}
+                onChange={e => onUpdate(tr.id, { termYears: Number(e.target.value) })}
+                className="w-full rounded-lg border border-border/60 bg-card text-foreground text-xs py-2 px-2"
+              />
+            </label>
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={onAdd}
+        className="w-full py-2 rounded-xl border border-dashed border-border/60 text-xs font-heading font-medium text-muted-foreground hover:bg-secondary/40 transition-all"
+      >{t('add_track')}</button>
+
+      <div className="rounded-xl bg-secondary/30 border border-border/30 px-3 py-2 text-[11px]">
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">{t('advanced_total')}</span>
+          <span className="font-mono font-bold text-foreground">{formatNIS(total)}</span>
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-muted-foreground">{t('advanced_loan_match')}</span>
+          <span className="font-mono text-foreground">{formatNIS(loanAmount)}</span>
+        </div>
+        {mismatch && (
+          <p className="mt-1.5 text-danger font-heading font-semibold">{t('advanced_mismatch')}</p>
+        )}
+      </div>
     </div>
   );
 }
