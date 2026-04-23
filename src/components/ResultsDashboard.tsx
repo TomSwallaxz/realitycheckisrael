@@ -1,10 +1,8 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
-import { Github } from "lucide-react";
 import { AnalysisResult, PropertyInputs, formatNIS, calcFirstMonthSplit } from "@/lib/calculator";
 import { generateDealPDF } from "@/lib/generatePDF";
 import { useI18n } from "@/lib/i18n";
-import { GITHUB_REPO_URL } from "@/lib/config";
 
 interface Props {
   result: AnalysisResult;
