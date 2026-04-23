@@ -58,6 +58,83 @@ function VerdictBanner({ result }: { result: AnalysisResult }) {
   );
 }
 
+function RiskBreakdown({ result }: { result: AnalysisResult }) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const ra = result.riskAssessment;
+
+  const colorMap = { safe: 'text-safe', warning: 'text-warning', danger: 'text-danger' } as const;
+  const bgMap = { safe: 'bg-safe/8', warning: 'bg-warning/10', danger: 'bg-danger/8' } as const;
+  const borderMap = { safe: 'border-safe/30', warning: 'border-warning/30', danger: 'border-danger/30' } as const;
+
+  const titleMap: Record<typeof ra.indicators[number]['key'], string> = {
+    repayment: t('risk_indicator_repayment'),
+    buffer: t('risk_indicator_buffer'),
+    entry: t('risk_indicator_entry'),
+  };
+
+  return (
+    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h3 className="font-heading font-bold text-sm text-foreground">{t('risk_breakdown_title')}</h3>
+        <span className={`text-[11px] sm:text-xs font-heading font-bold px-2.5 py-1 rounded-full border ${borderMap[ra.finalLevel]} ${bgMap[ra.finalLevel]} ${colorMap[ra.finalLevel]}`}>
+          {t('risk_final_verdict')}: {ra.finalLabel}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        {ra.indicators.map(ind => (
+          <div key={ind.key} className={`rounded-xl border p-3 ${borderMap[ind.level]} ${bgMap[ind.level]}`}>
+            <div className="text-[11px] text-muted-foreground font-heading">{titleMap[ind.key]}</div>
+            <div className={`text-base sm:text-lg font-heading font-extrabold mt-0.5 ${colorMap[ind.level]}`}>
+              {ind.label}
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">{ind.detail}</div>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="mt-3 w-full text-start text-[12px] sm:text-xs font-heading font-semibold text-primary hover:underline"
+      >
+        {open ? `▴ ${t('risk_why_hide')}` : `▾ ${t('risk_why_title')}`}
+      </button>
+
+      {open && (
+        <div className="mt-2 space-y-3 animate-in fade-in-0 slide-in-from-top-1 duration-200">
+          <div>
+            <div className="text-[11px] font-heading font-bold text-muted-foreground mb-1.5 uppercase tracking-wide">{t('risk_factors')}</div>
+            <ul className="space-y-1">
+              {ra.reasons.map((r, i) => {
+                const dot = r.impact === 'positive' ? 'bg-safe' : r.impact === 'negative' ? 'bg-danger' : 'bg-warning';
+                return (
+                  <li key={i} className="flex items-start gap-2 text-[12px] sm:text-[13px] text-foreground/85">
+                    <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} />
+                    <span>{r.text}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div>
+            <div className="text-[11px] font-heading font-bold text-muted-foreground mb-1.5 uppercase tracking-wide">{t('risk_improvements')}</div>
+            <ul className="space-y-1">
+              {ra.improvements.map((imp, i) => (
+                <li key={i} className="flex items-start gap-2 text-[12px] sm:text-[13px] text-foreground/85">
+                  <span className="text-primary">→</span>
+                  <span>{imp}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MetricCard({
   label,
   value,
