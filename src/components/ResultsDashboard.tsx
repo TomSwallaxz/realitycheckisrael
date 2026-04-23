@@ -1,8 +1,10 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
+import { Github } from "lucide-react";
 import { AnalysisResult, PropertyInputs, formatNIS, calcFirstMonthSplit } from "@/lib/calculator";
 import { generateDealPDF } from "@/lib/generatePDF";
 import { useI18n } from "@/lib/i18n";
+import { GITHUB_REPO_URL } from "@/lib/config";
 
 interface Props {
   result: AnalysisResult;
@@ -382,28 +384,49 @@ function BankReportCTA({ result, inputs, motivations }: Props) {
     }
   };
 
+  const handleGitHub = () => {
+    window.open(GITHUB_REPO_URL, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-      <button
-        onClick={handleDownload}
-        disabled={downloading}
-        className="flex-1 py-4 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-sm tracking-wide hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-60 flex items-center justify-center gap-2"
-      >
-        {downloading ? (
-          <>
-            <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-            <span>{t('preparing')}</span>
-          </>
-        ) : (
-          <span>{t('download_report')}</span>
-        )}
-      </button>
-      <button
-        onClick={handleShare}
-        className="flex-1 py-4 rounded-xl border border-border bg-card text-foreground font-heading font-semibold text-sm tracking-wide hover:bg-accent hover:text-accent-foreground active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-      >
-        {t('share_link')}
-      </button>
+    <div className="space-y-4">
+      {/* Main CTA Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="flex-1 py-4 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-sm tracking-wide hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-60 flex items-center justify-center gap-2"
+        >
+          {downloading ? (
+            <>
+              <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              <span>{t('preparing')}</span>
+            </>
+          ) : (
+            <span>{t('download_report')}</span>
+          )}
+        </button>
+        <button
+          onClick={handleShare}
+          className="flex-1 py-4 rounded-xl border border-border bg-card text-foreground font-heading font-semibold text-sm tracking-wide hover:bg-accent hover:text-accent-foreground active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+        >
+          {t('share_link')}
+        </button>
+      </div>
+
+      {/* GitHub CTA */}
+      <div className="flex flex-col items-center gap-2 pt-2">
+        <button
+          onClick={handleGitHub}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border/60 bg-card/50 text-foreground font-heading font-medium text-sm hover:bg-accent hover:text-accent-foreground hover:border-accent/30 transition-all"
+        >
+          <Github className="w-4 h-4" />
+          <span>{t('contribute_github')}</span>
+        </button>
+        <p className="text-[11px] text-muted-foreground/70 text-center max-w-xs">
+          {t('github_cta_sub')}
+        </p>
+      </div>
     </div>
   );
 }
