@@ -7,6 +7,18 @@ export const DEFAULT_RATES = {
 
 export type BorrowerMode = 'single' | 'dual';
 
+export type MortgageMode = 'simple' | 'advanced';
+
+export type TrackType = 'prime' | 'fixed' | 'variable';
+
+export interface CustomTrack {
+  id: string;
+  type: TrackType;
+  amount: number;
+  rate: number;
+  termYears: number;
+}
+
 export interface PropertyInputs {
   price: number;
   monthlyRent: number;
@@ -23,6 +35,16 @@ export interface PropertyInputs {
   borrowerMode: BorrowerMode;
   secondBorrowerIncome: number;
   altRent?: number;
+  // ----- Editable transaction costs (NEW) -----
+  brokerFeePercent?: number;     // default 2
+  lawyerFeePercent?: number;     // default 0.5
+  lawyerFeeFixed?: number;       // optional override (₪)
+  appraiserFee?: number;         // default 3000
+  renovationCost?: number;       // default 0
+  extraCosts?: number;           // default 0
+  // ----- Recurring housing costs (for fair rent vs mortgage compare) -----
+  monthlyHousingMaintenance?: number; // owner: vaad bayit + insurance + maintenance reserve
+  altRentMaintenance?: number;        // renter: vaad bayit + recurring costs
 }
 
 /** Split a single mortgage monthly payment into interest and principal for the FIRST month */
@@ -45,6 +67,9 @@ export interface MortgageStructure {
   fixedRate: number;
   variableRate: number;
   termYears: number;
+  // Advanced mode
+  mode?: MortgageMode;
+  customTracks?: CustomTrack[];
 }
 
 export interface ScenarioResult {
@@ -83,6 +108,24 @@ export interface ApprovalScore {
   insight: string;
 }
 
+export type RiskLevel = 'safe' | 'warning' | 'danger';
+
+export interface RiskIndicator {
+  key: 'repayment' | 'buffer' | 'entry';
+  level: RiskLevel;
+  value: number;        // primary measured value (% or ratio)
+  label: string;        // human label e.g. "Safe", "Borderline", "Risky"
+  detail: string;       // short numeric detail
+}
+
+export interface RiskAssessment {
+  indicators: RiskIndicator[];
+  finalLevel: RiskLevel;
+  finalLabel: string;
+  reasons: { text: string; impact: 'positive' | 'negative' | 'neutral' }[];
+  improvements: string[];
+}
+
 export interface AnalysisResult {
   monthlyPayment: number;
   netCashFlow: number;
@@ -103,6 +146,9 @@ export interface AnalysisResult {
   approvalScore: ApprovalScore;
   termYears: number;
   loanAmount: number;
+  riskAssessment: RiskAssessment;
+  weightedAnnualRate: number;
+  monthlyHousingMaintenance: number;
 }
 
 export const REGIONS = [
@@ -300,16 +346,60 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
 
   const loanAmount = inputs.price - effectiveDownPayment;
 
-  const primeAmount = loanAmount * mortgage.primePercent / 100;
-  const fixedAmount = loanAmount * mortgage.fixedPercent / 100;
-  const variableAmount = loanAmount * mortgage.variablePercent / 100;
+  // ---- Mortgage payment: simple OR advanced ----
+  const isAdvanced = mortgage.mode === 'advanced' && (mortgage.customTracks?.length ?? 0) > 0;
+  let monthlyPayment = 0;
+  let mortgageBreakdown: { label: string; amount: number; rate: number; monthly: number; desc: string }[] = [];
+  let weightedAnnualRate = 0;
+  let effectiveTermYears = mortgage.termYears;
 
-  const primeMonthly = calcMonthlyPayment(primeAmount, mortgage.primeRate, mortgage.termYears);
-  const fixedMonthly = calcMonthlyPayment(fixedAmount, mortgage.fixedRate, mortgage.termYears);
-  const variableMonthly = calcMonthlyPayment(variableAmount, mortgage.variableRate, mortgage.termYears);
+  if (isAdvanced) {
+    const tracks = mortgage.customTracks!;
+    const trackLabels: Record<TrackType, string> = { prime: 'פריים', fixed: 'קבועה', variable: 'משתנה' };
+    const trackDescs: Record<TrackType, string> = {
+      prime: 'זול אבל מסוכן — עולה עם הריבית',
+      fixed: 'יקר אבל יציב — שקט נפשי',
+      variable: 'זול בהתחלה, לא צפוי',
+    };
+    let weightedSum = 0;
+    let totalAmt = 0;
+    let maxYears = 0;
+    mortgageBreakdown = tracks.map(t => {
+      const m = calcMonthlyPayment(t.amount, t.rate, t.termYears);
+      monthlyPayment += m;
+      weightedSum += t.amount * t.rate;
+      totalAmt += t.amount;
+      if (t.termYears > maxYears) maxYears = t.termYears;
+      return {
+        label: `${trackLabels[t.type]} (${t.termYears} שנ׳)`,
+        amount: t.amount,
+        rate: t.rate,
+        monthly: m,
+        desc: trackDescs[t.type],
+      };
+    });
+    weightedAnnualRate = totalAmt > 0 ? weightedSum / totalAmt : 0;
+    effectiveTermYears = maxYears || mortgage.termYears;
+  } else {
+    const primeAmount = loanAmount * mortgage.primePercent / 100;
+    const fixedAmount = loanAmount * mortgage.fixedPercent / 100;
+    const variableAmount = loanAmount * mortgage.variablePercent / 100;
+    const primeMonthly = calcMonthlyPayment(primeAmount, mortgage.primeRate, mortgage.termYears);
+    const fixedMonthly = calcMonthlyPayment(fixedAmount, mortgage.fixedRate, mortgage.termYears);
+    const variableMonthly = calcMonthlyPayment(variableAmount, mortgage.variableRate, mortgage.termYears);
+    monthlyPayment = primeMonthly + fixedMonthly + variableMonthly;
+    mortgageBreakdown = [
+      { label: 'פריים', amount: primeAmount, rate: mortgage.primeRate, monthly: primeMonthly, desc: 'זול אבל מסוכן — עולה עם הריבית' },
+      { label: 'קבועה לא צמודה', amount: fixedAmount, rate: mortgage.fixedRate, monthly: fixedMonthly, desc: 'יקר אבל יציב — שקט נפשי' },
+      { label: 'משתנה', amount: variableAmount, rate: mortgage.variableRate, monthly: variableMonthly, desc: 'זול בהתחלה, לא צפוי' },
+    ];
+    weightedAnnualRate = loanAmount > 0
+      ? (primeAmount * mortgage.primeRate + fixedAmount * mortgage.fixedRate + variableAmount * mortgage.variableRate) / loanAmount
+      : 0;
+  }
 
-  const monthlyPayment = primeMonthly + fixedMonthly + variableMonthly;
   const propertyExpenses = calcPropertyExpenses(inputs.price);
+  const monthlyHousingMaintenance = Math.max(0, inputs.monthlyHousingMaintenance ?? 0);
   const monthlyExpenses = propertyExpenses + inputs.fixedMonthlyExpenses;
   const effectiveRent = inputs.propertyType === 'primary' ? 0 : inputs.monthlyRent;
   const netCashFlow = effectiveRent + totalIncome - monthlyPayment - monthlyExpenses;
@@ -317,10 +407,16 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     (inputs.monthlyRent * 12 / inputs.price) * 100;
 
   const purchaseTax = calcPurchaseTax(inputs.price, inputs.isFirstApartment);
-  const lawyerFee = Math.max(5000, inputs.price * 0.005);
-  const brokerFee = inputs.price * 0.01;
-  const appraiserFee = 3000;
-  const totalRealCost = effectiveDownPayment + purchaseTax + lawyerFee + brokerFee + appraiserFee;
+  const brokerPct = inputs.brokerFeePercent ?? 2;
+  const lawyerPct = inputs.lawyerFeePercent ?? 0.5;
+  const lawyerFee = inputs.lawyerFeeFixed && inputs.lawyerFeeFixed > 0
+    ? inputs.lawyerFeeFixed
+    : Math.max(5000, inputs.price * (lawyerPct / 100));
+  const brokerFee = inputs.price * (brokerPct / 100);
+  const appraiserFee = inputs.appraiserFee ?? 3000;
+  const renovationCost = Math.max(0, inputs.renovationCost ?? 0);
+  const extraCosts = Math.max(0, inputs.extraCosts ?? 0);
+  const totalRealCost = effectiveDownPayment + purchaseTax + lawyerFee + brokerFee + appraiserFee + renovationCost + extraCosts;
   const costBreakdown: { label: string; amount: number }[] = [
     { label: 'סה״כ הון עצמי', amount: effectiveDownPayment },
     ...(parentContribution > 0
@@ -330,15 +426,11 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
         ]
       : []),
     { label: 'מס רכישה', amount: purchaseTax },
-    { label: 'עו״ד', amount: lawyerFee },
-    { label: 'תיווך', amount: brokerFee },
+    { label: `עו״ד${inputs.lawyerFeeFixed ? '' : ` (${lawyerPct}%)`}`, amount: lawyerFee },
+    { label: `תיווך (${brokerPct}%)`, amount: brokerFee },
     { label: 'שמאי', amount: appraiserFee },
-  ];
-
-  const mortgageBreakdown = [
-    { label: 'פריים', amount: primeAmount, rate: mortgage.primeRate, monthly: primeMonthly, desc: 'זול אבל מסוכן — עולה עם הריבית' },
-    { label: 'קבועה לא צמודה', amount: fixedAmount, rate: mortgage.fixedRate, monthly: fixedMonthly, desc: 'יקר אבל יציב — שקט נפשי' },
-    { label: 'משתנה', amount: variableAmount, rate: mortgage.variableRate, monthly: variableMonthly, desc: 'זול בהתחלה, לא צפוי' },
+    ...(renovationCost > 0 ? [{ label: 'שיפוץ / ריהוט', amount: renovationCost }] : []),
+    ...(extraCosts > 0 ? [{ label: 'עלויות נוספות', amount: extraCosts }] : []),
   ];
 
   const isInvestment = inputs.propertyType === 'investment';
@@ -459,8 +551,10 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     borrowerComparison,
     costBreakdown,
     approvalScore: calcApprovalScore(inputs, monthlyPayment, totalIncome, monthlyExpenses),
-    termYears: mortgage.termYears,
+    termYears: effectiveTermYears,
     loanAmount,
+    weightedAnnualRate,
+    monthlyHousingMaintenance,
   };
 
   const psychologyInsights = generatePsychologyInsights(inputs, partialResult as any);
@@ -470,7 +564,103 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     warningBanners.push(`💸 מס רכישה לבד: ${formatNIS(purchaseTax)} — כסף שנעלם ביום הראשון`);
   }
 
-  return { ...partialResult, psychologyInsights, warningBanners };
+  const riskAssessment = buildRiskAssessment({
+    inputs,
+    monthlyPayment,
+    totalIncome,
+    monthlyHousingMaintenance,
+    cashBuffer: inputs.cashBuffer,
+    totalRealCost,
+    effectiveDownPayment,
+  });
+
+  // Override verdict from risk engine (single source of truth)
+  const overrideVerdict =
+    riskAssessment.finalLevel === 'safe' ? 'יציב יחסית — עסקה בריאה'
+    : riskAssessment.finalLevel === 'warning' ? 'גבולי — דורש זהירות. ראה ״מה השפיע״.'
+    : 'מסוכן — נתונים פיננסיים מצביעים על סיכון גבוה.';
+
+  return {
+    ...partialResult,
+    verdict: overrideVerdict,
+    verdictLevel: riskAssessment.finalLevel,
+    riskScore: riskAssessment.finalLevel === 'safe' ? 'נמוך' : riskAssessment.finalLevel === 'warning' ? 'בינוני' : 'גבוה',
+    psychologyInsights,
+    warningBanners,
+    riskAssessment,
+  };
+}
+
+function buildRiskAssessment(args: {
+  inputs: PropertyInputs;
+  monthlyPayment: number;
+  totalIncome: number;
+  monthlyHousingMaintenance: number;
+  cashBuffer: number;
+  totalRealCost: number;
+  effectiveDownPayment: number;
+}): RiskAssessment {
+  const { inputs, monthlyPayment, totalIncome, monthlyHousingMaintenance, cashBuffer, totalRealCost, effectiveDownPayment } = args;
+
+  // 1. Repayment ratio (mortgage + fixed expenses + housing maintenance) / income
+  const totalMonthlyHousing = monthlyPayment + monthlyHousingMaintenance;
+  const repayRatio = totalIncome > 0 ? (totalMonthlyHousing / totalIncome) * 100 : 100;
+  const repayLevel: RiskLevel = repayRatio < 30 ? 'safe' : repayRatio <= 40 ? 'warning' : 'danger';
+  const repayLabel = repayLevel === 'safe' ? 'בטוח' : repayLevel === 'warning' ? 'גבולי' : 'מסוכן';
+
+  // 2. Safety buffer in months of total housing
+  const monthsOfBuffer = totalMonthlyHousing > 0 ? cashBuffer / totalMonthlyHousing : 0;
+  const bufferLevel: RiskLevel = monthsOfBuffer >= 12 ? 'safe' : monthsOfBuffer >= 6 ? 'warning' : 'danger';
+  const bufferLabel = bufferLevel === 'safe' ? 'חזק' : bufferLevel === 'warning' ? 'בינוני' : 'חלש';
+
+  // 3. Entry cost load: total upfront / equity (effectiveDownPayment)
+  const entryRatio = effectiveDownPayment > 0 ? totalRealCost / effectiveDownPayment : 99;
+  const entryLevel: RiskLevel = entryRatio <= 1.15 ? 'safe' : entryRatio <= 1.35 ? 'warning' : 'danger';
+  const entryLabel = entryLevel === 'safe' ? 'נמוך' : entryLevel === 'warning' ? 'בינוני' : 'גבוה';
+
+  const indicators: RiskIndicator[] = [
+    { key: 'repayment', level: repayLevel, value: repayRatio, label: repayLabel, detail: `${repayRatio.toFixed(0)}% מההכנסה` },
+    { key: 'buffer', level: bufferLevel, value: monthsOfBuffer, label: bufferLabel, detail: `${monthsOfBuffer.toFixed(1)} חודשי הוצאה` },
+    { key: 'entry', level: entryLevel, value: entryRatio, label: entryLabel, detail: `סה״כ עלות ÷ הון = ${entryRatio.toFixed(2)}×` },
+  ];
+
+  // Weighted final level — repayment dominates
+  // Hard rule: repay > 40 → at minimum 'warning'; if also buffer weak → 'danger'
+  let finalLevel: RiskLevel;
+  if (repayLevel === 'danger') {
+    finalLevel = bufferLevel === 'safe' ? 'warning' : 'danger';
+  } else if (repayLevel === 'warning') {
+    // borderline repayment cannot be overridden to "safe" by buffer
+    finalLevel = bufferLevel === 'danger' ? 'danger' : 'warning';
+  } else {
+    // repay safe
+    if (bufferLevel === 'danger') finalLevel = 'warning';
+    else if (entryLevel === 'danger' && bufferLevel === 'warning') finalLevel = 'warning';
+    else finalLevel = 'safe';
+  }
+
+  const finalLabel = finalLevel === 'safe' ? 'עסקה בריאה' : finalLevel === 'warning' ? 'גבולי' : 'מסוכן';
+
+  const reasons: RiskAssessment['reasons'] = [];
+  if (repayLevel === 'danger') reasons.push({ text: `יחס החזר ${repayRatio.toFixed(0)}% — מעל 40% מההכנסה החודשית`, impact: 'negative' });
+  else if (repayLevel === 'warning') reasons.push({ text: `יחס החזר ${repayRatio.toFixed(0)}% — בטווח גבולי (30%–40%)`, impact: 'negative' });
+  else reasons.push({ text: `יחס החזר ${repayRatio.toFixed(0)}% — בטווח הבטוח`, impact: 'positive' });
+
+  if (bufferLevel === 'danger') reasons.push({ text: `כרית ביטחון ל-${monthsOfBuffer.toFixed(1)} חודשים בלבד`, impact: 'negative' });
+  else if (bufferLevel === 'warning') reasons.push({ text: `כרית ביטחון ל-${monthsOfBuffer.toFixed(1)} חודשים — בינוני`, impact: 'neutral' });
+  else reasons.push({ text: `כרית ביטחון ל-${monthsOfBuffer.toFixed(1)} חודשים — חזק`, impact: 'positive' });
+
+  if (entryLevel === 'danger') reasons.push({ text: `עלות כניסה כבדה — ${entryRatio.toFixed(2)}× ההון העצמי`, impact: 'negative' });
+  else if (entryLevel === 'warning') reasons.push({ text: `עלות כניסה ${entryRatio.toFixed(2)}× ההון`, impact: 'neutral' });
+  else reasons.push({ text: `עלות כניסה סבירה (${entryRatio.toFixed(2)}× ההון)`, impact: 'positive' });
+
+  const improvements: string[] = [];
+  if (repayLevel !== 'safe') improvements.push('הקטן את סכום ההלוואה או הארך את התקופה כדי להוריד את יחס ההחזר מתחת ל-30%');
+  if (bufferLevel !== 'safe') improvements.push('הגדל את כרית הביטחון לפחות ל-12 חודשי הוצאות מגורים');
+  if (entryLevel !== 'safe') improvements.push('צמצם עלויות נלוות (תיווך, שיפוץ) או הגדל את ההון העצמי');
+  if (improvements.length === 0) improvements.push('הפרופיל יציב — שמור על כרית ביטחון והימנע מהוצאות חדשות בשנה הקרובה');
+
+  return { indicators, finalLevel, finalLabel, reasons, improvements };
 }
 
 function calcApprovalScore(inputs: PropertyInputs, monthlyPayment: number, totalIncome: number, monthlyExpenses: number): ApprovalScore {

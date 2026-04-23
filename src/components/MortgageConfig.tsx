@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MortgageStructure, Strategy, DEFAULT_RATES, formatNIS } from '@/lib/calculator';
+import { MortgageStructure, Strategy, DEFAULT_RATES, formatNIS, CustomTrack, TrackType } from '@/lib/calculator';
 import { Info, ChevronDown, X, Sparkles } from 'lucide-react';
 import { useI18n, TranslationKey } from '@/lib/i18n';
 
@@ -13,6 +13,32 @@ interface Props {
 
 export function MortgageConfig({ mortgage, strategy, loanAmount = 0, onMortgageChange, onStrategyChange }: Props) {
   const { t } = useI18n();
+  const mode = mortgage.mode ?? 'simple';
+  const customTracks: CustomTrack[] = mortgage.customTracks ?? [];
+
+  const setMode = (m: 'simple' | 'advanced') => {
+    let nextTracks: CustomTrack[] = customTracks;
+    if (m === 'advanced' && customTracks.length === 0 && loanAmount > 0) {
+      nextTracks = ([
+        { id: 'p', type: 'prime' as TrackType, amount: Math.round(loanAmount * (mortgage.primePercent / 100)), rate: mortgage.primeRate, termYears: mortgage.termYears },
+        { id: 'f', type: 'fixed' as TrackType, amount: Math.round(loanAmount * (mortgage.fixedPercent / 100)), rate: mortgage.fixedRate, termYears: mortgage.termYears },
+        { id: 'v', type: 'variable' as TrackType, amount: Math.round(loanAmount * (mortgage.variablePercent / 100)), rate: mortgage.variableRate, termYears: mortgage.termYears },
+      ] as CustomTrack[]).filter(tr => tr.amount > 0);
+    }
+    onMortgageChange({ ...mortgage, mode: m, customTracks: nextTracks });
+  };
+
+  const updateTrack = (id: string, patch: Partial<CustomTrack>) => {
+    onMortgageChange({ ...mortgage, customTracks: customTracks.map(tr => tr.id === id ? { ...tr, ...patch } : tr) });
+  };
+  const removeTrack = (id: string) => {
+    onMortgageChange({ ...mortgage, customTracks: customTracks.filter(tr => tr.id !== id) });
+  };
+  const addTrack = () => {
+    const newTrack: CustomTrack = { id: `t${Date.now()}`, type: 'fixed', amount: 0, rate: DEFAULT_RATES.fixedRate, termYears: mortgage.termYears };
+    onMortgageChange({ ...mortgage, customTracks: [...customTracks, newTrack] });
+  };
+
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
   const [openPopover, setOpenPopover] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -102,9 +128,34 @@ export function MortgageConfig({ mortgage, strategy, loanAmount = 0, onMortgageC
 
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
-      <h2 className="font-heading font-bold text-foreground text-sm mb-3 sm:mb-4">
-        {t('mortgage_built_title')}
-      </h2>
+      <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
+        <h2 className="font-heading font-bold text-foreground text-sm">
+          {t('mortgage_built_title')}
+        </h2>
+        <div className="flex gap-1 rounded-lg bg-secondary/40 p-0.5 text-[11px]">
+          <button
+            type="button"
+            onClick={() => setMode('simple')}
+            className={`px-2.5 py-1 rounded-md font-heading font-medium transition-all ${mode === 'simple' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'}`}
+          >{t('mortgage_mode_simple')}</button>
+          <button
+            type="button"
+            onClick={() => setMode('advanced')}
+            className={`px-2.5 py-1 rounded-md font-heading font-medium transition-all ${mode === 'advanced' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'}`}
+          >{t('mortgage_mode_advanced')}</button>
+        </div>
+      </div>
+
+      {mode === 'advanced' ? (
+        <AdvancedTracksEditor
+          tracks={customTracks}
+          loanAmount={loanAmount}
+          onAdd={addTrack}
+          onUpdate={updateTrack}
+          onRemove={removeTrack}
+        />
+      ) : (
+      <>
 
       {/* Strategy selector */}
       <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-5">
@@ -275,7 +326,111 @@ export function MortgageConfig({ mortgage, strategy, loanAmount = 0, onMortgageC
       </div>
 
       {/* Decision-making insights */}
+      </>
+      )}
+
       <DecisionInsights mortgage={mortgage} loanAmount={loanAmount} />
+    </div>
+  );
+}
+
+function AdvancedTracksEditor({
+  tracks, loanAmount, onAdd, onUpdate, onRemove,
+}: {
+  tracks: CustomTrack[];
+  loanAmount: number;
+  onAdd: () => void;
+  onUpdate: (id: string, patch: Partial<CustomTrack>) => void;
+  onRemove: (id: string) => void;
+}) {
+  const { t } = useI18n();
+  const total = tracks.reduce((s, tr) => s + (tr.amount || 0), 0);
+  const mismatch = Math.abs(total - loanAmount) > 1000;
+  const typeOptions: { value: TrackType; label: string }[] = [
+    { value: 'prime', label: t('rate_prime') },
+    { value: 'fixed', label: t('rate_fixed') },
+    { value: 'variable', label: t('rate_variable') },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h3 className="text-sm font-heading font-bold text-foreground">{t('advanced_tracks_title')}</h3>
+        <p className="text-[11px] text-muted-foreground mt-0.5">{t('advanced_tracks_sub')}</p>
+      </div>
+
+      {tracks.map((tr, i) => (
+        <div key={tr.id} className="rounded-xl border border-border/40 bg-secondary/20 p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-heading font-semibold text-muted-foreground">#{i + 1}</span>
+            <button
+              type="button"
+              onClick={() => onRemove(tr.id)}
+              className="text-[11px] text-danger hover:underline"
+            >{t('remove_track')}</button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="block">
+              <span className="block text-[10px] text-muted-foreground mb-1">{t('track_type')}</span>
+              <select
+                value={tr.type}
+                onChange={e => onUpdate(tr.id, { type: e.target.value as TrackType })}
+                className="w-full rounded-lg border border-border/60 bg-card text-foreground text-xs py-2 px-2"
+              >
+                {typeOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="block text-[10px] text-muted-foreground mb-1">{t('track_amount')} (₪)</span>
+              <input
+                type="number"
+                value={tr.amount}
+                onChange={e => onUpdate(tr.id, { amount: Number(e.target.value) })}
+                className="w-full rounded-lg border border-border/60 bg-card text-foreground text-xs py-2 px-2"
+              />
+            </label>
+            <label className="block">
+              <span className="block text-[10px] text-muted-foreground mb-1">{t('track_rate')} (%)</span>
+              <input
+                type="number"
+                step="0.1"
+                value={tr.rate}
+                onChange={e => onUpdate(tr.id, { rate: Number(e.target.value) })}
+                className="w-full rounded-lg border border-border/60 bg-card text-foreground text-xs py-2 px-2"
+              />
+            </label>
+            <label className="block">
+              <span className="block text-[10px] text-muted-foreground mb-1">{t('track_years')}</span>
+              <input
+                type="number"
+                value={tr.termYears}
+                onChange={e => onUpdate(tr.id, { termYears: Number(e.target.value) })}
+                className="w-full rounded-lg border border-border/60 bg-card text-foreground text-xs py-2 px-2"
+              />
+            </label>
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={onAdd}
+        className="w-full py-2 rounded-xl border border-dashed border-border/60 text-xs font-heading font-medium text-muted-foreground hover:bg-secondary/40 transition-all"
+      >{t('add_track')}</button>
+
+      <div className="rounded-xl bg-secondary/30 border border-border/30 px-3 py-2 text-[11px]">
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">{t('advanced_total')}</span>
+          <span className="font-mono font-bold text-foreground">{formatNIS(total)}</span>
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-muted-foreground">{t('advanced_loan_match')}</span>
+          <span className="font-mono text-foreground">{formatNIS(loanAmount)}</span>
+        </div>
+        {mismatch && (
+          <p className="mt-1.5 text-danger font-heading font-semibold">{t('advanced_mismatch')}</p>
+        )}
+      </div>
     </div>
   );
 }

@@ -404,6 +404,59 @@ export function PropertyForm({ inputs, onChange }: Props) {
             prefix="₪"
             hint={t('cash_buffer_hint')}
           />
+          <NumericField
+            label={t('housing_maintenance')}
+            value={inputs.monthlyHousingMaintenance ?? 0}
+            onChange={(v) => onChange({ ...inputs, monthlyHousingMaintenance: v })}
+            prefix="₪"
+            hint={t('housing_maintenance_hint')}
+          />
+          {inputs.propertyType === 'primary' && (inputs.altRent ?? 0) > 0 && (
+            <NumericField
+              label={t('rent_maintenance')}
+              value={inputs.altRentMaintenance ?? 0}
+              onChange={(v) => onChange({ ...inputs, altRentMaintenance: v })}
+              prefix="₪"
+            />
+          )}
+        </div>
+
+        {/* Editable transaction costs */}
+        <h2 className="font-heading font-bold text-foreground text-sm mt-5 sm:mt-6 mb-1">{t('costs_section_title')}</h2>
+        <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">{t('costs_section_sub')}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <NumericField
+            label={t('broker_fee_pct')}
+            value={inputs.brokerFeePercent ?? 2}
+            onChange={(v) => onChange({ ...inputs, brokerFeePercent: v })}
+            suffix="%"
+          />
+          <NumericField
+            label={t('lawyer_fee_pct')}
+            value={inputs.lawyerFeePercent ?? 0.5}
+            onChange={(v) => onChange({ ...inputs, lawyerFeePercent: v })}
+            suffix="%"
+          />
+          <NumericField
+            label={t('appraiser_fee_label')}
+            value={inputs.appraiserFee ?? 3000}
+            onChange={(v) => onChange({ ...inputs, appraiserFee: v })}
+            prefix="₪"
+          />
+          <NumericField
+            label={t('renovation_cost')}
+            value={inputs.renovationCost ?? 0}
+            onChange={(v) => onChange({ ...inputs, renovationCost: v })}
+            prefix="₪"
+          />
+          <div className="col-span-2">
+            <NumericField
+              label={t('extra_costs')}
+              value={inputs.extraCosts ?? 0}
+              onChange={(v) => onChange({ ...inputs, extraCosts: v })}
+              prefix="₪"
+            />
+          </div>
         </div>
       </div>
     </div>
