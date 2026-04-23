@@ -9,7 +9,6 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 import { GitHubButton } from '@/components/GitHubButton';
 import { StickySummary } from '@/components/StickySummary';
 import { useI18n } from '@/lib/i18n';
-import { parseShareUrl } from '@/lib/shareState';
 import heroBg from '@/assets/hero-cityscape.jpg';
 
 const Index = () => {
@@ -46,19 +45,6 @@ const Index = () => {
   const [strategy, setStrategy] = useState<Strategy>('balanced');
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [motivations, setMotivations] = useState<string[]>([]);
-
-  // Restore scenario from URL on first load
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const parsed = parseShareUrl(window.location.search, { inputs, mortgage });
-    if (!parsed) return;
-    setInputs(parsed.inputs);
-    setMortgage(parsed.mortgage);
-    if (parsed.auto) {
-      setResult(analyze(parsed.inputs, parsed.mortgage));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleStrategyChange = (s: Strategy) => {
     setStrategy(s);
