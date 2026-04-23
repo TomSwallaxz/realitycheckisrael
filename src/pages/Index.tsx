@@ -118,11 +118,11 @@ const Index = () => {
         {/* Top controls */}
         <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <GitHubButton />
-          </div>
-          <div className="flex items-center gap-2">
             <ThemeToggle />
             <LanguageToggle />
+          </div>
+          <div className="flex items-center gap-2">
+            <GitHubButton />
           </div>
         </div>
 
