@@ -528,9 +528,16 @@ function PrimaryResults({ result, inputs, mortgage }: { result: AnalysisResult; 
   const { t } = useI18n();
   const altRent = Math.max(0, inputs.altRent ?? 0);
   const fixedExpenses = Math.max(0, inputs.fixedMonthlyExpenses || 0);
+  const ownMaint = Math.max(0, inputs.monthlyHousingMaintenance ?? 0);
+  const rentMaint = Math.max(0, inputs.altRentMaintenance ?? 0);
 
-  // Card A: Real cost of living = mortgage + fixed expenses - alt rent
-  const livingCost = mortgage + fixedExpenses - altRent;
+  // Card A: Real cost of living — symmetric housing comparison
+  // Owner side: mortgage + housing maintenance + fixed expenses
+  // Renter side: alt rent + rent-side maintenance + fixed expenses
+  // Net delta = owner - renter (fixedExpenses cancels)
+  const ownerHousing = mortgage + ownMaint;
+  const renterHousing = altRent + rentMaint;
+  const livingCost = ownerHousing - renterHousing;
   const hasAlt = altRent > 0;
   const livingLevel: CFLevel = !hasAlt ? 'warning' : livingCost > 1500 ? 'danger' : livingCost > 0 ? 'warning' : 'safe';
   const livingDisplay = livingCost > 0 ? `+${formatNIS(livingCost)}` : livingCost === 0 ? formatNIS(0) : `-${formatNIS(Math.abs(livingCost))}`;
@@ -564,8 +571,9 @@ function PrimaryResults({ result, inputs, mortgage }: { result: AnalysisResult; 
         )}
         <div className="mt-3 pt-3 border-t border-border/30 space-y-1.5 text-[12px] sm:text-[13px]">
           <Row icon="🏦" label={t('mortgage_payment')} value={mortgage} tone="neg" />
-          <Row icon="💳" label={t('fixed_expenses')} value={fixedExpenses} tone="neg" />
+          {ownMaint > 0 && <Row icon="🛠️" label={t('housing_maintenance')} value={ownMaint} tone="neg" />}
           {hasAlt && <Row icon="🏠" label={t('alt_rent')} value={-altRent} tone="pos" />}
+          {hasAlt && rentMaint > 0 && <Row icon="🛠️" label={t('rent_maintenance')} value={-rentMaint} tone="pos" />}
         </div>
       </div>
 
