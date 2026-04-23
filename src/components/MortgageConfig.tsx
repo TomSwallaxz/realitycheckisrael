@@ -128,9 +128,34 @@ export function MortgageConfig({ mortgage, strategy, loanAmount = 0, onMortgageC
 
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
-      <h2 className="font-heading font-bold text-foreground text-sm mb-3 sm:mb-4">
-        {t('mortgage_built_title')}
-      </h2>
+      <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
+        <h2 className="font-heading font-bold text-foreground text-sm">
+          {t('mortgage_built_title')}
+        </h2>
+        <div className="flex gap-1 rounded-lg bg-secondary/40 p-0.5 text-[11px]">
+          <button
+            type="button"
+            onClick={() => setMode('simple')}
+            className={`px-2.5 py-1 rounded-md font-heading font-medium transition-all ${mode === 'simple' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'}`}
+          >{t('mortgage_mode_simple')}</button>
+          <button
+            type="button"
+            onClick={() => setMode('advanced')}
+            className={`px-2.5 py-1 rounded-md font-heading font-medium transition-all ${mode === 'advanced' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'}`}
+          >{t('mortgage_mode_advanced')}</button>
+        </div>
+      </div>
+
+      {mode === 'advanced' ? (
+        <AdvancedTracksEditor
+          tracks={customTracks}
+          loanAmount={loanAmount}
+          onAdd={addTrack}
+          onUpdate={updateTrack}
+          onRemove={removeTrack}
+        />
+      ) : (
+      <>
 
       {/* Strategy selector */}
       <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-5">
