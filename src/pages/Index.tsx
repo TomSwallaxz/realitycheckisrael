@@ -9,6 +9,7 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 import { GitHubButton } from '@/components/GitHubButton';
 import { StickySummary } from '@/components/StickySummary';
 import { useI18n } from '@/lib/i18n';
+import { parseShareUrl } from '@/lib/shareState';
 import heroBg from '@/assets/hero-cityscape.jpg';
 
 const Index = () => {
@@ -45,6 +46,19 @@ const Index = () => {
   const [strategy, setStrategy] = useState<Strategy>('balanced');
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [motivations, setMotivations] = useState<string[]>([]);
+
+  // Restore scenario from URL on first load
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const parsed = parseShareUrl(window.location.search, { inputs, mortgage });
+    if (!parsed) return;
+    setInputs(parsed.inputs);
+    setMortgage(parsed.mortgage);
+    if (parsed.auto) {
+      setResult(analyze(parsed.inputs, parsed.mortgage));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleStrategyChange = (s: Strategy) => {
     setStrategy(s);
@@ -176,7 +190,7 @@ const Index = () => {
 
             <div className="lg:col-span-7">
               {result ? (
-                <ResultsDashboard result={result} inputs={inputs} motivations={motivations} />
+                <ResultsDashboard result={result} inputs={inputs} motivations={motivations} mortgage={mortgage} />
               ) : (
                 <div className="flex items-center justify-center h-full min-h-[240px] sm:min-h-[400px] rounded-2xl border border-border/50 bg-secondary/20">
                   <div className="text-center px-6">
