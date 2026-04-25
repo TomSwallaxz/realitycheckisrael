@@ -811,8 +811,11 @@ function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
   const { t } = useI18n();
   const [showTip, setShowTip] = useState(false);
   const totalMonths = result.termYears * 12;
+  const insurance = Math.max(0, result.monthlyMortgageInsurance ?? 0);
   const totalPaid = result.monthlyPayment * totalMonths;
   const totalInterest = totalPaid - result.loanAmount;
+  const totalInsurance = insurance * totalMonths;
+  const totalMonthly = result.totalMonthlyCost ?? (result.monthlyPayment + insurance);
 
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
@@ -863,6 +866,22 @@ function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
           <span className="text-muted-foreground">{t("monthly_payment")}</span>
           <span className="font-mono font-semibold text-foreground">{formatNIS(result.monthlyPayment)}</span>
         </div>
+        {insurance > 0 && (
+          <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
+            <span className="text-muted-foreground">{t("monthly_mortgage_insurance")}</span>
+            <span className="font-mono font-semibold text-foreground">{formatNIS(insurance)}</span>
+          </div>
+        )}
+        <div className="flex justify-between items-baseline text-[13px] sm:text-sm pt-2 border-t border-border/20">
+          <span className="font-heading font-semibold text-foreground">{t("total_monthly_cost")}</span>
+          <span className="font-mono font-bold text-base sm:text-lg text-foreground">{formatNIS(totalMonthly)}</span>
+        </div>
+        {insurance > 0 && (
+          <div className="flex justify-between items-baseline text-[11px] sm:text-xs text-muted-foreground/80">
+            <span>{t("monthly_mortgage_insurance")} × {totalMonths}</span>
+            <span className="font-mono">{formatNIS(totalInsurance)}</span>
+          </div>
+        )}
       </div>
     </div>
   );

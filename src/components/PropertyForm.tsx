@@ -451,6 +451,20 @@ export function PropertyForm({ inputs, onChange }: Props) {
             hint={t('mortgage_advisor_fee_hint')}
           />
           <NumericField
+            label={t('bank_file_fee')}
+            value={Math.round(inputs.bankFileFee ?? Math.max(0, (inputs.price - inputs.downPayment - (inputs.parentHelp ? inputs.parentHelpAmount : 0)) * 0.0025))}
+            onChange={(v) => onChange({ ...inputs, bankFileFee: v })}
+            prefix="₪"
+            hint={t('bank_file_fee_hint')}
+          />
+          <NumericField
+            label={t('monthly_mortgage_insurance')}
+            value={inputs.monthlyMortgageInsurance ?? 250}
+            onChange={(v) => onChange({ ...inputs, monthlyMortgageInsurance: v })}
+            prefix="₪"
+            hint={t('monthly_mortgage_insurance_hint')}
+          />
+          <NumericField
             label={t('renovation_cost')}
             value={inputs.renovationCost ?? 0}
             onChange={(v) => onChange({ ...inputs, renovationCost: v })}
