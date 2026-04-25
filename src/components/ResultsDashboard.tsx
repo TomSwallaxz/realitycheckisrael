@@ -1059,6 +1059,7 @@ export function ResultsDashboard({ result, inputs, motivations, mortgage }: Prop
       <RiskBreakdown result={result} />
       <CashflowSection result={result} inputs={inputs} />
       <TotalMortgageCostBlock result={result} />
+      <LifetimeCostBlock result={result} inputs={inputs} />
       <AppreciationBlock price={inputs.price} />
 
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
