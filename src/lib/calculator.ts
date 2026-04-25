@@ -42,6 +42,7 @@ export interface PropertyInputs {
   appraiserFee?: number;         // default 3000
   renovationCost?: number;       // default 0
   extraCosts?: number;           // default 0
+  mortgageAdvisorFee?: number;   // default 6000 (₪) — independent mortgage advisor
   // ----- Recurring housing costs (for fair rent vs mortgage compare) -----
   monthlyHousingMaintenance?: number; // owner: vaad bayit + insurance + maintenance reserve
   altRentMaintenance?: number;        // renter: vaad bayit + recurring costs
