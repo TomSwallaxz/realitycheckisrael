@@ -43,6 +43,8 @@ export interface PropertyInputs {
   renovationCost?: number;       // default 0
   extraCosts?: number;           // default 0
   mortgageAdvisorFee?: number;   // default 6000 (₪) — independent mortgage advisor
+  bankFileFee?: number;          // default = 0.25% of loan amount (₪) — manual override allowed
+  monthlyMortgageInsurance?: number; // default 250 (₪/month) — life + structure insurance
   // ----- Recurring housing costs (for fair rent vs mortgage compare) -----
   monthlyHousingMaintenance?: number; // owner: vaad bayit + insurance + maintenance reserve
   altRentMaintenance?: number;        // renter: vaad bayit + recurring costs
@@ -150,6 +152,9 @@ export interface AnalysisResult {
   riskAssessment: RiskAssessment;
   weightedAnnualRate: number;
   monthlyHousingMaintenance: number;
+  monthlyMortgageInsurance: number;
+  totalMonthlyCost: number;          // mortgagePayment + monthlyMortgageInsurance + monthlyHousingMaintenance
+  bankFileFee: number;
 }
 
 export const REGIONS = [
