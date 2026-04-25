@@ -423,7 +423,12 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
   const renovationCost = Math.max(0, inputs.renovationCost ?? 0);
   const extraCosts = Math.max(0, inputs.extraCosts ?? 0);
   const mortgageAdvisorFee = Math.max(0, inputs.mortgageAdvisorFee ?? 6000);
-  const totalRealCost = effectiveDownPayment + purchaseTax + lawyerFee + brokerFee + appraiserFee + mortgageAdvisorFee + renovationCost + extraCosts;
+  // Bank file opening fee: default = 0.25% of loan amount, manual override allowed (allow 0)
+  const bankFileFee = inputs.bankFileFee !== undefined && inputs.bankFileFee !== null
+    ? Math.max(0, inputs.bankFileFee)
+    : Math.max(0, loanAmount * 0.0025);
+  const monthlyMortgageInsurance = Math.max(0, inputs.monthlyMortgageInsurance ?? 250);
+  const totalRealCost = effectiveDownPayment + purchaseTax + lawyerFee + brokerFee + appraiserFee + mortgageAdvisorFee + bankFileFee + renovationCost + extraCosts;
   const costBreakdown: { label: string; amount: number }[] = [
     { label: 'סה״כ הון עצמי', amount: effectiveDownPayment },
     ...(parentContribution > 0
@@ -437,6 +442,7 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     { label: `תיווך (${brokerPct}%)`, amount: brokerFee },
     { label: 'שמאי', amount: appraiserFee },
     ...(mortgageAdvisorFee > 0 ? [{ label: 'יועץ משכנתאות', amount: mortgageAdvisorFee }] : []),
+    ...(bankFileFee > 0 ? [{ label: 'פתיחת תיק בבנק', amount: bankFileFee }] : []),
     ...(renovationCost > 0 ? [{ label: 'שיפוץ / ריהוט', amount: renovationCost }] : []),
     ...(extraCosts > 0 ? [{ label: 'עלויות נוספות', amount: extraCosts }] : []),
   ];
@@ -563,6 +569,9 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     loanAmount,
     weightedAnnualRate,
     monthlyHousingMaintenance,
+    monthlyMortgageInsurance,
+    totalMonthlyCost: monthlyPayment + monthlyMortgageInsurance + monthlyHousingMaintenance,
+    bankFileFee,
   };
 
   const psychologyInsights = generatePsychologyInsights(inputs, partialResult as any);
