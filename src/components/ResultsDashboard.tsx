@@ -887,10 +887,6 @@ function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
   );
 }
 
-const MOTIVATION_RESPONSES_KEYS: Record<string, string> = {
-  // (kept above) — LifetimeCostBlock lives below
-};
-
 function LifetimeCostBlock({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
   const { t } = useI18n();
   const totalMonths = result.termYears * 12;
@@ -933,7 +929,7 @@ function LifetimeCostBlock({ result, inputs }: { result: AnalysisResult; inputs:
   );
 }
 
-const _MOTIVATION_RESPONSES_KEYS_PLACEHOLDER: Record<string, string> = {
+const MOTIVATION_RESPONSES_KEYS: Record<string, string> = {
   family_pressure: "resp_family",
   fomo: "resp_fomo",
   stability: "resp_stability",
