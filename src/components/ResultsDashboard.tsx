@@ -1086,24 +1086,10 @@ export function ResultsDashboard({ result, inputs, motivations, mortgage }: Prop
       <VerdictBanner result={result} />
       <RiskBreakdown result={result} />
       <CashflowSection result={result} inputs={inputs} />
+      <CostBreakdownSection result={result} />
       <TotalMortgageCostBlock result={result} />
       <LifetimeCostBlock result={result} inputs={inputs} />
       <AppreciationBlock price={inputs.price} />
-
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-        <MetricCard
-          label={t("monthly_payment")}
-          value={formatNIS(result.monthlyPayment)}
-          sub={`${burdenPercent.toFixed(0)}% ${t("of_income")}`}
-          level={burdenLevel}
-        />
-        <MetricCard
-          label={t("purchase_tax")}
-          value={formatNIS(result.purchaseTax)}
-          sub={t("money_gone_day1")}
-          level={result.purchaseTax > 50000 ? "danger" : "neutral"}
-        />
-      </div>
 
       <ApprovalScoreSection result={result} inputs={inputs} />
       {result.borrowerComparison && <BorrowerComparisonSection result={result} />}
@@ -1138,8 +1124,6 @@ export function ResultsDashboard({ result, inputs, motivations, mortgage }: Prop
           <p className="text-[11px] sm:text-xs text-muted-foreground mt-2.5">{t("parent_help_insight")}</p>
         </div>
       )}
-
-      <CostBreakdownSection result={result} />
 
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
         <h3 className="font-heading font-bold text-sm text-foreground mb-2 sm:mb-3">{t("mortgage_detail")}</h3>
