@@ -222,9 +222,24 @@ const translations = {
   actual_financing: { he: 'אחוז מימון בפועל', en: 'Actual Financing %' },
   parent_help_insight: { he: '💡 עזרה מההורים מקטינה את סכום ההלוואה, מורידה את אחוז המימון, ומשפרה את סיכויי אישור המשכנתא.', en: '💡 Parents\' help reduces the loan amount, lowers the financing ratio, and improves mortgage approval chances.' },
 
-  // Cost breakdown
-  real_cost_title: { he: 'העלות האמיתית — לא רק המשכנתא', en: 'The Real Cost — Not Just the Mortgage' },
-  real_cost_sub: { he: 'הון עצמי + מס רכישה + עלויות נלוות', en: 'Equity + Purchase Tax + Additional Costs' },
+  // Cost breakdown — upfront cash needed to close the deal
+  real_cost_title: { he: 'הון עצמי נדרש לסגירת העסקה', en: 'Cash Needed to Close the Deal' },
+  real_cost_sub: {
+    he: 'כולל הון עצמי, מס רכישה, עו״ד, תיווך, שמאי, יועץ משכנתאות, פתיחת תיק בבנק, שיפוץ ועלויות נוספות',
+    en: 'Includes equity, purchase tax, lawyer, broker, appraiser, mortgage advisor, bank file fee, renovation, and extra costs',
+  },
+
+  // Lifetime cost — full property cost over the mortgage term
+  lifetime_cost_title: { he: 'עלות כוללת לאורך חיי המשכנתא', en: 'Total Lifetime Cost Over the Mortgage Term' },
+  lifetime_cost_sub: {
+    he: 'מחיר הנכס + מס רכישה + עלויות עסקה + סך ריבית + ביטוח לאורך כל התקופה',
+    en: 'Property price + purchase tax + transaction costs + total interest + insurance over the full term',
+  },
+  lifetime_property_price: { he: 'מחיר הנכס', en: 'Property Price' },
+  lifetime_upfront_costs: { he: 'עלויות עסקה (ללא מס רכישה)', en: 'Transaction Costs (excl. purchase tax)' },
+  lifetime_total_interest: { he: 'סך ריבית למשכנתא', en: 'Total Mortgage Interest' },
+  lifetime_total_insurance: { he: 'סך ביטוח משכנתא לאורך התקופה', en: 'Total Mortgage Insurance Over Term' },
+  lifetime_grand_total: { he: 'סה״כ עלות כוללת', en: 'Grand Total Lifetime Cost' },
 
   // Mortgage breakdown
   mortgage_detail: { he: 'פירוט המשכנתא', en: 'Mortgage Breakdown' },
