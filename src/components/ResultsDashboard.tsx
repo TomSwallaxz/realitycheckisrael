@@ -905,9 +905,12 @@ function LifetimeCostBlock({ result, inputs }: { result: AnalysisResult; inputs:
       </div>
 
       <div className="flex justify-between items-baseline pt-3 mt-3 border-t border-border/30">
-        <span className="font-heading font-semibold text-foreground">{t("lifetime_grand_total")}</span>
+        <span className="font-heading font-semibold text-foreground">{t("lifetime_grand_total_full")}</span>
         <span className="font-mono font-bold text-lg sm:text-xl text-foreground">{formatNIS(grandTotal)}</span>
       </div>
+      <p className="text-[11px] sm:text-xs text-muted-foreground mt-3 pt-3 border-t border-border/20">
+        {t("lifetime_cost_explainer")}
+      </p>
     </div>
   );
 }
