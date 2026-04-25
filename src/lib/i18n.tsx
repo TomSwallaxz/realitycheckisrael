@@ -228,6 +228,22 @@ const translations = {
     he: 'כולל הון עצמי, מס רכישה, עו״ד, תיווך, שמאי, יועץ משכנתאות, פתיחת תיק בבנק, שיפוץ ועלויות נוספות',
     en: 'Includes equity, purchase tax, lawyer, broker, appraiser, mortgage advisor, bank file fee, renovation, and extra costs',
   },
+  real_cost_explainer: {
+    he: '💡 זו עלות הכניסה לעסקה — כמה כסף אתה צריך להביא עכשיו מהכיס.',
+    en: '💡 This is the entry cost — how much cash you need to bring upfront.',
+  },
+  bank_cost_explainer: {
+    he: '💡 זו עלות המימון בלבד — כמה תשלם לבנק לאורך כל תקופת המשכנתא.',
+    en: '💡 This is the financing cost only — how much you pay the bank over the full mortgage term.',
+  },
+  lifetime_cost_explainer: {
+    he: '💡 זו העלות המלאה לאורך חיי העסקה — סך הכסף שיוצא לך מהכיס מתחילת העסקה ועד סוף המשכנתא.',
+    en: '💡 This is the full lifetime cost — total money out of pocket from day one until the mortgage ends.',
+  },
+  lifetime_grand_total_full: {
+    he: 'סה״כ כסף שיוצא לך מהכיס לאורך כל התקופה',
+    en: 'Total money out of pocket over the entire period',
+  },
 
   // Lifetime cost — full property cost over the mortgage term
   lifetime_cost_title: { he: 'עלות כוללת לאורך חיי המשכנתא', en: 'Total Lifetime Cost Over the Mortgage Term' },

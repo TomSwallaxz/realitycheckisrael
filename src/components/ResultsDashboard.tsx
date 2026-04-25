@@ -385,6 +385,9 @@ function CostBreakdownSection({ result }: { result: AnalysisResult }) {
           );
         })}
       </div>
+      <p className="text-[11px] sm:text-xs text-muted-foreground mt-3 pt-3 border-t border-border/20">
+        {t("real_cost_explainer")}
+      </p>
     </div>
   );
 }
@@ -811,11 +814,8 @@ function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
   const { t } = useI18n();
   const [showTip, setShowTip] = useState(false);
   const totalMonths = result.termYears * 12;
-  const insurance = Math.max(0, result.monthlyMortgageInsurance ?? 0);
   const totalPaid = result.monthlyPayment * totalMonths;
   const totalInterest = totalPaid - result.loanAmount;
-  const totalInsurance = insurance * totalMonths;
-  const totalMonthly = result.totalMonthlyCost ?? (result.monthlyPayment + insurance);
 
   return (
     <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
@@ -862,27 +862,10 @@ function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
           </div>
           <span className="font-mono font-semibold text-warning">{formatNIS(totalInterest)}</span>
         </div>
-        <div className="flex justify-between items-baseline text-[13px] sm:text-sm pt-2 border-t border-border/20">
-          <span className="text-muted-foreground">{t("monthly_payment")}</span>
-          <span className="font-mono font-semibold text-foreground">{formatNIS(result.monthlyPayment)}</span>
-        </div>
-        {insurance > 0 && (
-          <div className="flex justify-between items-baseline text-[13px] sm:text-sm">
-            <span className="text-muted-foreground">{t("monthly_mortgage_insurance")}</span>
-            <span className="font-mono font-semibold text-foreground">{formatNIS(insurance)}</span>
-          </div>
-        )}
-        <div className="flex justify-between items-baseline text-[13px] sm:text-sm pt-2 border-t border-border/20">
-          <span className="font-heading font-semibold text-foreground">{t("total_monthly_cost")}</span>
-          <span className="font-mono font-bold text-base sm:text-lg text-foreground">{formatNIS(totalMonthly)}</span>
-        </div>
-        {insurance > 0 && (
-          <div className="flex justify-between items-baseline text-[11px] sm:text-xs text-muted-foreground/80">
-            <span>{t("monthly_mortgage_insurance")} × {totalMonths}</span>
-            <span className="font-mono">{formatNIS(totalInsurance)}</span>
-          </div>
-        )}
       </div>
+      <p className="text-[11px] sm:text-xs text-muted-foreground mt-3 pt-3 border-t border-border/20">
+        {t("bank_cost_explainer")}
+      </p>
     </div>
   );
 }
@@ -922,9 +905,12 @@ function LifetimeCostBlock({ result, inputs }: { result: AnalysisResult; inputs:
       </div>
 
       <div className="flex justify-between items-baseline pt-3 mt-3 border-t border-border/30">
-        <span className="font-heading font-semibold text-foreground">{t("lifetime_grand_total")}</span>
+        <span className="font-heading font-semibold text-foreground">{t("lifetime_grand_total_full")}</span>
         <span className="font-mono font-bold text-lg sm:text-xl text-foreground">{formatNIS(grandTotal)}</span>
       </div>
+      <p className="text-[11px] sm:text-xs text-muted-foreground mt-3 pt-3 border-t border-border/20">
+        {t("lifetime_cost_explainer")}
+      </p>
     </div>
   );
 }
@@ -1100,24 +1086,10 @@ export function ResultsDashboard({ result, inputs, motivations, mortgage }: Prop
       <VerdictBanner result={result} />
       <RiskBreakdown result={result} />
       <CashflowSection result={result} inputs={inputs} />
+      <CostBreakdownSection result={result} />
       <TotalMortgageCostBlock result={result} />
       <LifetimeCostBlock result={result} inputs={inputs} />
       <AppreciationBlock price={inputs.price} />
-
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-        <MetricCard
-          label={t("monthly_payment")}
-          value={formatNIS(result.monthlyPayment)}
-          sub={`${burdenPercent.toFixed(0)}% ${t("of_income")}`}
-          level={burdenLevel}
-        />
-        <MetricCard
-          label={t("purchase_tax")}
-          value={formatNIS(result.purchaseTax)}
-          sub={t("money_gone_day1")}
-          level={result.purchaseTax > 50000 ? "danger" : "neutral"}
-        />
-      </div>
 
       <ApprovalScoreSection result={result} inputs={inputs} />
       {result.borrowerComparison && <BorrowerComparisonSection result={result} />}
@@ -1152,8 +1124,6 @@ export function ResultsDashboard({ result, inputs, motivations, mortgage }: Prop
           <p className="text-[11px] sm:text-xs text-muted-foreground mt-2.5">{t("parent_help_insight")}</p>
         </div>
       )}
-
-      <CostBreakdownSection result={result} />
 
       <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
         <h3 className="font-heading font-bold text-sm text-foreground mb-2 sm:mb-3">{t("mortgage_detail")}</h3>
