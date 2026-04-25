@@ -431,6 +431,8 @@ const translations = {
   broker_fee_pct: { he: 'דמי תיווך', en: 'Broker Fee' },
   lawyer_fee_pct: { he: 'שכ״ט עו״ד', en: 'Lawyer Fee' },
   appraiser_fee_label: { he: 'שמאי', en: 'Appraiser' },
+  mortgage_advisor_fee: { he: 'יועץ משכנתאות', en: 'Mortgage Advisor' },
+  mortgage_advisor_fee_hint: { he: 'עלות יועץ משכנתאות (בדרך כלל 4,000–10,000 ₪)', en: 'Mortgage advisor cost (typically ₪4,000–10,000)' },
   renovation_cost: { he: 'שיפוץ / ריהוט', en: 'Renovation / Furniture' },
   extra_costs: { he: 'עלויות נוספות', en: 'Other Costs' },
   housing_maintenance: { he: 'תחזוקה / ועד / ביטוח (חודשי)', en: 'Maintenance / HOA / Insurance (monthly)' },
