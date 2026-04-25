@@ -888,6 +888,52 @@ function TotalMortgageCostBlock({ result }: { result: AnalysisResult }) {
 }
 
 const MOTIVATION_RESPONSES_KEYS: Record<string, string> = {
+  // (kept above) — LifetimeCostBlock lives below
+};
+
+function LifetimeCostBlock({ result, inputs }: { result: AnalysisResult; inputs: PropertyInputs }) {
+  const { t } = useI18n();
+  const totalMonths = result.termYears * 12;
+  const insurance = Math.max(0, result.monthlyMortgageInsurance ?? 0);
+  const totalInterest = Math.max(0, result.monthlyPayment * totalMonths - result.loanAmount);
+  const totalInsurance = insurance * totalMonths;
+  // Upfront transaction costs only — exclude equity (already inside price) and purchase tax (shown separately)
+  const parentCont = inputs.parentHelp && inputs.parentHelpAmount > 0 ? inputs.parentHelpAmount : 0;
+  const effectiveDownPayment = inputs.downPayment + parentCont;
+  const upfrontCosts = Math.max(0, result.totalRealCost - effectiveDownPayment - result.purchaseTax);
+  const grandTotal = inputs.price + result.purchaseTax + upfrontCosts + totalInterest + totalInsurance;
+
+  const rows = [
+    { label: t("lifetime_property_price"), amount: inputs.price },
+    { label: t("purchase_tax"), amount: result.purchaseTax },
+    { label: t("lifetime_upfront_costs"), amount: upfrontCosts },
+    { label: t("lifetime_total_interest"), amount: totalInterest },
+    ...(totalInsurance > 0 ? [{ label: t("lifetime_total_insurance"), amount: totalInsurance }] : []),
+  ];
+
+  return (
+    <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
+      <h3 className="font-heading font-bold text-sm text-foreground mb-1">{t("lifetime_cost_title")}</h3>
+      <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">{t("lifetime_cost_sub")}</p>
+
+      <div className="space-y-1.5">
+        {rows.map((r, i) => (
+          <div key={i} className="flex justify-between text-[13px] sm:text-sm">
+            <span className="text-foreground">{r.label}</span>
+            <span className="text-foreground font-medium font-mono">{formatNIS(r.amount)}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-between items-baseline pt-3 mt-3 border-t border-border/30">
+        <span className="font-heading font-semibold text-foreground">{t("lifetime_grand_total")}</span>
+        <span className="font-mono font-bold text-lg sm:text-xl text-foreground">{formatNIS(grandTotal)}</span>
+      </div>
+    </div>
+  );
+}
+
+const _MOTIVATION_RESPONSES_KEYS_PLACEHOLDER: Record<string, string> = {
   family_pressure: "resp_family",
   fomo: "resp_fomo",
   stability: "resp_stability",
