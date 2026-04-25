@@ -444,6 +444,13 @@ export function PropertyForm({ inputs, onChange }: Props) {
             prefix="₪"
           />
           <NumericField
+            label={t('mortgage_advisor_fee')}
+            value={inputs.mortgageAdvisorFee ?? 6000}
+            onChange={(v) => onChange({ ...inputs, mortgageAdvisorFee: v })}
+            prefix="₪"
+            hint={t('mortgage_advisor_fee_hint')}
+          />
+          <NumericField
             label={t('renovation_cost')}
             value={inputs.renovationCost ?? 0}
             onChange={(v) => onChange({ ...inputs, renovationCost: v })}

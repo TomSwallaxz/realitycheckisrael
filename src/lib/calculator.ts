@@ -42,6 +42,7 @@ export interface PropertyInputs {
   appraiserFee?: number;         // default 3000
   renovationCost?: number;       // default 0
   extraCosts?: number;           // default 0
+  mortgageAdvisorFee?: number;   // default 6000 (₪) — independent mortgage advisor
   // ----- Recurring housing costs (for fair rent vs mortgage compare) -----
   monthlyHousingMaintenance?: number; // owner: vaad bayit + insurance + maintenance reserve
   altRentMaintenance?: number;        // renter: vaad bayit + recurring costs
@@ -416,7 +417,8 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
   const appraiserFee = inputs.appraiserFee ?? 3000;
   const renovationCost = Math.max(0, inputs.renovationCost ?? 0);
   const extraCosts = Math.max(0, inputs.extraCosts ?? 0);
-  const totalRealCost = effectiveDownPayment + purchaseTax + lawyerFee + brokerFee + appraiserFee + renovationCost + extraCosts;
+  const mortgageAdvisorFee = Math.max(0, inputs.mortgageAdvisorFee ?? 6000);
+  const totalRealCost = effectiveDownPayment + purchaseTax + lawyerFee + brokerFee + appraiserFee + mortgageAdvisorFee + renovationCost + extraCosts;
   const costBreakdown: { label: string; amount: number }[] = [
     { label: 'סה״כ הון עצמי', amount: effectiveDownPayment },
     ...(parentContribution > 0
@@ -429,6 +431,7 @@ export function analyze(inputs: PropertyInputs, mortgage: MortgageStructure): An
     { label: `עו״ד${inputs.lawyerFeeFixed ? '' : ` (${lawyerPct}%)`}`, amount: lawyerFee },
     { label: `תיווך (${brokerPct}%)`, amount: brokerFee },
     { label: 'שמאי', amount: appraiserFee },
+    ...(mortgageAdvisorFee > 0 ? [{ label: 'יועץ משכנתאות', amount: mortgageAdvisorFee }] : []),
     ...(renovationCost > 0 ? [{ label: 'שיפוץ / ריהוט', amount: renovationCost }] : []),
     ...(extraCosts > 0 ? [{ label: 'עלויות נוספות', amount: extraCosts }] : []),
   ];
