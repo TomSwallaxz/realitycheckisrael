@@ -311,9 +311,9 @@ export async function generateDealPDF(result: AnalysisResult, inputs: PropertyIn
               <div class="pdf-card-sub">${escapeHtml(`${burdenPercent}% מההכנסה`)}</div>
             </div>
             <div class="pdf-card pdf-card-soft">
-              <div class="pdf-card-title">עלות אמיתית כוללת</div>
+              <div class="pdf-card-title">הון עצמי נדרש לסגירת העסקה</div>
               <div class="pdf-card-value">${renderNumber(formatNIS(result.totalRealCost))}</div>
-              <div class="pdf-card-sub">הון עצמי + מס רכישה + עלויות נלוות</div>
+              <div class="pdf-card-sub">כולל הון עצמי, מס רכישה, עו״ד, תיווך, שמאי, יועץ משכנתאות, פתיחת תיק בבנק, שיפוץ ועלויות נוספות</div>
             </div>
             ${inputs.propertyType === "investment" ? `
               <div class="pdf-card pdf-card-soft">
@@ -445,7 +445,7 @@ export async function generateDealPDF(result: AnalysisResult, inputs: PropertyIn
         <div class="pdf-section-body">
           <div class="pdf-grid-2">
             <div class="pdf-card">
-              <div class="pdf-card-title">עלות אמיתית — breakdown</div>
+              <div class="pdf-card-title">הון עצמי נדרש — פירוט</div>
               ${result.costBreakdown.map((item) => renderRow(item.label.trim(), formatNIS(item.amount))).join("")}
             </div>
             <div class="pdf-card">
