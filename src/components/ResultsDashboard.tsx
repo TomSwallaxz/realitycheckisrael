@@ -385,6 +385,9 @@ function CostBreakdownSection({ result }: { result: AnalysisResult }) {
           );
         })}
       </div>
+      <p className="text-[11px] sm:text-xs text-muted-foreground mt-3 pt-3 border-t border-border/20">
+        {t("real_cost_explainer")}
+      </p>
     </div>
   );
 }
